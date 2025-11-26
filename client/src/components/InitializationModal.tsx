@@ -309,7 +309,8 @@ export function InitializationModal({ isOpen, onComplete, canSkip = false, initi
                 <li>Revenus de location temporaires</li>
                 <li>Remboursements exceptionnels</li>
               </ul>
-              <br />
+            </div>
+            <p className="text-sm text-orange-800">
               <strong>Types :</strong> Une seule fois, sur plusieurs mois, ou permanents. Vous pouvez en ajouter plusieurs ou aucun.
             </p>
           </div>

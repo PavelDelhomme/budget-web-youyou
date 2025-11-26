@@ -216,7 +216,8 @@ function App() {
         setExpenses(Array.isArray(ds.expenses) ? ds.expenses : []);
         setSubs(Array.isArray(ds.subs) ? ds.subs : []);
         setAnnualFixedExpenses(Array.isArray(ds.annualFixedExpenses) ? ds.annualFixedExpenses : []);
-        setMonthlySalary(ds.monthlySalary || 0);
+        // Prendre monthlySalary depuis yearData, sinon depuis globalData
+        setMonthlySalary(ds.monthlySalary || globalData?.monthlySalary || 0);
         setCurrentSavings(ds.currentSavings || 0);
         setSavingsTransactions(Array.isArray(ds.savingsTransactions) ? ds.savingsTransactions : []);
       } catch (err) {
@@ -224,7 +225,7 @@ function App() {
       }
     }
     load();
-  }, [sessionEmail, year, predictedYears]);
+  }, [sessionEmail, year, predictedYears, globalData]);
 
   // Save data when categories, expenses, subs, salary, savings change, with debounce
   // Don't save if viewing a prediction or if we're on the dashboard
@@ -402,15 +403,33 @@ function App() {
       await Api.putGlobalData(globalDataToSave);
       setGlobalData(globalDataToSave);
       
-      // Apply monthly salary to current year
-      if (data.monthlySalary > 0 && typeof year === 'number') {
+      // Apply monthly salary to current year if year exists
+      if (data.monthlySalary > 0) {
+        const currentYearNum = today.getFullYear();
         try {
-          const currentYearData = await Api.getYearData(year);
-          await Api.putYearData(year, {
+          // Try to get current year data, create if it doesn't exist
+          let currentYearData;
+          try {
+            currentYearData = await Api.getYearData(currentYearNum);
+          } catch (err: any) {
+            // Year doesn't exist, create it first
+            if (err.status === 404 || err.message?.includes('404')) {
+              await Api.addYear(currentYearNum);
+              currentYearData = { categories: defaultCategories, expenses: [], subs: [], annualFixedExpenses: [], monthlySalary: 0, currentSavings: 0, savingsTransactions: [] };
+            } else {
+              throw err;
+            }
+          }
+          
+          await Api.putYearData(currentYearNum, {
             ...currentYearData,
             monthlySalary: data.monthlySalary,
           });
-          setMonthlySalary(data.monthlySalary);
+          
+          // Update local state
+          if (typeof year === 'number' && year === currentYearNum) {
+            setMonthlySalary(data.monthlySalary);
+          }
         } catch (err) {
           console.warn('Could not save monthly salary to current year:', err);
         }
