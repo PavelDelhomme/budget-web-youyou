@@ -1,0 +1,47 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: budget-web-backend
+    ports:
+      - "6060:6060"
+    environment:
+      - PORT=6060
+      - SECRET_KEY=${SECRET_KEY:-budget-annuel-secret-key-change-in-production}
+      - DEBUG=${DEBUG:-False}
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-dev@delhomme.ovh}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-5n!B@#c*ymgEBYXrWdKE}
+    volumes:
+      - ./backend/data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6060/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: budget-web-frontend
+    ports:
+      - "6061:3030"
+    environment:
+      - VITE_API_URL=http://localhost:6060
+      - VITE_PROXY_TARGET=http://backend:6060
+    volumes:
+      - ./client:/app
+      - budget-web-frontend_node_modules:/app/node_modules
+      - budget-web-frontend_dist:/app/dist
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  budget-web-frontend_node_modules:
+  budget-web-frontend_dist:
+
