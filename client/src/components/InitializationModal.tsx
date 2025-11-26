@@ -303,14 +303,13 @@ export function InitializationModal({ isOpen, onComplete, canSkip = false, initi
               <strong>Exemples :</strong>
             </p>
             <ul className="list-disc list-inside ml-4 mt-1 text-sm text-orange-800">
-                <li>Cadeaux d'argent (anniversaire, Noël, etc.)</li>
-                <li>Bonus ponctuels</li>
-                <li>Aides exceptionnelles de l'État</li>
-                <li>Revenus de location temporaires</li>
-                <li>Remboursements exceptionnels</li>
-              </ul>
-            </div>
-            <p className="text-sm text-orange-800">
+              <li>Cadeaux d'argent (anniversaire, Noël, etc.)</li>
+              <li>Bonus ponctuels</li>
+              <li>Aides exceptionnelles de l'État</li>
+              <li>Revenus de location temporaires</li>
+              <li>Remboursements exceptionnels</li>
+            </ul>
+            <p className="text-sm text-orange-800 mt-2">
               <strong>Types :</strong> Une seule fois, sur plusieurs mois, ou permanents. Vous pouvez en ajouter plusieurs ou aucun.
             </p>
           </div>
