@@ -81,6 +81,14 @@ export interface SavingsProject {
   description?: string;
 }
 
+// Transactions d'investissement ponctuelles
+export interface InvestmentTransaction {
+  id: string;
+  date: string; // Date de la transaction (ISO format)
+  amount: number; // Montant de la contribution (toujours positif)
+  note?: string; // Note optionnelle
+}
+
 // Investissements
 export interface Investment {
   id: string;
@@ -88,9 +96,10 @@ export interface Investment {
   name: string;
   platform: string; // Ex: Revolut, Binance, etc.
   currentValue: number;
-  monthlyContribution: number;
+  monthlyContribution: number; // Contribution mensuelle fixe (optionnelle)
   initialAmount: number;
   startDate: string; // Date de début d'investissement (ISO format)
+  transactions?: InvestmentTransaction[]; // Contributions ponctuelles
   note?: string;
 }
 

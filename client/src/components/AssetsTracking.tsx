@@ -56,10 +56,11 @@ export function AssetsTracking({
     );
   }
 
-  // Fonction pour calculer le total investi (initial + contributions mensuelles)
+  // Fonction pour calculer le total investi (initial + contributions mensuelles + transactions ponctuelles)
   const calculateTotalInvested = (investment: Investment): number => {
     if (!investment.startDate) {
-      return investment.initialAmount;
+      const oneTimeContributionsTotal = (investment.transactions || []).reduce((sum, t) => sum + t.amount, 0);
+      return investment.initialAmount + oneTimeContributionsTotal;
     }
     
     const startDate = new Date(investment.startDate);
@@ -68,7 +69,12 @@ export function AssetsTracking({
                       (now.getMonth() - startDate.getMonth());
     const monthsActive = Math.max(0, monthsDiff);
     
-    return investment.initialAmount + (investment.monthlyContribution * monthsActive);
+    // Contributions mensuelles
+    const monthlyContributionsTotal = investment.monthlyContribution * monthsActive;
+    // Contributions ponctuelles
+    const oneTimeContributionsTotal = (investment.transactions || []).reduce((sum, t) => sum + t.amount, 0);
+    
+    return investment.initialAmount + monthlyContributionsTotal + oneTimeContributionsTotal;
   };
 
   // Fonction pour calculer le bénéfice/rendement

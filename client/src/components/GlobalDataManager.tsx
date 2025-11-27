@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Modal } from './Modal';
-import { BankAccount, Investment, SavingsGoal, SavingsProject, SalaryHistory, UserGlobalData } from '../types';
+import { BankAccount, Investment, InvestmentTransaction, SavingsGoal, SavingsProject, SalaryHistory, UserGlobalData } from '../types';
 import { currency, parseAmount, toISODate, today } from '../utils';
 
 interface GlobalDataManagerProps {
@@ -240,11 +240,52 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
     setEditingInvestmentId(null);
   }
 
+  // États pour gérer les transactions d'investissement
+  const [managingTransactionsForInvestmentId, setManagingTransactionsForInvestmentId] = useState<string | null>(null);
+  const [newTransactionAmount, setNewTransactionAmount] = useState('');
+  const [newTransactionDate, setNewTransactionDate] = useState(toISODate(today));
+  const [newTransactionNote, setNewTransactionNote] = useState('');
+
   function removeInvestment(id: string) {
     setInvestments(investments.filter(inv => inv.id !== id));
     if (editingInvestmentId === id) {
       cancelEditInvestment();
     }
+    // Fermer aussi la gestion des transactions si elle était ouverte
+    if (managingTransactionsForInvestmentId === id) {
+      setManagingTransactionsForInvestmentId(null);
+    }
+  }
+
+  function addInvestmentTransaction(investmentId: string) {
+    const amount = parseAmount(newTransactionAmount);
+    if (amount <= 0 || !newTransactionDate) return;
+
+    const transaction: InvestmentTransaction = {
+      id: crypto.randomUUID(),
+      date: newTransactionDate,
+      amount: amount,
+      note: newTransactionNote || undefined,
+    };
+
+    setInvestments(investments.map(inv => 
+      inv.id === investmentId
+        ? { ...inv, transactions: [...(inv.transactions || []), transaction] }
+        : inv
+    ));
+
+    // Réinitialiser le formulaire
+    setNewTransactionAmount('');
+    setNewTransactionDate(toISODate(today));
+    setNewTransactionNote('');
+  }
+
+  function removeInvestmentTransaction(investmentId: string, transactionId: string) {
+    setInvestments(investments.map(inv => 
+      inv.id === investmentId
+        ? { ...inv, transactions: (inv.transactions || []).filter(t => t.id !== transactionId) }
+        : inv
+    ));
   }
 
   function addGoal() {
@@ -767,7 +808,12 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
                   const monthsActive = startDate ? 
                     Math.max(0, (today.getFullYear() - startDate.getFullYear()) * 12 + 
                                (today.getMonth() - startDate.getMonth())) : 0;
-                  const totalInvested = inv.initialAmount + (inv.monthlyContribution * monthsActive);
+                  // Calculer le total des contributions mensuelles
+                  const monthlyContributionsTotal = inv.monthlyContribution * monthsActive;
+                  // Calculer le total des transactions ponctuelles
+                  const oneTimeContributionsTotal = (inv.transactions || []).reduce((sum, t) => sum + t.amount, 0);
+                  // Total investi = initial + contributions mensuelles + transactions ponctuelles
+                  const totalInvested = inv.initialAmount + monthlyContributionsTotal + oneTimeContributionsTotal;
                   const profit = inv.currentValue - totalInvested;
                   const returnPercentage = totalInvested > 0 ? (profit / totalInvested) * 100 : 0;
                   
@@ -821,6 +867,94 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
                             {returnPercentage >= 0 ? '+' : ''}{returnPercentage.toFixed(2)}%
                           </div>
                         </div>
+                      </div>
+                      
+                      {/* Affichage des transactions ponctuelles */}
+                      {inv.transactions && inv.transactions.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                          <div className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                            Contributions ponctuelles ({inv.transactions.length}): {currency(oneTimeContributionsTotal)}
+                          </div>
+                          <div className="space-y-1 max-h-32 overflow-y-auto">
+                            {inv.transactions
+                              .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                              .slice(0, 5)
+                              .map((t) => (
+                                <div key={t.id} className="flex justify-between items-center text-xs bg-white dark:bg-gray-800/50 p-1 rounded">
+                                  <span className="text-gray-700 dark:text-gray-300">
+                                    {new Date(t.date).toLocaleDateString('fr-FR')}: {currency(t.amount)}
+                                    {t.note && <span className="text-gray-500 dark:text-gray-500 ml-1">({t.note})</span>}
+                                  </span>
+                                  <button
+                                    onClick={() => removeInvestmentTransaction(inv.id, t.id)}
+                                    className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 text-xs"
+                                    title="Supprimer"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              ))}
+                            {inv.transactions.length > 5 && (
+                              <div className="text-xs text-gray-500 dark:text-gray-500 italic">
+                                ... et {inv.transactions.length - 5} autre(s)
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Bouton pour gérer les transactions */}
+                      <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                        <button
+                          onClick={() => setManagingTransactionsForInvestmentId(
+                            managingTransactionsForInvestmentId === inv.id ? null : inv.id
+                          )}
+                          className="w-full text-xs px-3 py-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors"
+                        >
+                          {managingTransactionsForInvestmentId === inv.id ? '✕ Fermer' : '+ Ajouter contribution ponctuelle'}
+                        </button>
+                        
+                        {managingTransactionsForInvestmentId === inv.id && (
+                          <div className="mt-2 p-2 bg-white dark:bg-gray-800/50 rounded border border-gray-200 dark:border-gray-600 space-y-2">
+                            <div>
+                              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Date</label>
+                              <input
+                                type="date"
+                                value={newTransactionDate}
+                                onChange={(e) => setNewTransactionDate(e.target.value)}
+                                className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Montant (€)</label>
+                              <input
+                                type="text"
+                                value={newTransactionAmount}
+                                onChange={(e) => setNewTransactionAmount(e.target.value)}
+                                placeholder="Ex: 500,00 ou 500.00"
+                                className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Note (optionnel)</label>
+                              <input
+                                type="text"
+                                value={newTransactionNote}
+                                onChange={(e) => setNewTransactionNote(e.target.value)}
+                                placeholder="Ex: Achat BTC"
+                                className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                              />
+                            </div>
+                            <button
+                              onClick={() => addInvestmentTransaction(inv.id)}
+                              className="w-full px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded text-xs hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+                            >
+                              Ajouter
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
