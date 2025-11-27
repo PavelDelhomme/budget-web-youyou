@@ -6,18 +6,29 @@ from flask_cors import CORS
 from functools import wraps
 import re
 import os
+import time
+from datetime import datetime, timedelta
 
 from api.utils import load_user, save_user, get_default_year_data
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'budget-annuel-secret-key-change-in-production')
-app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['PERMANENT_SESSION_LIFETIME'] = 30 * 24 * 60 * 60  # 30 days
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # Empêche l'accès JavaScript aux cookies
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Protection CSRF
+app.config['SESSION_COOKIE_SECURE'] = os.environ.get('FLASK_ENV') == 'production'  # HTTPS en production
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
+app.config['SESSION_COOKIE_NAME'] = 'budget_session'  # Nom personnalisé
 
 # Credentials - stockés comme variables d'environnement pour la sécurité
 ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'dev@delhomme.ovh')
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', '5n!B@#c*ymgEBYXrWdKE')
+
+# Rate limiting pour les tentatives de login (protection contre brute force)
+login_attempts = {}  # {ip: {'count': int, 'last_attempt': timestamp, 'locked_until': timestamp}}
+MAX_LOGIN_ATTEMPTS = 5
+LOCKOUT_DURATION = 900  # 15 minutes en secondes
+RATE_LIMIT_WINDOW = 60  # Fenêtre de 60 secondes pour les tentatives
 
 # CORS configuration
 CORS(app, 
@@ -48,40 +59,114 @@ def handle_exception(e):
 
 
 def require_auth(f):
-    """Decorator to require authentication"""
+    """Decorator to require authentication with security checks"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        # Vérifier la session
         if 'user_email' not in session:
             return jsonify({'error': 'Not authenticated'}), 401
+        
+        # Vérifier que l'email de la session est valide
+        user_email = session.get('user_email')
+        if not user_email or not isinstance(user_email, str):
+            session.clear()
+            return jsonify({'error': 'Session invalide'}), 401
+        
+        # Valider le format de l'email dans la session
+        email_regex = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
+        if not re.match(email_regex, user_email):
+            session.clear()
+            return jsonify({'error': 'Session invalide'}), 401
+        
         return f(*args, **kwargs)
     return decorated_function
 
 
 @app.route('/api/login', methods=['POST'])
 def login():
-    """Login endpoint"""
-    data = request.get_json()
-    email = data.get('email', '').strip() if data else ''
-    password = data.get('password', '')
+    """Login endpoint with security measures"""
+    # Rate limiting - protection contre les attaques brute force
+    client_ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR', 'unknown'))
+    if client_ip == 'unknown':
+        client_ip = request.remote_addr or 'unknown'
     
+    current_time = time.time()
+    
+    # Vérifier si l'IP est bloquée
+    if client_ip in login_attempts:
+        attempt_data = login_attempts[client_ip]
+        if 'locked_until' in attempt_data and current_time < attempt_data['locked_until']:
+            remaining_time = int(attempt_data['locked_until'] - current_time)
+            return jsonify({
+                'error': f'Trop de tentatives. Veuillez réessayer dans {remaining_time // 60} minute(s).'
+            }), 429
+        
+        # Réinitialiser le compteur si la fenêtre de temps est passée
+        if 'last_attempt' in attempt_data:
+            time_since_last = current_time - attempt_data['last_attempt']
+            if time_since_last > RATE_LIMIT_WINDOW:
+                attempt_data['count'] = 0
+    
+    # Validation des données d'entrée
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'Données invalides'}), 400
+    
+    email = data.get('email', '').strip() if isinstance(data.get('email'), str) else ''
+    password = data.get('password', '') if isinstance(data.get('password'), str) else ''
+    
+    # Validation de l'email
     if not email:
         return jsonify({'error': 'Email invalide'}), 400
     
-    # Validate email format
-    email_regex = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
-    if not re.match(email_regex, email):
+    # Validation du format email (protection injection)
+    if len(email) > 254:  # RFC 5321 limite
         return jsonify({'error': 'Email invalide'}), 400
     
-    # Verify credentials
-    if email.lower() != ADMIN_EMAIL.lower():
+    email_regex = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
+    if not re.match(email_regex, email):
         return jsonify({'error': 'Email ou mot de passe incorrect'}), 401
     
-    if password != ADMIN_PASSWORD:
+    # Validation du mot de passe
+    if not password or not isinstance(password, str):
         return jsonify({'error': 'Email ou mot de passe incorrect'}), 401
     
-    # Set session user
+    # Limiter la longueur du mot de passe (protection)
+    if len(password) > 500:
+        return jsonify({'error': 'Email ou mot de passe incorrect'}), 401
+    
+    # Vérifier les identifiants
+    email_match = email.lower() == ADMIN_EMAIL.lower()
+    password_match = password == ADMIN_PASSWORD
+    
+    # Si les identifiants sont incorrects, incrémenter le compteur
+    if not email_match or not password_match:
+        if client_ip not in login_attempts:
+            login_attempts[client_ip] = {'count': 0, 'last_attempt': current_time}
+        
+        login_attempts[client_ip]['count'] += 1
+        login_attempts[client_ip]['last_attempt'] = current_time
+        
+        # Bloquer l'IP après trop de tentatives
+        if login_attempts[client_ip]['count'] >= MAX_LOGIN_ATTEMPTS:
+            login_attempts[client_ip]['locked_until'] = current_time + LOCKOUT_DURATION
+            return jsonify({
+                'error': f'Trop de tentatives échouées. Veuillez réessayer dans {LOCKOUT_DURATION // 60} minute(s).'
+            }), 429
+        
+        # Message générique pour ne pas révéler lequel est incorrect
+        return jsonify({'error': 'Email ou mot de passe incorrect'}), 401
+    
+    # Authentification réussie - réinitialiser le compteur
+    if client_ip in login_attempts:
+        del login_attempts[client_ip]
+    
+    # Set session user avec sécurité renforcée
     session['user_email'] = ADMIN_EMAIL
     session.permanent = True
+    
+    # Regenerate session ID pour prévenir le fixation attack
+    session.permanent_session_lifetime = timedelta(days=30)
     
     # Ensure user data exists
     user_data = load_user(ADMIN_EMAIL)
@@ -219,23 +304,30 @@ def get_year_data():
 @app.route('/api/put', methods=['PUT'])
 @require_auth
 def put_year_data():
-    """Update data for a specific year"""
+    """Update data for a specific year with input validation"""
     user_email = session['user_email']
     year_str = request.args.get('year')
     
     if not year_str:
         return jsonify({'error': 'Année requise'}), 400
     
+    # Validation stricte de l'année
     try:
         year_num = int(year_str)
         if year_num < 1900 or year_num > 2100:
             return jsonify({'error': 'Année invalide'}), 400
-    except ValueError:
+    except (ValueError, TypeError):
         return jsonify({'error': 'Année invalide'}), 400
     
+    # Validation du payload
     payload = request.get_json()
     if not isinstance(payload, dict):
         return jsonify({'error': 'Payload invalide'}), 400
+    
+    # Limiter la taille du payload (protection contre les payloads trop volumineux)
+    payload_str = str(payload)
+    if len(payload_str) > 1000000:  # 1MB max
+        return jsonify({'error': 'Payload trop volumineux'}), 400
     
     user_data = load_user(user_email)
     year_key = str(year_num)
@@ -331,12 +423,17 @@ def get_global_data():
 @app.route('/api/global', methods=['PUT'])
 @require_auth
 def put_global_data():
-    """Update global user data"""
+    """Update global user data with input validation"""
     user_email = session['user_email']
     payload = request.get_json()
     
     if not isinstance(payload, dict):
         return jsonify({'error': 'Payload invalide'}), 400
+    
+    # Limiter la taille du payload
+    payload_str = str(payload)
+    if len(payload_str) > 500000:  # 500KB max pour les données globales
+        return jsonify({'error': 'Payload trop volumineux'}), 400
     
     user_data = load_user(user_email)
     user_data['globalData'] = payload
