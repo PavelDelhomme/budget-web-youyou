@@ -73,9 +73,11 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
     targetAmount: 0,
     currentAmount: 0,
     priority: 1,
+    accountId: '' as string | undefined,
   });
   const [currentGoalTargetInput, setCurrentGoalTargetInput] = useState('');
   const [currentGoalCurrentInput, setCurrentGoalCurrentInput] = useState('');
+  const [currentGoalAccountId, setCurrentGoalAccountId] = useState<string>('');
 
   // Savings Projects state
   const [savingsProjects, setSavingsProjects] = useState<SavingsProject[]>(globalData.savingsProjects || []);
@@ -254,6 +256,7 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
       ...currentGoal,
       targetAmount: target,
       currentAmount: current,
+      accountId: currentGoalAccountId || undefined,
     };
     
     if (editingGoalId) {
@@ -280,9 +283,11 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
       targetAmount: 0,
       currentAmount: 0,
       priority: 1,
+      accountId: undefined,
     });
     setCurrentGoalTargetInput('');
     setCurrentGoalCurrentInput('');
+    setCurrentGoalAccountId('');
   }
 
   function editGoal(goal: SavingsGoal) {
@@ -292,9 +297,11 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
       targetAmount: goal.targetAmount,
       currentAmount: goal.currentAmount,
       priority: goal.priority,
+      accountId: goal.accountId,
     });
     setCurrentGoalTargetInput(goal.targetAmount === 0 ? '' : goal.targetAmount.toString().replace('.', ','));
     setCurrentGoalCurrentInput(goal.currentAmount === 0 ? '' : goal.currentAmount.toString().replace('.', ','));
+    setCurrentGoalAccountId(goal.accountId || '');
     setEditingGoalId(goal.id);
   }
 
@@ -305,9 +312,11 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
       targetAmount: 0,
       currentAmount: 0,
       priority: 1,
+      accountId: undefined,
     });
     setCurrentGoalTargetInput('');
     setCurrentGoalCurrentInput('');
+    setCurrentGoalAccountId('');
     setEditingGoalId(null);
   }
 
@@ -886,6 +895,25 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
               />
 
+              <label className="block text-sm font-medium text-gray-900 dark:text-white">Compte bancaire lié <span className="text-gray-500 dark:text-gray-400 text-xs">(optionnel, sauf comptes courants)</span></label>
+              <select
+                value={currentGoalAccountId}
+                onChange={(e) => {
+                  setCurrentGoalAccountId(e.target.value);
+                  setCurrentGoal({ ...currentGoal, accountId: e.target.value || undefined });
+                }}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              >
+                <option value="">— Non spécifié —</option>
+                {accounts
+                  .filter(acc => acc.accountType !== 'checking') // Exclure les comptes courants
+                  .map((account) => (
+                    <option key={account.id} value={account.id}>
+                      {account.name} ({account.accountType === 'savings' ? 'Épargne' : 'Poche'})
+                    </option>
+                  ))}
+              </select>
+
               <div className="flex gap-2">
                 <button
                   onClick={addGoal}
@@ -907,7 +935,9 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
             {savingsGoals.length > 0 && (
               <div className="space-y-2">
                 <h4 className="font-medium text-gray-900 dark:text-white">Objectifs :</h4>
-                {savingsGoals.map((goal) => (
+                {savingsGoals.map((goal) => {
+                  const linkedAccount = accounts.find(a => a.id === goal.accountId);
+                  return (
                   <div key={goal.id} className="p-2 bg-gray-50 dark:bg-gray-700/50 rounded border border-gray-200 dark:border-gray-600">
                     <div className="flex justify-between items-center">
                       <div className="flex-1">
@@ -916,6 +946,11 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
                         <div className="text-sm text-gray-900 dark:text-white">
                           {currency(goal.currentAmount)} / {currency(goal.targetAmount)}
                         </div>
+                        {linkedAccount && (
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Compte: {linkedAccount.name} ({linkedAccount.accountType === 'savings' ? 'Épargne' : 'Poche'})
+                          </div>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         <button
@@ -935,7 +970,8 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

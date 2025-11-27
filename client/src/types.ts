@@ -67,6 +67,7 @@ export interface SavingsGoal {
   currentAmount: number;
   priority: number; // Priorité (1 = plus important)
   description?: string;
+  accountId?: string; // ID du compte bancaire lié (pas de compte courant/checking)
 }
 
 // Projets d'épargne
