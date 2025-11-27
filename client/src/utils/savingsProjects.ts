@@ -27,9 +27,11 @@ export function calculateProjectsContributionsForYear(
   
   for (const project of projects) {
     const targetDate = new Date(project.targetDate);
+    const projectYear = targetDate.getFullYear();
     
-    // Vérifier si le projet est actif pour cette année
-    if (targetDate >= yearStart && targetDate <= yearEnd) {
+    // Un projet est actif pour une année si sa date cible est dans l'année ou après
+    // (on continue à épargner pour ce projet jusqu'à sa date cible)
+    if (projectYear >= year) {
       const monthlyContrib = project.monthlyContribution || 0;
       
       if (isFutureYear) {
