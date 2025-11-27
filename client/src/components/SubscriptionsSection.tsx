@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Subscription } from '../types';
+import { Subscription, BankAccount } from '../types';
 import { parseAmount, currency } from '../utils';
 
 interface SubscriptionsSectionProps {
   subs: Subscription[];
   monthNow: number;
+  bankAccounts?: BankAccount[];
   onAddSub: (sub: Omit<Subscription, 'id'>) => void;
   onRemoveSub: (id: string) => void;
   monthsOverlapFullYear: (s: Subscription) => number;
@@ -14,6 +15,7 @@ interface SubscriptionsSectionProps {
 export function SubscriptionsSection({
   subs,
   monthNow,
+  bankAccounts = [],
   onAddSub,
   onRemoveSub,
   monthsOverlapFullYear,
@@ -24,6 +26,7 @@ export function SubscriptionsSection({
   const [startMonth, setStartMonth] = useState(1);
   const [endMonth, setEndMonth] = useState(12);
   const [ongoing, setOngoing] = useState(false);
+  const [accountId, setAccountId] = useState<string>('');
 
   const handleAdd = () => {
     const m = parseAmount(monthly);
@@ -36,12 +39,14 @@ export function SubscriptionsSection({
       startMonth: sm,
       endMonth: em,
       ongoing,
+      accountId: accountId || undefined,
     });
     setName('');
     setMonthly('');
     setStartMonth(1);
     setEndMonth(12);
     setOngoing(false);
+    setAccountId('');
   };
 
   return (
@@ -49,7 +54,7 @@ export function SubscriptionsSection({
       <h2 className="font-semibold text-lg text-gray-900 dark:text-white">
         Abonnements (dépenses fixes mensuelles)
       </h2>
-      <div className="grid md:grid-cols-6 gap-3 items-end">
+      <div className="grid md:grid-cols-7 gap-3 items-end">
         <div className="md:col-span-2">
           <label className="text-sm text-slate-600 dark:text-gray-400">Nom</label>
           <input
@@ -68,6 +73,21 @@ export function SubscriptionsSection({
             value={monthly}
             onChange={(e) => setMonthly(e.target.value)}
           />
+        </div>
+        <div>
+          <label className="text-sm text-slate-600 dark:text-gray-400">Compte bancaire</label>
+          <select
+            className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            value={accountId}
+            onChange={(e) => setAccountId(e.target.value)}
+          >
+            <option value="">— Non spécifié —</option>
+            {bankAccounts.map((account) => (
+              <option key={account.id} value={account.id}>
+                {account.name}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label className="text-sm text-slate-600 dark:text-gray-400">Débute (mois)</label>
@@ -120,6 +140,7 @@ export function SubscriptionsSection({
               <tr className="text-left text-slate-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
                 <th className="py-2 pr-4">Nom</th>
                 <th className="py-2 pr-4">Mensuel</th>
+                <th className="py-2 pr-4">Compte</th>
                 <th className="py-2 pr-4">Mois actifs</th>
                 <th className="py-2 pr-4">Total annuel</th>
                 <th className="py-2 pr-4">Payé à date</th>
@@ -130,10 +151,14 @@ export function SubscriptionsSection({
               {subs.map((s) => {
                 const monthsFull = monthsOverlapFullYear(s);
                 const monthsToDate = monthsOverlapInYear(s, monthNow);
+                const account = bankAccounts.find(a => a.id === s.accountId);
                 return (
                   <tr key={s.id} className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td className="py-2 pr-4 text-gray-900 dark:text-white">{s.name}</td>
                     <td className="py-2 pr-4 text-gray-900 dark:text-white">{currency(s.monthly)}</td>
+                    <td className="py-2 pr-4 text-gray-600 dark:text-gray-400 text-sm">
+                      {account ? account.name : '—'}
+                    </td>
                     <td className="py-2 pr-4 text-gray-900 dark:text-white">{monthsFull}</td>
                     <td className="py-2 pr-4 text-gray-900 dark:text-white font-medium">{currency(s.monthly * monthsFull)}</td>
                     <td className="py-2 pr-4 text-gray-900 dark:text-white font-medium">{currency(s.monthly * monthsToDate)}</td>

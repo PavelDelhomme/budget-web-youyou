@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { AnnualFixedExpense } from '../types';
+import { AnnualFixedExpense, BankAccount } from '../types';
 import { currency, parseAmount } from '../utils';
 
 interface AnnualFixedExpensesProps {
   expenses: AnnualFixedExpense[];
+  bankAccounts?: BankAccount[];
   onAdd: (expense: Omit<AnnualFixedExpense, 'id'>) => void;
   onRemove: (id: string) => void;
   onUpdate: (id: string, expense: Partial<AnnualFixedExpense>) => void;
@@ -11,6 +12,7 @@ interface AnnualFixedExpensesProps {
 
 export function AnnualFixedExpenses({
   expenses,
+  bankAccounts = [],
   onAdd,
   onRemove,
   onUpdate,
@@ -21,6 +23,7 @@ export function AnnualFixedExpenses({
     amount: 0,
     month: 1,
     note: '',
+    accountId: '' as string | undefined,
   });
 
   const months = [
@@ -30,8 +33,11 @@ export function AnnualFixedExpenses({
 
   function handleAdd() {
     if (!newExpense.name || newExpense.amount <= 0) return;
-    onAdd(newExpense);
-    setNewExpense({ name: '', amount: 0, month: 1, note: '' });
+    onAdd({
+      ...newExpense,
+      accountId: newExpense.accountId || undefined,
+    });
+    setNewExpense({ name: '', amount: 0, month: 1, note: '', accountId: '' });
     setIsAdding(false);
   }
 
@@ -51,7 +57,7 @@ export function AnnualFixedExpenses({
 
       {isAdding && (
         <div className="mb-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Nom</label>
               <input
@@ -88,6 +94,21 @@ export function AnnualFixedExpenses({
                 ))}
               </select>
             </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Compte bancaire</label>
+              <select
+                value={newExpense.accountId || ''}
+                onChange={(e) => setNewExpense({ ...newExpense, accountId: e.target.value || undefined })}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              >
+                <option value="">— Non spécifié —</option>
+                {bankAccounts.map((account) => (
+                  <option key={account.id} value={account.id}>
+                    {account.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
           <div className="mt-3">
             <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Note (optionnel)</label>
@@ -120,6 +141,7 @@ export function AnnualFixedExpenses({
                 <tr className="border-b border-gray-200 dark:border-gray-700">
                   <th className="text-left py-2 px-3 text-gray-700 dark:text-gray-300">Nom</th>
                   <th className="text-left py-2 px-3 text-gray-700 dark:text-gray-300">Mois</th>
+                  <th className="text-left py-2 px-3 text-gray-700 dark:text-gray-300">Compte</th>
                   <th className="text-right py-2 px-3 text-gray-700 dark:text-gray-300">Montant</th>
                   <th className="text-left py-2 px-3 text-gray-700 dark:text-gray-300">Note</th>
                   <th className="text-right py-2 px-3 text-gray-700 dark:text-gray-300">Actions</th>
@@ -128,10 +150,15 @@ export function AnnualFixedExpenses({
               <tbody>
                 {expenses
                   .sort((a, b) => a.month - b.month)
-                  .map((exp) => (
+                  .map((exp) => {
+                    const account = bankAccounts.find(a => a.id === exp.accountId);
+                    return (
                     <tr key={exp.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                       <td className="py-2 px-3 text-gray-900 dark:text-white">{exp.name}</td>
                       <td className="py-2 px-3 text-gray-900 dark:text-white">{months[exp.month - 1]}</td>
+                      <td className="py-2 px-3 text-sm text-gray-600 dark:text-gray-400">
+                        {account ? account.name : '—'}
+                      </td>
                       <td className="py-2 px-3 text-right font-semibold text-gray-900 dark:text-white">
                         {currency(exp.amount)}
                       </td>
@@ -146,6 +173,7 @@ export function AnnualFixedExpenses({
                                 amount: editingExpense.amount,
                                 month: editingExpense.month,
                                 note: editingExpense.note || '',
+                                accountId: editingExpense.accountId || '',
                               });
                               setIsAdding(true);
                               onRemove(exp.id);
@@ -163,7 +191,8 @@ export function AnnualFixedExpenses({
                         </button>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
               </tbody>
             </table>
           </div>

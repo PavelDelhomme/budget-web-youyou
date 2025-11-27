@@ -977,6 +977,8 @@ function App() {
         <ExpensesSection
           expenses={expenses}
           categories={categories}
+          bankAccounts={globalData?.bankAccounts || []}
+          savingsProjects={globalData?.savingsProjects || []}
           onAddExpense={addExpense}
           onRemoveExpense={removeExpense}
           onUpdateExpense={updateExpense}
@@ -986,6 +988,7 @@ function App() {
         <SubscriptionsSection
           subs={subs}
           monthNow={calculations.monthNow}
+          bankAccounts={globalData?.bankAccounts || []}
           onAddSub={addSub}
           onRemoveSub={removeSub}
           monthsOverlapFullYear={calculations.monthsOverlapFullYear}
@@ -995,6 +998,7 @@ function App() {
         {/* Annual Fixed Expenses */}
         <AnnualFixedExpenses
           expenses={annualFixedExpenses}
+          bankAccounts={globalData?.bankAccounts || []}
           onAdd={addAnnualFixedExpense}
           onRemove={removeAnnualFixedExpense}
           onUpdate={updateAnnualFixedExpense}

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Expense, Category } from '../types';
+import { Expense, Category, BankAccount, SavingsProject } from '../types';
 import { toISODate, parseAmount, currency, today } from '../utils';
 
 interface ExpensesSectionProps {
   expenses: Expense[];
   categories: Category[];
+  bankAccounts?: BankAccount[];
+  savingsProjects?: SavingsProject[];
   onAddExpense: (expense: Omit<Expense, 'id'>) => void;
   onRemoveExpense: (id: string) => void;
   onUpdateExpense: (id: string, expense: Partial<Expense>) => void;
@@ -13,6 +15,8 @@ interface ExpensesSectionProps {
 export function ExpensesSection({
   expenses,
   categories,
+  bankAccounts = [],
+  savingsProjects = [],
   onAddExpense,
   onRemoveExpense,
   onUpdateExpense,
@@ -23,6 +27,8 @@ export function ExpensesSection({
     categories[0]?.id || ''
   );
   const [note, setNote] = useState('');
+  const [accountId, setAccountId] = useState<string>('');
+  const [projectId, setProjectId] = useState<string>('');
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
 
   const handleAdd = () => {
@@ -36,6 +42,8 @@ export function ExpensesSection({
         amount: amt,
         categoryId,
         note,
+        accountId: accountId || undefined,
+        projectId: projectId || undefined,
       });
       setEditingExpenseId(null);
     } else {
@@ -45,6 +53,8 @@ export function ExpensesSection({
         amount: amt,
         categoryId,
         note,
+        accountId: accountId || undefined,
+        projectId: projectId || undefined,
       });
     }
     
@@ -52,6 +62,8 @@ export function ExpensesSection({
     setNote('');
     setDate(toISODate(today));
     setCategoryId(categories[0]?.id || '');
+    setAccountId('');
+    setProjectId('');
   };
 
   const handleEdit = (expense: Expense) => {
@@ -60,6 +72,8 @@ export function ExpensesSection({
     setAmount(expense.amount.toString().replace('.', ','));
     setCategoryId(expense.categoryId);
     setNote(expense.note);
+    setAccountId(expense.accountId || '');
+    setProjectId(expense.projectId || '');
     // Scroll vers le formulaire
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -70,6 +84,8 @@ export function ExpensesSection({
     setNote('');
     setDate(toISODate(today));
     setCategoryId(categories[0]?.id || '');
+    setAccountId('');
+    setProjectId('');
   };
 
   return (
@@ -77,7 +93,7 @@ export function ExpensesSection({
       <h2 className="font-semibold text-lg text-gray-900 dark:text-white">
         {editingExpenseId ? 'Modifier une dépense variable' : 'Ajouter une dépense variable'}
       </h2>
-      <div className="grid md:grid-cols-5 gap-3">
+      <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-3">
         <div>
           <label className="text-sm text-slate-600 dark:text-gray-400">Date</label>
           <input
@@ -111,7 +127,37 @@ export function ExpensesSection({
             ))}
           </select>
         </div>
-        <div className="md:col-span-2">
+        <div>
+          <label className="text-sm text-slate-600 dark:text-gray-400">Compte bancaire</label>
+          <select
+            className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            value={accountId}
+            onChange={(e) => setAccountId(e.target.value)}
+          >
+            <option value="">— Non spécifié —</option>
+            {bankAccounts.map((account) => (
+              <option key={account.id} value={account.id}>
+                {account.name} ({account.accountType})
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="text-sm text-slate-600 dark:text-gray-400">Projet d'épargne</label>
+          <select
+            className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            value={projectId}
+            onChange={(e) => setProjectId(e.target.value)}
+          >
+            <option value="">— Non spécifié —</option>
+            {savingsProjects.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="md:col-span-2 lg:col-span-2">
           <label className="text-sm text-slate-600 dark:text-gray-400">Note</label>
           <input
             className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
@@ -144,19 +190,30 @@ export function ExpensesSection({
               <tr className="text-left text-slate-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
                 <th className="py-2 pr-4">Date</th>
                 <th className="py-2 pr-4">Catégorie</th>
+                <th className="py-2 pr-4">Compte</th>
+                <th className="py-2 pr-4">Projet</th>
                 <th className="py-2 pr-4">Note</th>
                 <th className="py-2 pr-4">Montant</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
-              {expenses.map((e) => (
+              {expenses.map((e) => {
+                const account = bankAccounts.find(a => a.id === e.accountId);
+                const project = savingsProjects.find(p => p.id === e.projectId);
+                return (
                 <tr key={e.id} className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                   <td className="py-2 pr-4 text-gray-900 dark:text-white">{toISODate(e.date)}</td>
                   <td className="py-2 pr-4 text-gray-900 dark:text-white">
                     {categories.find((c) => c.id === e.categoryId)?.name || '—'}
                   </td>
-                  <td className="py-2 pr-4 max-w-[300px] truncate text-gray-900 dark:text-white" title={e.note}>
+                  <td className="py-2 pr-4 text-gray-600 dark:text-gray-400 text-sm">
+                    {account ? `${account.name}` : '—'}
+                  </td>
+                  <td className="py-2 pr-4 text-gray-600 dark:text-gray-400 text-sm">
+                    {project ? project.name : '—'}
+                  </td>
+                  <td className="py-2 pr-4 max-w-[200px] truncate text-gray-900 dark:text-white" title={e.note}>
                     {e.note}
                   </td>
                   <td className="py-2 pr-4 text-gray-900 dark:text-white font-medium">{currency(e.amount)}</td>
@@ -177,7 +234,8 @@ export function ExpensesSection({
                     </button>
                   </td>
                 </tr>
-              ))}
+              );
+              })}
             </tbody>
           </table>
         </div>

@@ -165,8 +165,7 @@ def login():
     session['user_email'] = ADMIN_EMAIL
     session.permanent = True
     
-    # Regenerate session ID pour prévenir le fixation attack
-    session.permanent_session_lifetime = timedelta(days=30)
+    # Set session lifetime (already configured globally)
     
     # Ensure user data exists
     user_data = load_user(ADMIN_EMAIL)

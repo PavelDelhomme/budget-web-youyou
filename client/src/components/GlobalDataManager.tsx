@@ -46,6 +46,7 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
     currentBalance: 0,
     accountType: 'checking' as 'checking' | 'savings' | 'pocket',
   });
+  const [currentAccountBalanceInput, setCurrentAccountBalanceInput] = useState('');
   
   // Investments state
   const [investments, setInvestments] = useState<Investment[]>(globalData.investments || []);
@@ -59,6 +60,9 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
     initialAmount: 0,
     startDate: toISODate(today),
   });
+  const [currentInvestmentValueInput, setCurrentInvestmentValueInput] = useState('');
+  const [currentInvestmentContributionInput, setCurrentInvestmentContributionInput] = useState('');
+  const [currentInvestmentInitialInput, setCurrentInvestmentInitialInput] = useState('');
   
   // Savings Goals state
   const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>(globalData.savingsGoals || []);
@@ -70,6 +74,8 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
     currentAmount: 0,
     priority: 1,
   });
+  const [currentGoalTargetInput, setCurrentGoalTargetInput] = useState('');
+  const [currentGoalCurrentInput, setCurrentGoalCurrentInput] = useState('');
 
   // Savings Projects state
   const [savingsProjects, setSavingsProjects] = useState<SavingsProject[]>(globalData.savingsProjects || []);
@@ -81,6 +87,9 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
     targetDate: '',
     monthlyContribution: 0,
   });
+  const [currentProjectTargetInput, setCurrentProjectTargetInput] = useState('');
+  const [currentProjectCurrentInput, setCurrentProjectCurrentInput] = useState('');
+  const [currentProjectContributionInput, setCurrentProjectContributionInput] = useState('');
 
   // Salary History state
   const [salaryHistory, setSalaryHistory] = useState<SalaryHistory[]>(globalData.salaryHistory || []);
@@ -92,6 +101,7 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
     type: 'salary' as 'salary' | 'unemployment' | 'freelance' | 'other',
     note: '',
   });
+  const [currentSalaryHistoryAmountInput, setCurrentSalaryHistoryAmountInput] = useState('');
 
   // Update local state when globalData changes
   React.useEffect(() => {
@@ -104,11 +114,14 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
 
   function addAccount() {
     if (!currentAccount.name) return;
+    const balance = parseAmount(currentAccountBalanceInput);
+    const accountToSave = { ...currentAccount, currentBalance: balance };
+    
     if (editingAccountId) {
       // Modifier le compte existant
       setAccounts(accounts.map(acc => 
         acc.id === editingAccountId 
-          ? { ...acc, ...currentAccount }
+          ? { ...acc, ...accountToSave }
           : acc
       ));
       setEditingAccountId(null);
@@ -118,11 +131,12 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
         ...accounts,
         {
           id: crypto.randomUUID(),
-          ...currentAccount,
+          ...accountToSave,
         },
       ]);
     }
     setCurrentAccount({ name: '', currentBalance: 0, accountType: 'checking' });
+    setCurrentAccountBalanceInput('');
   }
 
   function editAccount(account: BankAccount) {
@@ -131,11 +145,13 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
       currentBalance: account.currentBalance,
       accountType: account.accountType,
     });
+    setCurrentAccountBalanceInput(account.currentBalance === 0 ? '' : account.currentBalance.toString().replace('.', ','));
     setEditingAccountId(account.id);
   }
 
   function cancelEditAccount() {
     setCurrentAccount({ name: '', currentBalance: 0, accountType: 'checking' });
+    setCurrentAccountBalanceInput('');
     setEditingAccountId(null);
   }
 
@@ -148,11 +164,21 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
 
   function addInvestment() {
     if (!currentInvestment.name || !currentInvestment.platform) return;
+    const value = parseAmount(currentInvestmentValueInput);
+    const contribution = parseAmount(currentInvestmentContributionInput);
+    const initial = parseAmount(currentInvestmentInitialInput);
+    const investmentToSave = {
+      ...currentInvestment,
+      currentValue: value,
+      monthlyContribution: contribution,
+      initialAmount: initial,
+    };
+    
     if (editingInvestmentId) {
       // Modifier l'investissement existant
       setInvestments(investments.map(inv => 
         inv.id === editingInvestmentId 
-          ? { ...inv, ...currentInvestment }
+          ? { ...inv, ...investmentToSave }
           : inv
       ));
       setEditingInvestmentId(null);
@@ -162,7 +188,7 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
         ...investments,
         {
           id: crypto.randomUUID(),
-          ...currentInvestment,
+          ...investmentToSave,
         },
       ]);
     }
@@ -175,6 +201,9 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
       initialAmount: 0,
       startDate: toISODate(today),
     });
+    setCurrentInvestmentValueInput('');
+    setCurrentInvestmentContributionInput('');
+    setCurrentInvestmentInitialInput('');
   }
 
   function editInvestment(investment: Investment) {
@@ -187,6 +216,9 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
       initialAmount: investment.initialAmount,
       startDate: investment.startDate,
     });
+    setCurrentInvestmentValueInput(investment.currentValue === 0 ? '' : investment.currentValue.toString().replace('.', ','));
+    setCurrentInvestmentContributionInput(investment.monthlyContribution === 0 ? '' : investment.monthlyContribution.toString().replace('.', ','));
+    setCurrentInvestmentInitialInput(investment.initialAmount === 0 ? '' : investment.initialAmount.toString().replace('.', ','));
     setEditingInvestmentId(investment.id);
   }
 
@@ -200,6 +232,9 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
       initialAmount: 0,
       startDate: toISODate(today),
     });
+    setCurrentInvestmentValueInput('');
+    setCurrentInvestmentContributionInput('');
+    setCurrentInvestmentInitialInput('');
     setEditingInvestmentId(null);
   }
 
@@ -211,12 +246,21 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
   }
 
   function addGoal() {
-    if (!currentGoal.name || currentGoal.targetAmount === 0) return;
+    if (!currentGoal.name) return;
+    const target = parseAmount(currentGoalTargetInput);
+    const current = parseAmount(currentGoalCurrentInput);
+    if (target === 0) return;
+    const goalToSave = {
+      ...currentGoal,
+      targetAmount: target,
+      currentAmount: current,
+    };
+    
     if (editingGoalId) {
       // Modifier l'objectif existant
       setSavingsGoals(savingsGoals.map(goal => 
         goal.id === editingGoalId 
-          ? { ...goal, ...currentGoal }
+          ? { ...goal, ...goalToSave }
           : goal
       ));
       setEditingGoalId(null);
@@ -226,7 +270,7 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
         ...savingsGoals,
         {
           id: crypto.randomUUID(),
-          ...currentGoal,
+          ...goalToSave,
         },
       ]);
     }
@@ -237,6 +281,8 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
       currentAmount: 0,
       priority: 1,
     });
+    setCurrentGoalTargetInput('');
+    setCurrentGoalCurrentInput('');
   }
 
   function editGoal(goal: SavingsGoal) {
@@ -247,6 +293,8 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
       currentAmount: goal.currentAmount,
       priority: goal.priority,
     });
+    setCurrentGoalTargetInput(goal.targetAmount === 0 ? '' : goal.targetAmount.toString().replace('.', ','));
+    setCurrentGoalCurrentInput(goal.currentAmount === 0 ? '' : goal.currentAmount.toString().replace('.', ','));
     setEditingGoalId(goal.id);
   }
 
@@ -258,6 +306,8 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
       currentAmount: 0,
       priority: 1,
     });
+    setCurrentGoalTargetInput('');
+    setCurrentGoalCurrentInput('');
     setEditingGoalId(null);
   }
 
@@ -269,12 +319,23 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
   }
 
   function addProject() {
-    if (!currentProject.name || !currentProject.targetDate || currentProject.targetAmount === 0) return;
+    if (!currentProject.name || !currentProject.targetDate) return;
+    const target = parseAmount(currentProjectTargetInput);
+    const current = parseAmount(currentProjectCurrentInput);
+    const contribution = parseAmount(currentProjectContributionInput);
+    if (target === 0) return;
+    const projectToSave = {
+      ...currentProject,
+      targetAmount: target,
+      currentAmount: current,
+      monthlyContribution: contribution,
+    };
+    
     if (editingProjectId) {
       // Modifier le projet existant
       setSavingsProjects(savingsProjects.map(project => 
         project.id === editingProjectId 
-          ? { ...project, ...currentProject }
+          ? { ...project, ...projectToSave }
           : project
       ));
       setEditingProjectId(null);
@@ -284,7 +345,7 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
         ...savingsProjects,
         {
           id: crypto.randomUUID(),
-          ...currentProject,
+          ...projectToSave,
         },
       ]);
     }
@@ -295,6 +356,9 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
       targetDate: '',
       monthlyContribution: 0,
     });
+    setCurrentProjectTargetInput('');
+    setCurrentProjectCurrentInput('');
+    setCurrentProjectContributionInput('');
   }
 
   function editProject(project: SavingsProject) {
@@ -305,6 +369,9 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
       targetDate: project.targetDate,
       monthlyContribution: project.monthlyContribution,
     });
+    setCurrentProjectTargetInput(project.targetAmount === 0 ? '' : project.targetAmount.toString().replace('.', ','));
+    setCurrentProjectCurrentInput(project.currentAmount === 0 ? '' : project.currentAmount.toString().replace('.', ','));
+    setCurrentProjectContributionInput(project.monthlyContribution === 0 ? '' : project.monthlyContribution.toString().replace('.', ','));
     setEditingProjectId(project.id);
   }
 
@@ -316,6 +383,9 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
       targetDate: '',
       monthlyContribution: 0,
     });
+    setCurrentProjectTargetInput('');
+    setCurrentProjectCurrentInput('');
+    setCurrentProjectContributionInput('');
     setEditingProjectId(null);
   }
 
@@ -327,12 +397,19 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
   }
 
   function addSalaryHistory() {
-    if (!currentSalaryHistory.amount || !currentSalaryHistory.startDate) return;
+    if (!currentSalaryHistory.startDate) return;
+    const amount = parseAmount(currentSalaryHistoryAmountInput);
+    if (amount === 0) return;
+    const historyToSave = {
+      ...currentSalaryHistory,
+      amount,
+    };
+    
     if (editingSalaryHistoryId) {
       // Modifier l'entrée existante
       setSalaryHistory(salaryHistory.map(sh => 
         sh.id === editingSalaryHistoryId 
-          ? { ...sh, ...currentSalaryHistory }
+          ? { ...sh, ...historyToSave }
           : sh
       ));
       setEditingSalaryHistoryId(null);
@@ -342,9 +419,9 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
         ...salaryHistory,
         {
           id: crypto.randomUUID(),
-          ...currentSalaryHistory,
-          endDate: currentSalaryHistory.endDate || undefined,
-          note: currentSalaryHistory.note || undefined,
+          ...historyToSave,
+          endDate: historyToSave.endDate || undefined,
+          note: historyToSave.note || undefined,
         },
       ]);
     }
@@ -355,6 +432,7 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
       type: 'salary',
       note: '',
     });
+    setCurrentSalaryHistoryAmountInput('');
   }
 
   function editSalaryHistory(history: SalaryHistory) {
@@ -365,6 +443,7 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
       type: history.type,
       note: history.note || '',
     });
+    setCurrentSalaryHistoryAmountInput(history.amount === 0 ? '' : history.amount.toString().replace('.', ','));
     setEditingSalaryHistoryId(history.id);
   }
 
@@ -376,6 +455,7 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
       type: 'salary',
       note: '',
     });
+    setCurrentSalaryHistoryAmountInput('');
     setEditingSalaryHistoryId(null);
   }
 
@@ -485,11 +565,13 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
               <label className="block text-sm font-medium text-gray-900 dark:text-white">Solde actuel (€)</label>
               <input
                 type="text"
-                value={currentAccount.currentBalance || ''}
-                onChange={(e) =>
-                  setCurrentAccount({ ...currentAccount, currentBalance: parseAmount(e.target.value) || 0 })
-                }
-                placeholder="Ex: 1234,56 ou 1234.56"
+                value={currentAccountBalanceInput}
+                onChange={(e) => {
+                  setCurrentAccountBalanceInput(e.target.value);
+                  const balance = parseAmount(e.target.value);
+                  setCurrentAccount({ ...currentAccount, currentBalance: balance });
+                }}
+                placeholder="Ex: 1234,56 ou 1234.56 ou 0"
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
 
@@ -600,42 +682,39 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
               <label className="block text-sm font-medium text-gray-900 dark:text-white">Valeur actuelle totale de vos actifs (€)</label>
               <input
                 type="text"
-                value={currentInvestment.currentValue || ''}
-                onChange={(e) =>
-                  setCurrentInvestment({
-                    ...currentInvestment,
-                    currentValue: parseAmount(e.target.value) || 0,
-                  })
-                }
-                placeholder="Ex: 1234,56 ou 1234.56"
+                value={currentInvestmentValueInput}
+                onChange={(e) => {
+                  setCurrentInvestmentValueInput(e.target.value);
+                  const value = parseAmount(e.target.value);
+                  setCurrentInvestment({ ...currentInvestment, currentValue: value });
+                }}
+                placeholder="Ex: 1234,56 ou 1234.56 ou 0"
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
 
               <label className="block text-sm font-medium text-gray-900 dark:text-white">Contribution mensuelle (€) <span className="text-gray-500 dark:text-gray-400 text-xs">(optionnel)</span></label>
               <input
                 type="text"
-                value={currentInvestment.monthlyContribution === 0 ? '' : currentInvestment.monthlyContribution.toString().replace('.', ',')}
-                onChange={(e) =>
-                  setCurrentInvestment({
-                    ...currentInvestment,
-                    monthlyContribution: parseAmount(e.target.value),
-                  })
-                }
-                placeholder="Ex: 20,00 ou laissez vide si aucun versement régulier"
+                value={currentInvestmentContributionInput}
+                onChange={(e) => {
+                  setCurrentInvestmentContributionInput(e.target.value);
+                  const contribution = parseAmount(e.target.value);
+                  setCurrentInvestment({ ...currentInvestment, monthlyContribution: contribution });
+                }}
+                placeholder="Ex: 20,00 ou 20.00 ou laissez vide si aucun versement régulier"
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
 
               <label className="block text-sm font-medium text-gray-900 dark:text-white">Montant initial investi (€)</label>
               <input
                 type="text"
-                value={currentInvestment.initialAmount || ''}
-                onChange={(e) =>
-                  setCurrentInvestment({
-                    ...currentInvestment,
-                    initialAmount: parseAmount(e.target.value) || 0,
-                  })
-                }
-                placeholder="Ex: 500,00 ou 500.00"
+                value={currentInvestmentInitialInput}
+                onChange={(e) => {
+                  setCurrentInvestmentInitialInput(e.target.value);
+                  const initial = parseAmount(e.target.value);
+                  setCurrentInvestment({ ...currentInvestment, initialAmount: initial });
+                }}
+                placeholder="Ex: 500,00 ou 500.00 ou 0"
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
 
@@ -772,22 +851,26 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
               <label className="block text-sm font-medium text-gray-900 dark:text-white">Montant cible (€)</label>
               <input
                 type="text"
-                value={currentGoal.targetAmount || ''}
-                onChange={(e) =>
-                  setCurrentGoal({ ...currentGoal, targetAmount: parseAmount(e.target.value) || 0 })
-                }
-                placeholder="Ex: 5000,00 ou 5000.00"
+                value={currentGoalTargetInput}
+                onChange={(e) => {
+                  setCurrentGoalTargetInput(e.target.value);
+                  const target = parseAmount(e.target.value);
+                  setCurrentGoal({ ...currentGoal, targetAmount: target });
+                }}
+                placeholder="Ex: 5000,00 ou 5000.00 ou 0"
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
 
               <label className="block text-sm font-medium text-gray-900 dark:text-white">Montant actuel (€)</label>
               <input
                 type="text"
-                value={currentGoal.currentAmount || ''}
-                onChange={(e) =>
-                  setCurrentGoal({ ...currentGoal, currentAmount: parseAmount(e.target.value) || 0 })
-                }
-                placeholder="Ex: 1000,00 ou 1000.00"
+                value={currentGoalCurrentInput}
+                onChange={(e) => {
+                  setCurrentGoalCurrentInput(e.target.value);
+                  const current = parseAmount(e.target.value);
+                  setCurrentGoal({ ...currentGoal, currentAmount: current });
+                }}
+                placeholder="Ex: 1000,00 ou 1000.00 ou 0"
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
 
@@ -874,22 +957,26 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
               <label className="block text-sm font-medium text-gray-900 dark:text-white">Montant cible (€)</label>
               <input
                 type="text"
-                value={currentProject.targetAmount || ''}
-                onChange={(e) =>
-                  setCurrentProject({ ...currentProject, targetAmount: parseAmount(e.target.value) || 0 })
-                }
-                placeholder="Ex: 5000,00 ou 5000.00"
+                value={currentProjectTargetInput}
+                onChange={(e) => {
+                  setCurrentProjectTargetInput(e.target.value);
+                  const target = parseAmount(e.target.value);
+                  setCurrentProject({ ...currentProject, targetAmount: target });
+                }}
+                placeholder="Ex: 5000,00 ou 5000.00 ou 0"
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
 
               <label className="block text-sm font-medium text-gray-900 dark:text-white">Montant actuel (€)</label>
               <input
                 type="text"
-                value={currentProject.currentAmount || ''}
-                onChange={(e) =>
-                  setCurrentProject({ ...currentProject, currentAmount: parseAmount(e.target.value) || 0 })
-                }
-                placeholder="Ex: 1000,00 ou 1000.00"
+                value={currentProjectCurrentInput}
+                onChange={(e) => {
+                  setCurrentProjectCurrentInput(e.target.value);
+                  const current = parseAmount(e.target.value);
+                  setCurrentProject({ ...currentProject, currentAmount: current });
+                }}
+                placeholder="Ex: 1000,00 ou 1000.00 ou 0"
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
 
@@ -901,13 +988,15 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
               />
 
-              <label className="block text-sm font-medium text-gray-900 dark:text-white">Contribution mensuelle (€) <span className="text-gray-500 text-xs">(optionnel)</span></label>
+              <label className="block text-sm font-medium text-gray-900 dark:text-white">Contribution mensuelle (€) <span className="text-gray-500 dark:text-gray-400 text-xs">(optionnel)</span></label>
               <input
                 type="text"
-                value={currentProject.monthlyContribution || ''}
-                onChange={(e) =>
-                  setCurrentProject({ ...currentProject, monthlyContribution: parseAmount(e.target.value) || 0 })
-                }
+                value={currentProjectContributionInput}
+                onChange={(e) => {
+                  setCurrentProjectContributionInput(e.target.value);
+                  const contribution = parseAmount(e.target.value);
+                  setCurrentProject({ ...currentProject, monthlyContribution: contribution });
+                }}
                 placeholder="Ex: 200,00 ou 200.00 ou laissez vide"
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
@@ -1005,11 +1094,13 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
               <label className="block text-sm font-medium text-gray-900 dark:text-white">Montant mensuel (€)</label>
               <input
                 type="text"
-                value={currentSalaryHistory.amount || ''}
-                onChange={(e) =>
-                  setCurrentSalaryHistory({ ...currentSalaryHistory, amount: parseAmount(e.target.value) || 0 })
-                }
-                placeholder="Ex: 2500,00 ou 2500.00"
+                value={currentSalaryHistoryAmountInput}
+                onChange={(e) => {
+                  setCurrentSalaryHistoryAmountInput(e.target.value);
+                  const amount = parseAmount(e.target.value);
+                  setCurrentSalaryHistory({ ...currentSalaryHistory, amount });
+                }}
+                placeholder="Ex: 2500,00 ou 2500.00 ou 0"
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
 

@@ -23,6 +23,8 @@ export interface Expense {
   categoryId: string;
   note: string;
   share?: ExpenseShare; // Information sur le partage (optionnel)
+  accountId?: string; // ID du compte bancaire depuis lequel la dépense est effectuée
+  projectId?: string; // ID du projet d'épargne lié (optionnel)
 }
 
 export interface Subscription {
@@ -32,6 +34,7 @@ export interface Subscription {
   startMonth: number;
   endMonth: number;
   ongoing: boolean;
+  accountId?: string; // ID du compte bancaire depuis lequel l'abonnement est payé
 }
 
 export interface SavingsTransaction {
@@ -50,6 +53,7 @@ export interface AnnualFixedExpense {
   note?: string;
   share?: ExpenseShare; // Information sur le partage (optionnel)
   paidTo?: string; // Personne à qui l'argent est versé (ex: "Petite amie")
+  accountId?: string; // ID du compte bancaire depuis lequel la dépense est effectuée
 }
 
 // Types d'épargne
