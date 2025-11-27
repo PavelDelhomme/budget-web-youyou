@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { UserGlobalData, YearData, Expense, Category } from '../types';
-import { currency, today } from '../utils';
+import { currency, today, parseAmount } from '../utils';
 import { BudgetSuggestions } from './BudgetSuggestions';
 import { analyzeBudget } from '../utils/budgetAnalyzer';
 import { ExpensesPieChart } from './ExpensesPieChart';
@@ -99,12 +99,27 @@ export function Dashboard({
   const additionalIncome = calculateAdditionalIncome(currentYear);
   const annualIncome = (monthlySalary * 12) + additionalIncome;
   
-  const annualExpenses = yearData.categories.reduce((sum, cat) => sum + cat.target, 0) +
-    (yearData.subs?.reduce((sum, sub) => {
-      const months = sub.endMonth >= sub.startMonth ? sub.endMonth - sub.startMonth + 1 : 12 - sub.startMonth + sub.endMonth + 1;
-      return sum + sub.monthly * months;
-    }, 0) || 0) +
-    (yearData.annualFixedExpenses?.reduce((sum, exp) => sum + exp.amount, 0) || 0);
+  // Calculer les dépenses annuelles en tenant compte des budgets mensuels si disponibles
+  const variableTargets = yearData.categories.reduce((sum, cat) => {
+    // Si monthlyTargets est défini, utiliser la somme des budgets mensuels
+    if (cat.monthlyTargets && cat.monthlyTargets.length === 12) {
+      return sum + cat.monthlyTargets.reduce((s, val) => s + (typeof val === 'string' ? parseFloat(val.replace(',', '.')) : val || 0), 0);
+    }
+    // Sinon, utiliser le target annuel
+    return sum + (cat.target || 0);
+  }, 0);
+  
+  // Calculer les abonnements annuels
+  const subsAnnual = (yearData.subs || []).reduce((sum, sub) => {
+    const months = sub.ongoing || !sub.endMonth ? 12 : 
+                   (sub.endMonth >= sub.startMonth ? sub.endMonth - sub.startMonth + 1 : 12 - sub.startMonth + sub.endMonth + 1);
+    return sum + (sub.monthly || 0) * months;
+  }, 0);
+  
+  // Calculer les dépenses fixes annuelles
+  const annualFixedExpensesTotal = (yearData.annualFixedExpenses || []).reduce((sum, exp) => sum + (exp.amount || 0), 0);
+  
+  const annualExpenses = variableTargets + subsAnnual + annualFixedExpensesTotal;
 
   const projectedSavings = annualIncome - annualExpenses;
   const savingsRate = annualIncome > 0 ? (projectedSavings / annualIncome) * 100 : 0;
