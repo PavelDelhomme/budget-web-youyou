@@ -240,16 +240,21 @@ def put_year_data():
     user_data = load_user(user_email)
     year_key = str(year_num)
     
+    # Récupérer les données existantes de l'année (si elles existent)
+    existing_data = user_data['datasets'].get(year_key, {})
+    
+    # Fusionner les données existantes avec les nouvelles données du payload
+    # Cela permet de préserver les champs qui ne sont pas dans le payload
     user_data['datasets'][year_key] = {
-        'categories': payload.get('categories', []),
-        'expenses': payload.get('expenses', []),
-        'subs': payload.get('subs', []),
-        'annualFixedExpenses': payload.get('annualFixedExpenses', []),
-        'monthlySalary': payload.get('monthlySalary', 0),
-        'variableMonthlyIncomes': payload.get('variableMonthlyIncomes'),  # Array of 12 values or None
-        'additionalMonthlyIncomes': payload.get('additionalMonthlyIncomes', []),  # Array of MonthlyAdditionalIncome
-        'currentSavings': payload.get('currentSavings', 0),
-        'savingsTransactions': payload.get('savingsTransactions', [])
+        'categories': payload.get('categories', existing_data.get('categories', [])),
+        'expenses': payload.get('expenses', existing_data.get('expenses', [])),
+        'subs': payload.get('subs', existing_data.get('subs', [])),
+        'annualFixedExpenses': payload.get('annualFixedExpenses', existing_data.get('annualFixedExpenses', [])),
+        'monthlySalary': payload.get('monthlySalary', existing_data.get('monthlySalary', 0)),
+        'variableMonthlyIncomes': payload.get('variableMonthlyIncomes') if 'variableMonthlyIncomes' in payload else existing_data.get('variableMonthlyIncomes'),  # Array of 12 values or None
+        'additionalMonthlyIncomes': payload.get('additionalMonthlyIncomes', existing_data.get('additionalMonthlyIncomes', [])),  # Array of MonthlyAdditionalIncome
+        'currentSavings': payload.get('currentSavings', existing_data.get('currentSavings', 0)),
+        'savingsTransactions': payload.get('savingsTransactions', existing_data.get('savingsTransactions', []))
     }
     
     # Ensure year is in years array

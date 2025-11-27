@@ -13,6 +13,8 @@ import { InitializationModal } from './components/InitializationModal';
 import { Dashboard } from './components/Dashboard';
 import { GlobalDataManager } from './components/GlobalDataManager';
 import { RevenusManager } from './components/RevenusManager';
+import { ExpensesPieChart } from './components/ExpensesPieChart';
+import { MonthlyExpensesIncomeChart } from './components/MonthlyExpensesIncomeChart';
 import { useBudgetCalculations } from './hooks/useBudgetData';
 import { Category, Expense, Subscription, SavingsTransaction, YearData, UserGlobalData, AnnualFixedExpense, MonthlyAdditionalIncome } from './types';
 import { generatePredictions, getFutureYears, getHistoricalYears, PredictedYearData } from './utils/budgetPredictor';
@@ -167,14 +169,40 @@ function App() {
         
         setHistoricalData(historicalDataMap);
         
-        // Generate predictions for future years
+        // Load ALL future years that exist in years list to check if they have real data
+        // If they have data, they are real years, not predictions
+        const futureRealYearsDataMap = new Map<number, YearData>();
+        const futureRealYears = years.filter(y => y > currentYearNum);
+        for (const y of futureRealYears) {
+          try {
+            const data = await Api.getYearData(y);
+            // Check if year has meaningful data (not just defaults)
+            const hasRealData = (data.expenses && data.expenses.length > 0) ||
+                                (data.categories && data.categories.some(c => c.target > 0)) ||
+                                (data.subs && data.subs.length > 0) ||
+                                (data.monthlySalary && data.monthlySalary > 0);
+            if (hasRealData) {
+              futureRealYearsDataMap.set(y, data);
+              historicalDataMap.set(y, data); // Include in historical data for dashboard
+            }
+          } catch (err) {
+            // Skip years with errors
+          }
+        }
+        
+        // Update historical data with future real years
+        if (futureRealYearsDataMap.size > 0) {
+          futureRealYearsDataMap.forEach((data, year) => {
+            historicalDataMap.set(year, data);
+          });
+          setHistoricalData(new Map(historicalDataMap));
+        }
+        
+        // Generate predictions ONLY for years that:
+        // 1. Are NOT in the years list (not manually created)
+        // 2. Are truly in the future (not yet created)
+        // 3. Are not in excludedPredictedYears
         if (historicalDataMap.size > 0) {
-          const futureYearsList = getFutureYears(years, currentYearNum);
-          const historicalArray = Array.from(historicalDataMap.entries()).map(([year, data]) => ({
-            year,
-            data
-          }));
-          
           // Load globalData if not already loaded
           let globalDataForPredictions = globalData;
           if (!globalDataForPredictions) {
@@ -185,7 +213,19 @@ function App() {
             }
           }
           
-          const predictions = generatePredictions(historicalArray, futureYearsList, globalDataForPredictions);
+          const excludedYears = globalDataForPredictions?.excludedPredictedYears || [];
+          const maxYears = globalDataForPredictions?.maxPredictedYears || 3;
+          
+          const futureYearsList = getFutureYears(years, currentYearNum, excludedYears, maxYears);
+          // Filter out any years that are already in years list (real years)
+          const predictedYearsOnly = futureYearsList.filter(y => !years.includes(y));
+          
+          const historicalArray = Array.from(historicalDataMap.entries()).map(([year, data]) => ({
+            year,
+            data
+          }));
+          
+          const predictions = generatePredictions(historicalArray, predictedYearsOnly, globalDataForPredictions);
           setPredictedYears(predictions);
         }
       } catch (err) {
@@ -205,8 +245,10 @@ function App() {
       return;
     }
     
-    // Check if it's a predicted year
-    const prediction = predictedYears.find(p => p.year === year);
+    // Check if it's a predicted year (only if it's NOT in years list - real years are never predictions)
+    const isRealYear = typeof year === 'number' && years.includes(year);
+    const prediction = !isRealYear ? predictedYears.find(p => p.year === year) : null;
+    
     if (prediction) {
       setIsViewingPrediction(true);
       setCategories(prediction.categories);
@@ -246,6 +288,15 @@ function App() {
   // Don't save if viewing a prediction or if we're on the dashboard
   useEffect(() => {
     if (!sessionEmail || !year || year === 'dashboard' || isViewingPrediction) return;
+    
+    // Check if year is locked
+    const lockedYears = globalData?.lockedYears || [];
+    const currentYearNum = today.getFullYear();
+    if (typeof year === 'number' && year < currentYearNum && lockedYears.includes(year)) {
+      // Year is locked, don't save
+      return;
+    }
+    
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
       Api.putYearData(year, {
@@ -285,6 +336,12 @@ function App() {
 
   function removeExpense(id: string) {
     setExpenses((prev) => prev.filter((e) => e.id !== id));
+  }
+
+  function updateExpense(id: string, expense: Partial<Expense>) {
+    setExpenses((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, ...expense } : e))
+    );
   }
 
   function addSub(sub: Omit<Subscription, 'id'>) {
@@ -485,6 +542,142 @@ function App() {
     } catch (err: any) {
       throw err; // Let the modal handle the error display
     }
+  }
+
+  async function handleResetYear(yearToReset: number) {
+    // Réinitialiser toutes les données de l'année avec les valeurs par défaut
+    const defaultYearData = {
+      categories: defaultCategories.map(cat => ({ ...cat, monthlyTargets: Array(12).fill(0) })),
+      expenses: [],
+      subs: [],
+      annualFixedExpenses: [],
+      monthlySalary: 0,
+      variableMonthlyIncomes: undefined,
+      additionalMonthlyIncomes: [],
+      currentSavings: 0,
+      savingsTransactions: []
+    };
+    
+    await Api.putYearData(yearToReset, defaultYearData);
+    
+    // Recharger les données si c'est l'année actuellement affichée
+    if (year === yearToReset) {
+      const data = await Api.getYearData(yearToReset);
+      setCategories(data.categories || defaultCategories);
+      setExpenses(data.expenses || []);
+      setSubs(data.subs || []);
+      setAnnualFixedExpenses(data.annualFixedExpenses || []);
+      setMonthlySalary(data.monthlySalary || 0);
+      setVariableMonthlyIncomes(data.variableMonthlyIncomes);
+      setAdditionalMonthlyIncomes(data.additionalMonthlyIncomes || []);
+      setCurrentSavings(data.currentSavings || 0);
+      setSavingsTransactions(data.savingsTransactions || []);
+    }
+    
+    // Recharger les données historiques pour mettre à jour les prédictions
+    const currentYearNum = today.getFullYear();
+    const historicalYearsList = getHistoricalYears(years, currentYearNum);
+    const historicalDataMap = new Map<number, YearData>();
+    
+    for (const y of historicalYearsList) {
+      try {
+        const data = await Api.getYearData(y);
+        historicalDataMap.set(y, data);
+      } catch (err) {
+        // Skip years with errors
+      }
+    }
+    
+    if (years.includes(currentYearNum)) {
+      try {
+        const data = await Api.getYearData(currentYearNum);
+        historicalDataMap.set(currentYearNum, data);
+      } catch (err) {
+        // Skip if error
+      }
+    }
+    
+    setHistoricalData(historicalDataMap);
+    
+    // Régénérer les prédictions
+    if (historicalDataMap.size > 0 && globalData) {
+      const excludedYears = globalData.excludedPredictedYears || [];
+      const maxYears = globalData.maxPredictedYears || 3;
+      
+      const futureYearsList = getFutureYears(years, currentYearNum, excludedYears, maxYears);
+      const predictedYearsOnly = futureYearsList.filter(y => !years.includes(y));
+      
+      const historicalArray = Array.from(historicalDataMap.entries()).map(([year, data]) => ({
+        year,
+        data
+      }));
+      
+      const predictions = generatePredictions(historicalArray, predictedYearsOnly, globalData);
+      setPredictedYears(predictions);
+    }
+  }
+
+  async function handleDeletePredictedYear(yearToDelete: number) {
+    if (!globalData) return;
+    
+    const excludedYears = globalData.excludedPredictedYears || [];
+    const newExcludedYears = [...excludedYears, yearToDelete];
+    
+    const updatedGlobalData: UserGlobalData = {
+      ...globalData,
+      excludedPredictedYears: newExcludedYears,
+    };
+    
+    await Api.putGlobalData(updatedGlobalData);
+    setGlobalData(updatedGlobalData);
+    
+    // Remove from predicted years immediately
+    setPredictedYears(prev => prev.filter(p => p.year !== yearToDelete));
+  }
+
+  async function handleResetAll() {
+    // Supprimer toutes les années
+    for (const y of years) {
+      try {
+        await Api.deleteYear(y);
+      } catch (err) {
+        console.error(`Error deleting year ${y}:`, err);
+      }
+    }
+    
+    // Réinitialiser les données globales
+    const resetGlobalData: UserGlobalData = {
+      bankAccounts: [],
+      investments: [],
+      savingsGoals: [],
+      savingsProjects: [],
+      temporaryIncomes: [],
+      sharedExpensePersons: [],
+      personTransactions: [],
+      initializationComplete: false,
+      monthlySalary: 0,
+      monthlySalaryStartDate: undefined,
+      lockedYears: [],
+      excludedPredictedYears: [],
+      maxPredictedYears: 3,
+    };
+    
+    await Api.putGlobalData(resetGlobalData);
+    setGlobalData(resetGlobalData);
+    setYears([]);
+    setYear('dashboard');
+    setPredictedYears([]);
+    
+    // Clear all local state
+    setCategories([]);
+    setExpenses([]);
+    setSubs([]);
+    setAnnualFixedExpenses([]);
+    setMonthlySalary(0);
+    setVariableMonthlyIncomes(undefined);
+    setAdditionalMonthlyIncomes([]);
+    setCurrentSavings(0);
+    setSavingsTransactions([]);
   }
 
   // Materialize a predicted year (convert prediction to real year)
@@ -786,6 +979,7 @@ function App() {
           categories={categories}
           onAddExpense={addExpense}
           onRemoveExpense={removeExpense}
+          onUpdateExpense={updateExpense}
         />
 
         {/* Subscriptions */}
@@ -805,6 +999,25 @@ function App() {
           onRemove={removeAnnualFixedExpense}
           onUpdate={updateAnnualFixedExpense}
         />
+
+        {/* Charts Section */}
+        <section className="grid md:grid-cols-1 lg:grid-cols-2 gap-6">
+          <ExpensesPieChart
+            categories={categories}
+            expenses={expenses}
+            size={300}
+          />
+          {typeof year === 'number' && (
+            <MonthlyExpensesIncomeChart
+              expenses={expenses}
+              monthlySalary={monthlySalary}
+              variableMonthlyIncomes={variableMonthlyIncomes}
+              additionalMonthlyIncomes={additionalMonthlyIncomes}
+              year={year}
+              height={300}
+            />
+          )}
+        </section>
 
               <section className="text-xs text-slate-500 pb-8">
                 <p>
@@ -846,7 +1059,53 @@ function App() {
             };
             await Api.putGlobalData(updatedGlobalData);
             setGlobalData(updatedGlobalData);
+            
+            // Régénérer les prédictions si les paramètres ont changé
+            if (data.excludedPredictedYears !== undefined || data.maxPredictedYears !== undefined) {
+              const currentYearNum = today.getFullYear();
+              const historicalYearsList = getHistoricalYears(years, currentYearNum);
+              const historicalDataMap = new Map<number, YearData>();
+              
+              for (const y of historicalYearsList) {
+                try {
+                  const yearData = await Api.getYearData(y);
+                  historicalDataMap.set(y, yearData);
+                } catch (err) {
+                  // Skip years with errors
+                }
+              }
+              
+              if (years.includes(currentYearNum)) {
+                try {
+                  const yearData = await Api.getYearData(currentYearNum);
+                  historicalDataMap.set(currentYearNum, yearData);
+                } catch (err) {
+                  // Skip if error
+                }
+              }
+              
+              if (historicalDataMap.size > 0) {
+                const excludedYears = updatedGlobalData.excludedPredictedYears || [];
+                const maxYears = updatedGlobalData.maxPredictedYears || 3;
+                const futureYearsList = getFutureYears(years, currentYearNum, excludedYears, maxYears);
+                const predictedYearsOnly = futureYearsList.filter(y => !years.includes(y));
+                
+                const historicalArray = Array.from(historicalDataMap.entries()).map(([year, data]) => ({
+                  year,
+                  data
+                }));
+                
+                const predictions = generatePredictions(historicalArray, predictedYearsOnly, updatedGlobalData);
+                setPredictedYears(predictions);
+              }
+            }
           }}
+          years={years}
+          predictedYears={predictedYears.map(p => p.year)}
+          onResetYear={handleResetYear}
+          onDeletePredictedYear={handleDeletePredictedYear}
+          onResetAll={handleResetAll}
+          currentYear={year}
         />
       )}
 

@@ -432,15 +432,34 @@ function calculateTrend(values: { year: number; value: number }[]): number {
 
 /**
  * Identifie les années futures qui n'ont pas encore de données
+ * Exclut toutes les années qui sont déjà dans allYears (années réelles créées par l'utilisateur)
+ * @param allYears - Liste de toutes les années réelles
+ * @param currentYear - Année actuelle
+ * @param excludedYears - Années à exclure de la génération (années prédites supprimées par l'utilisateur)
+ * @param maxYears - Nombre maximum d'années à générer (défaut: 3)
  */
-export function getFutureYears(allYears: number[], currentYear: number): number[] {
-  const maxHistoricalYear = Math.max(...allYears);
+export function getFutureYears(allYears: number[], currentYear: number, excludedYears: number[] = [], maxYears: number = 3): number[] {
+  // Trouver la dernière année réelle (année la plus récente dans allYears qui est >= currentYear)
+  // Si aucune année future réelle, utiliser currentYear
+  const futureRealYears = allYears.filter(y => y >= currentYear);
+  const maxRealYear = futureRealYears.length > 0 
+    ? Math.max(...futureRealYears)
+    : currentYear - 1;
+  
   const futureYears: number[] = [];
   
-  // Générer les 3 prochaines années après la dernière année connue
-  for (let i = 1; i <= 3; i++) {
-    const futureYear = maxHistoricalYear + i;
-    if (!allYears.includes(futureYear) && futureYear >= currentYear) {
+  // Générer seulement les années futures qui ne sont PAS déjà dans allYears (années réelles)
+  // et qui ne sont PAS dans excludedYears (années exclues par l'utilisateur)
+  // Générer jusqu'à maxYears années après la dernière année réelle
+  for (let i = 1; i <= maxYears && futureYears.length < maxYears; i++) {
+    const futureYear = maxRealYear + i;
+    // Ne pas inclure si :
+    // - l'année est déjà dans allYears (année réelle)
+    // - l'année est dans excludedYears (exclue par l'utilisateur)
+    // - l'année est dans le passé
+    if (!allYears.includes(futureYear) && 
+        !excludedYears.includes(futureYear) && 
+        futureYear >= currentYear) {
       futureYears.push(futureYear);
     }
   }

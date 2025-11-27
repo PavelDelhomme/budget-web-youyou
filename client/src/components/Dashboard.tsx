@@ -3,6 +3,8 @@ import { UserGlobalData, YearData, Expense, Category } from '../types';
 import { currency, today } from '../utils';
 import { BudgetSuggestions } from './BudgetSuggestions';
 import { analyzeBudget } from '../utils/budgetAnalyzer';
+import { ExpensesPieChart } from './ExpensesPieChart';
+import { MonthlyExpensesIncomeChart } from './MonthlyExpensesIncomeChart';
 
 interface DashboardProps {
   currentYear: number;
@@ -769,6 +771,41 @@ export function Dashboard({
           </div>
         </div>
       </div>
+
+      {/* Charts for complete years */}
+      {historicalArray.length > 0 && (
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">📊 Graphiques par année</h2>
+          <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-6">
+            {historicalArray
+              .filter(({ data }) => data.expenses && data.expenses.length > 0)
+              .map(({ year, data }) => {
+                const yearMonthlySalary = data.monthlySalary || globalData?.monthlySalary || 0;
+                const yearVariableIncomes = data.variableMonthlyIncomes;
+                const yearAdditionalIncomes = data.additionalMonthlyIncomes || [];
+                
+                return (
+                  <div key={year} className="space-y-6">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Année {year}</h3>
+                    <ExpensesPieChart
+                      categories={data.categories || []}
+                      expenses={data.expenses || []}
+                      size={300}
+                    />
+                    <MonthlyExpensesIncomeChart
+                      expenses={data.expenses || []}
+                      monthlySalary={yearMonthlySalary}
+                      variableMonthlyIncomes={yearVariableIncomes}
+                      additionalMonthlyIncomes={yearAdditionalIncomes}
+                      year={year}
+                      height={300}
+                    />
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

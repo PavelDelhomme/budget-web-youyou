@@ -60,7 +60,7 @@ export const Api = {
   getYearData: (year: number) =>
     api(`get?year=${encodeURIComponent(year)}`),
   
-  putYearData: (year: number, payload: { categories: any[]; expenses: any[]; subs: any[]; annualFixedExpenses?: any[]; monthlySalary?: number; variableMonthlyIncomes?: number[]; currentSavings?: number; savingsTransactions?: any[] }) =>
+  putYearData: (year: number, payload: { categories: any[]; expenses: any[]; subs: any[]; annualFixedExpenses?: any[]; monthlySalary?: number; variableMonthlyIncomes?: number[]; additionalMonthlyIncomes?: any[]; currentSavings?: number; savingsTransactions?: any[] }) =>
     api(`put?year=${encodeURIComponent(year)}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },

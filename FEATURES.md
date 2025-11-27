@@ -110,6 +110,45 @@ make reset-data
 - Supprime tous les fichiers JSON de données
 - Permet de relancer le processus d'initialisation
 
+### ✅ 8. Gestion avancée des années et prédictions IA
+
+**Composant** : `GlobalDataManager.tsx` - Onglet "Années"
+
+Nouvelles fonctionnalités pour gérer les années et les prédictions :
+
+#### Gestion des années réelles
+- **Réinitialisation d'année** : Réinitialiser toutes les données d'une année spécifique (catégories, dépenses, abonnements, etc.)
+- **Système de verrouillage** : Verrouiller/déverrouiller les années passées pour éviter les modifications accidentelles
+  - Années verrouillées visuellement identifiées (fond jaune)
+  - Impossible de modifier une année verrouillée
+  - Seules les années passées peuvent être verrouillées
+
+#### Gestion des années prédites par l'IA
+- **Suppression d'années prédites** : Supprimer des années prédites que vous ne souhaitez pas voir
+- **Exclusion de génération** : Les années supprimées sont ajoutées à une liste d'exclusion et ne seront plus régénérées
+- **Paramètres de prédiction** :
+  - Contrôle du nombre maximum d'années à prédire (défaut: 3, peut être désactivé avec 0)
+  - Gestion de la liste des années exclues
+
+#### Réinitialisation complète avec sécurité maximale
+- **Triple validation** :
+  1. Saisir "REINITIALISER" en majuscules (sans accent)
+  2. Confirmation dans une boîte de dialogue
+  3. Délai de réflexion de 10 secondes avec compte à rebours
+- **Délai de réflexion** :
+  - Modal d'avertissement affiché pendant 10 secondes
+  - Bouton de confirmation désactivé pendant les 5 premières secondes
+  - Possibilité de confirmer après 5 secondes ou d'annuler à tout moment
+  - Annulation automatique si aucune action dans les 10 secondes
+- **Sécurité** : Protection maximale contre les fausses manipulations
+
+#### Mise à jour automatique des prédictions
+- Les prédictions IA se mettent à jour automatiquement quand :
+  - Des données historiques sont modifiées
+  - Une année est réinitialisée
+  - Les paramètres de prédiction sont modifiés
+  - Les années exclues sont modifiées
+
 ## 🔧 Modifications techniques
 
 ### Backend (Flask)

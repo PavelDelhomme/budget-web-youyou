@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Modal } from './Modal';
 import { BankAccount, Investment, SavingsGoal, SavingsProject, SalaryHistory, UserGlobalData } from '../types';
 import { currency, parseAmount, toISODate, today } from '../utils';
@@ -8,10 +8,35 @@ interface GlobalDataManagerProps {
   onClose: () => void;
   globalData: UserGlobalData;
   onUpdate: (data: Partial<UserGlobalData>) => Promise<void>;
+  years?: number[];
+  predictedYears?: number[];
+  onResetYear?: (year: number) => Promise<void>;
+  onDeletePredictedYear?: (year: number) => Promise<void>;
+  onResetAll?: () => Promise<void>;
+  currentYear?: number | string;
 }
 
-export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate }: GlobalDataManagerProps) {
-  const [activeTab, setActiveTab] = useState<'accounts' | 'investments' | 'goals' | 'projects' | 'salaryHistory'>('accounts');
+export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years = [], predictedYears = [], onResetYear, onDeletePredictedYear, onResetAll, currentYear }: GlobalDataManagerProps) {
+  const [activeTab, setActiveTab] = useState<'accounts' | 'investments' | 'goals' | 'projects' | 'salaryHistory' | 'years'>('accounts');
+  const [resettingYear, setResettingYear] = useState<number | null>(null);
+  const [lockingYear, setLockingYear] = useState<number | null>(null);
+  const [currentSystemYear] = useState(() => new Date().getFullYear());
+  const [showResetCountdown, setShowResetCountdown] = useState(false);
+  const [resetCountdown, setResetCountdown] = useState(10);
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Nettoyer l'interval quand le composant se démonte ou quand le countdown se termine
+  useEffect(() => {
+    return () => {
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+      }
+    };
+  }, []);
+  
+  const lockedYears = globalData.lockedYears || [];
+  const excludedPredictedYears = globalData.excludedPredictedYears || [];
+  const maxPredictedYears = globalData.maxPredictedYears || 3;
   
   // Bank Accounts state
   const [accounts, setAccounts] = useState<BankAccount[]>(globalData.bankAccounts || []);
@@ -431,6 +456,16 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate }: Glo
             }`}
           >
             💼 Historique salaires ({salaryHistory.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('years')}
+            className={`px-4 py-2 font-medium text-sm ${
+              activeTab === 'years'
+                ? 'border-b-2 border-blue-600 dark:border-blue-500 text-blue-600 dark:text-blue-400'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+            }`}
+          >
+            📅 Années ({years.length})
           </button>
         </div>
 
@@ -1091,6 +1126,322 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate }: Glo
                   })}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Years Tab */}
+        {activeTab === 'years' && (
+          <div className="space-y-6">
+            {/* Années réelles */}
+            <div className="border border-gray-200 dark:border-gray-700 p-4 rounded-lg bg-gray-50 dark:bg-gray-700/30">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Années réelles</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Gérez vos années réelles : réinitialisez-les ou verrouillez les années passées pour éviter les modifications accidentelles.
+              </p>
+              
+              {years.length === 0 ? (
+                <p className="text-gray-500 dark:text-gray-400 text-sm">Aucune année disponible.</p>
+              ) : (
+                <div className="space-y-2">
+                  {years.sort((a, b) => b - a).map((year) => {
+                    const isLocked = lockedYears.includes(year);
+                    const isPast = year < currentSystemYear;
+                    const isCurrent = year === currentSystemYear;
+                    
+                    return (
+                      <div
+                        key={year}
+                        className={`flex items-center justify-between p-3 border rounded-lg ${
+                          isLocked 
+                            ? 'border-yellow-300 dark:border-yellow-600 bg-yellow-50 dark:bg-yellow-900/20'
+                            : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="font-medium text-gray-900 dark:text-white">Année {year}</span>
+                          {isCurrent && (
+                            <span className="text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900 px-2 py-0.5 rounded">En cours</span>
+                          )}
+                          {isPast && (
+                            <span className="text-xs text-gray-500 dark:text-gray-400">Passée</span>
+                          )}
+                          {isLocked && (
+                            <span className="text-xs text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900 px-2 py-0.5 rounded">🔒 Verrouillée</span>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          {isPast && (
+                            <button
+                              onClick={async () => {
+                                const newLockedYears = isLocked
+                                  ? lockedYears.filter(y => y !== year)
+                                  : [...lockedYears, year];
+                                await onUpdate({ lockedYears: newLockedYears });
+                                setLockingYear(null);
+                              }}
+                              disabled={lockingYear === year}
+                              className={`px-3 py-1 text-sm rounded-lg font-medium transition-colors ${
+                                isLocked
+                                  ? 'bg-green-600 hover:bg-green-700 text-white'
+                                  : 'bg-yellow-600 hover:bg-yellow-700 text-white'
+                              } disabled:bg-gray-400 disabled:cursor-not-allowed`}
+                            >
+                              {lockingYear === year ? '...' : isLocked ? '🔓 Déverrouiller' : '🔒 Verrouiller'}
+                            </button>
+                          )}
+                          <button
+                            onClick={async () => {
+                              if (window.confirm(`Êtes-vous sûr de vouloir réinitialiser toutes les données de l'année ${year} ? Cette action est irréversible.`)) {
+                                if (onResetYear) {
+                                  setResettingYear(year);
+                                  try {
+                                    await onResetYear(year);
+                                    alert(`✅ L'année ${year} a été réinitialisée avec succès.`);
+                                  } catch (error) {
+                                    alert(`❌ Erreur lors de la réinitialisation : ${error}`);
+                                  } finally {
+                                    setResettingYear(null);
+                                  }
+                                }
+                              }
+                            }}
+                            disabled={resettingYear === year || isLocked}
+                            className="px-3 py-1 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-colors"
+                          >
+                            {resettingYear === year ? 'Réinitialisation...' : '🔄 Réinitialiser'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Années prédites par l'IA */}
+            {predictedYears.length > 0 && (
+              <div className="border border-gray-200 dark:border-gray-700 p-4 rounded-lg bg-gray-50 dark:bg-gray-700/30">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Années prédites par l'IA</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  Supprimez les années prédites que vous ne souhaitez pas voir. Elles se régénéreront automatiquement lors de la prochaine mise à jour des prédictions.
+                </p>
+                
+                <div className="space-y-2">
+                  {predictedYears.sort((a, b) => a - b).map((year) => (
+                    <div
+                      key={year}
+                      className="flex items-center justify-between p-3 border border-blue-200 dark:border-blue-700 rounded-lg bg-blue-50 dark:bg-blue-900/20"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="font-medium text-gray-900 dark:text-white">Année {year}</span>
+                        <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 px-2 py-0.5 rounded">IA</span>
+                      </div>
+                      {onDeletePredictedYear && (
+                        <button
+                          onClick={async () => {
+                            if (window.confirm(`Supprimer l'année prédite ${year} ? Elle ne sera plus générée par l'IA.`)) {
+                              await onDeletePredictedYear(year);
+                            }
+                          }}
+                          className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
+                        >
+                          ❌ Supprimer
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Paramètres de prédiction IA */}
+            <div className="border border-gray-200 dark:border-gray-700 p-4 rounded-lg bg-gray-50 dark:bg-gray-700/30">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Paramètres de prédiction IA</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                    Nombre maximum d'années à prédire
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="10"
+                    value={maxPredictedYears}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 0;
+                      onUpdate({ maxPredictedYears: Math.max(0, Math.min(10, value)) });
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Définissez combien d'années futures l'IA doit prédire (0 = désactiver les prédictions)
+                  </p>
+                </div>
+                
+                {excludedPredictedYears.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                      Années exclues de la génération
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {excludedPredictedYears.sort((a, b) => a - b).map((year) => (
+                        <span
+                          key={year}
+                          className="inline-flex items-center gap-1 px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-full text-sm"
+                        >
+                          {year}
+                          <button
+                            onClick={async () => {
+                              const newExcluded = excludedPredictedYears.filter(y => y !== year);
+                              await onUpdate({ excludedPredictedYears: newExcluded });
+                            }}
+                            className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Réinitialisation complète */}
+            <div className="border border-red-200 dark:border-red-800 p-4 rounded-lg bg-red-50 dark:bg-red-900/20">
+              <h3 className="text-lg font-semibold text-red-900 dark:text-red-400 mb-3">⚠️ Zone de danger</h3>
+              <p className="text-sm text-red-700 dark:text-red-300 mb-4">
+                <strong>Réinitialisation complète :</strong> Cette action supprimera TOUTES vos données (années, comptes, investissements, etc.) et vous ramènera à l'état initial. Cette action est irréversible.
+              </p>
+              {onResetAll && (
+                <>
+                  <button
+                    onClick={async () => {
+                      const confirmation = window.prompt(
+                        '⚠️ ATTENTION : Cette action supprimera TOUTES vos données.\n\n' +
+                        'Pour confirmer, tapez "REINITIALISER" en majuscules (sans accent) :'
+                      );
+                      
+                      if (confirmation === 'REINITIALISER') {
+                        const doubleCheck = window.confirm(
+                          '⚠️ DERNIÈRE CONFIRMATION\n\n' +
+                          'Voulez-vous vraiment supprimer TOUTES vos données ?\n' +
+                          'Cette action est DÉFINITIVE et IRRÉVERSIBLE.\n\n' +
+                          'Cliquez sur OK pour continuer ou Annuler pour abandonner.'
+                        );
+                        
+                        if (doubleCheck) {
+                          // Afficher le compte à rebours
+                          setShowResetCountdown(true);
+                          setResetCountdown(10);
+                          
+                          // Nettoyer l'interval précédent s'il existe
+                          if (countdownIntervalRef.current) {
+                            clearInterval(countdownIntervalRef.current);
+                          }
+                          
+                          // Démarrer le compte à rebours
+                          let remaining = 10;
+                          
+                          countdownIntervalRef.current = setInterval(() => {
+                            remaining--;
+                            setResetCountdown(remaining);
+                            
+                            if (remaining <= 0) {
+                              if (countdownIntervalRef.current) {
+                                clearInterval(countdownIntervalRef.current);
+                                countdownIntervalRef.current = null;
+                              }
+                              // Annuler automatiquement si pas de validation
+                              setShowResetCountdown(false);
+                              setResetCountdown(10);
+                              alert('❌ Réinitialisation annulée : délai d\'attente expiré sans validation.');
+                            }
+                          }, 1000);
+                        }
+                      } else if (confirmation !== null) {
+                        alert('❌ La confirmation n\'a pas été saisie correctement. Action annulée.');
+                      }
+                    }}
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+                  >
+                    🔥 Réinitialiser toutes les données
+                  </button>
+
+                  {/* Modal de compte à rebours */}
+                  {showResetCountdown && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md mx-4 border-2 border-red-500 shadow-xl">
+                        <div className="text-center">
+                          <div className="text-6xl mb-4">⚠️</div>
+                          <h3 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">
+                            DERNIÈRE CHANCE
+                          </h3>
+                          <p className="text-gray-700 dark:text-gray-300 mb-4">
+                            Vous êtes sur le point de <strong>SUPPRIMER TOUTES VOS DONNÉES</strong> de manière définitive.
+                          </p>
+                          <div className="text-4xl font-bold text-red-600 dark:text-red-400 mb-6">
+                            {resetCountdown} secondes
+                          </div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                            {resetCountdown > 5 
+                              ? 'Veuillez attendre encore un moment pour réfléchir...'
+                              : 'Vous pouvez maintenant confirmer ou annuler'}
+                          </p>
+                          <div className="flex gap-3 justify-center">
+                            <button
+                              onClick={() => {
+                                // Annuler
+                                if (countdownIntervalRef.current) {
+                                  clearInterval(countdownIntervalRef.current);
+                                  countdownIntervalRef.current = null;
+                                }
+                                setShowResetCountdown(false);
+                                setResetCountdown(10);
+                              }}
+                              className="px-6 py-3 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 rounded-lg font-medium transition-colors"
+                            >
+                              ❌ Annuler
+                            </button>
+                            <button
+                              onClick={async () => {
+                                // Valider la réinitialisation
+                                if (countdownIntervalRef.current) {
+                                  clearInterval(countdownIntervalRef.current);
+                                  countdownIntervalRef.current = null;
+                                }
+                                setShowResetCountdown(false);
+                                setResetCountdown(10);
+                                
+                                try {
+                                  if (onResetAll) {
+                                    await onResetAll();
+                                    alert('✅ Toutes les données ont été réinitialisées. La page va se recharger...');
+                                    window.location.reload();
+                                  }
+                                } catch (error) {
+                                  alert(`❌ Erreur lors de la réinitialisation : ${error}`);
+                                }
+                              }}
+                              disabled={resetCountdown > 5}
+                              className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                                resetCountdown > 5
+                                  ? 'bg-gray-400 dark:bg-gray-600 text-gray-600 dark:text-gray-400 cursor-not-allowed'
+                                  : 'bg-red-600 hover:bg-red-700 text-white'
+                              }`}
+                            >
+                              {resetCountdown > 5 
+                                ? `⏳ Attendez ${resetCountdown - 5}s`
+                                : '✅ Confirmer la suppression'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         )}
 

@@ -7,6 +7,7 @@ interface ExpensesSectionProps {
   categories: Category[];
   onAddExpense: (expense: Omit<Expense, 'id'>) => void;
   onRemoveExpense: (id: string) => void;
+  onUpdateExpense: (id: string, expense: Partial<Expense>) => void;
 }
 
 export function ExpensesSection({
@@ -14,6 +15,7 @@ export function ExpensesSection({
   categories,
   onAddExpense,
   onRemoveExpense,
+  onUpdateExpense,
 }: ExpensesSectionProps) {
   const [date, setDate] = useState(toISODate(today));
   const [amount, setAmount] = useState('');
@@ -21,23 +23,60 @@ export function ExpensesSection({
     categories[0]?.id || ''
   );
   const [note, setNote] = useState('');
+  const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
 
   const handleAdd = () => {
     const amt = parseAmount(amount);
     if (!amt) return;
-    onAddExpense({
-      date: date || toISODate(today),
-      amount: amt,
-      categoryId,
-      note,
-    });
+    
+    if (editingExpenseId) {
+      // Modification d'une dépense existante
+      onUpdateExpense(editingExpenseId, {
+        date: date || toISODate(today),
+        amount: amt,
+        categoryId,
+        note,
+      });
+      setEditingExpenseId(null);
+    } else {
+      // Ajout d'une nouvelle dépense
+      onAddExpense({
+        date: date || toISODate(today),
+        amount: amt,
+        categoryId,
+        note,
+      });
+    }
+    
     setAmount('');
     setNote('');
+    setDate(toISODate(today));
+    setCategoryId(categories[0]?.id || '');
+  };
+
+  const handleEdit = (expense: Expense) => {
+    setEditingExpenseId(expense.id);
+    setDate(expense.date);
+    setAmount(expense.amount.toString().replace('.', ','));
+    setCategoryId(expense.categoryId);
+    setNote(expense.note);
+    // Scroll vers le formulaire
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingExpenseId(null);
+    setAmount('');
+    setNote('');
+    setDate(toISODate(today));
+    setCategoryId(categories[0]?.id || '');
   };
 
   return (
     <section className="bg-white dark:bg-gray-800 rounded-2xl shadow p-4 md:p-6 space-y-4 border border-gray-200 dark:border-gray-700">
-      <h2 className="font-semibold text-lg text-gray-900 dark:text-white">Ajouter une dépense variable</h2>
+      <h2 className="font-semibold text-lg text-gray-900 dark:text-white">
+        {editingExpenseId ? 'Modifier une dépense variable' : 'Ajouter une dépense variable'}
+      </h2>
       <div className="grid md:grid-cols-5 gap-3">
         <div>
           <label className="text-sm text-slate-600 dark:text-gray-400">Date</label>
@@ -82,12 +121,20 @@ export function ExpensesSection({
           />
         </div>
       </div>
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        {editingExpenseId && (
+          <button
+            className="px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+            onClick={handleCancelEdit}
+          >
+            Annuler
+          </button>
+        )}
         <button
           className="px-4 py-2 rounded-xl bg-black dark:bg-gray-700 text-white hover:bg-gray-800 dark:hover:bg-gray-600 transition-colors"
           onClick={handleAdd}
         >
-          Ajouter
+          {editingExpenseId ? 'Modifier' : 'Ajouter'}
         </button>
       </div>
       {expenses.length > 0 && (
@@ -115,10 +162,18 @@ export function ExpensesSection({
                   <td className="py-2 pr-4 text-gray-900 dark:text-white font-medium">{currency(e.amount)}</td>
                   <td className="py-2 pr-2 text-right">
                     <button
+                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors mr-2"
+                      onClick={() => handleEdit(e)}
+                      title="Modifier"
+                    >
+                      ✏️
+                    </button>
+                    <button
                       className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors"
                       onClick={() => onRemoveExpense(e.id)}
+                      title="Supprimer"
                     >
-                      Supprimer
+                      🗑️
                     </button>
                   </td>
                 </tr>

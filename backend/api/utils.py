@@ -104,5 +104,8 @@ def get_default_global_data() -> dict:
         'salaryHistory': [],
         'initializationComplete': False,
         'monthlySalary': 0,
-        'monthlySalaryStartDate': None
+        'monthlySalaryStartDate': None,
+        'lockedYears': [],
+        'excludedPredictedYears': [],
+        'maxPredictedYears': 3
     }

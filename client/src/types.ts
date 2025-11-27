@@ -157,6 +157,9 @@ export interface UserGlobalData {
   initializationComplete: boolean;
   monthlySalary?: number; // Revenu mensuel principal ACTUEL (salaire, allocation chômage, etc.)
   monthlySalaryStartDate?: string; // Date de début du revenu principal actuel (ISO format)
+  lockedYears?: number[]; // Années verrouillées (ne peuvent pas être modifiées)
+  excludedPredictedYears?: number[]; // Années prédites à exclure de la génération
+  maxPredictedYears?: number; // Nombre maximum d'années à prédire par l'IA (défaut: 3)
 }
 
 // Revenus variables supplémentaires par mois (primes, cadeaux, etc.)

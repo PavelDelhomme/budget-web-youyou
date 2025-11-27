@@ -138,6 +138,24 @@ export function AnnualFixedExpenses({
                       <td className="py-2 px-3 text-sm text-gray-600 dark:text-gray-400">{exp.note || '-'}</td>
                       <td className="py-2 px-3 text-right">
                         <button
+                          onClick={() => {
+                            const editingExpense = expenses.find(e => e.id === exp.id);
+                            if (editingExpense) {
+                              setNewExpense({
+                                name: editingExpense.name,
+                                amount: editingExpense.amount,
+                                month: editingExpense.month,
+                                note: editingExpense.note || '',
+                              });
+                              setIsAdding(true);
+                              onRemove(exp.id);
+                            }
+                          }}
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm transition-colors mr-2"
+                        >
+                          ✏️ Modifier
+                        </button>
+                        <button
                           onClick={() => onRemove(exp.id)}
                           className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 text-sm transition-colors"
                         >
