@@ -1,5 +1,7 @@
 import { SavingsProject } from '../types';
-import { today } from './utils';
+
+// Utiliser directement Date pour éviter les dépendances circulaires
+const today = new Date();
 
 /**
  * Calcule les contributions totales aux projets d'épargne pour une année donnée
