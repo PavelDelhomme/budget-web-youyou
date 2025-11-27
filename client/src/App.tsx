@@ -18,6 +18,7 @@ import { MonthlyExpensesIncomeChart } from './components/MonthlyExpensesIncomeCh
 import { useBudgetCalculations } from './hooks/useBudgetData';
 import { Category, Expense, Subscription, SavingsTransaction, YearData, UserGlobalData, AnnualFixedExpense, MonthlyAdditionalIncome } from './types';
 import { generatePredictions, getFutureYears, getHistoricalYears, PredictedYearData } from './utils/budgetPredictor';
+import { calculateProjectsContributionsForYear, calculateProjectsProjectedValue, calculateProjectsCurrentValue } from './utils/savingsProjects';
 import {
   defaultCategories,
   INITIAL_YEARS,
@@ -817,7 +818,28 @@ function App() {
   const annualIncome = baseAnnualIncome + additionalIncome + additionalMonthlyIncomeTotal;
   // annualBudgetTotal inclut déjà variableTargets + subsAnnualCommitted + annualFixedExpensesTotal
   const annualExpenses = typeof year === 'number' ? calculations.annualBudgetTotal : 0;
-  const projectedSavings = typeof year === 'number' ? currentSavings + (annualIncome - annualExpenses) : 0;
+  
+  // Calculer l'épargne projetée en incluant les projets d'épargne
+  let projectedSavings = 0;
+  if (typeof year === 'number') {
+    const savingsProjects = globalData?.savingsProjects || [];
+    const currentMonth = today.getFullYear() === year ? today.getMonth() + 1 : 1;
+    
+    // Contribution de base : épargne actuelle + (revenus - dépenses)
+    const baseProjectedSavings = currentSavings + (annualIncome - annualExpenses);
+    
+    // Contributions futures aux projets d'épargne pour le reste de l'année
+    // Ces contributions font partie de l'épargne totale projetée
+    const projectsContributions = calculateProjectsContributionsForYear(savingsProjects, year, currentMonth);
+    
+    // Valeur actuelle totale des projets pour cette année
+    const projectsCurrentValue = calculateProjectsCurrentValue(savingsProjects, year);
+    
+    // L'épargne projetée = épargne de base + contributions aux projets
+    // Cela représente l'épargne totale en fin d'année incluant les contributions aux projets
+    // Les projets sont considérés comme de l'épargne allouée
+    projectedSavings = baseProjectedSavings + projectsContributions;
+  }
 
   // UI for login
   if (!sessionEmail) {

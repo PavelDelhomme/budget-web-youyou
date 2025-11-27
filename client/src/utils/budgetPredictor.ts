@@ -146,36 +146,47 @@ export function generatePredictions(
     }
     
     const lastHistoricalYear = Math.max(...historicalYears.map(h => h.year));
-    const yearsAhead = year - lastHistoricalYear;
+    const yearStart = new Date(year, 0, 1);
+    const yearEnd = new Date(year, 11, 31);
     
     let totalCurrent = 0;
     let totalTarget = 0;
+    let totalContributions = 0;
     
     globalData.savingsProjects.forEach(project => {
       const targetDate = new Date(project.targetDate);
-      const projectYear = targetDate.getFullYear();
       
-      // Si le projet est encore actif pour cette année
-      if (projectYear >= year) {
+      // Si le projet est actif pour cette année (la date cible est dans cette année ou après)
+      if (targetDate >= yearStart && targetDate <= yearEnd) {
         const monthlyContrib = project.monthlyContribution || 0;
-        const monthsFromNow = Math.max(0, (year - lastHistoricalYear) * 12);
         
-        // Projeter le montant actuel + contributions futures
+        // Pour l'année en question, calculer les contributions sur toute l'année
+        // (puisque c'est une prédiction pour une année complète)
+        const contributionsForYear = monthlyContrib * 12;
+        
+        // Valeur actuelle du projet au début de l'année
+        // Pour les années futures, partir de la valeur actuelle + contributions des années précédentes
+        const yearsBeforeThis = Math.max(0, year - lastHistoricalYear - 1);
+        const currentValueAtYearStart = project.currentAmount + (monthlyContrib * 12 * yearsBeforeThis);
+        
+        // Projeter le montant en fin d'année : valeur au début + contributions de l'année
         const projectedCurrent = Math.min(
           project.targetAmount,
-          project.currentAmount + (monthlyContrib * monthsFromNow)
+          currentValueAtYearStart + contributionsForYear
         );
         
         totalCurrent += projectedCurrent;
         totalTarget += project.targetAmount;
-      } else {
-        // Projet terminé, compter le montant cible comme atteint
+        totalContributions += contributionsForYear;
+      } else if (targetDate < yearStart) {
+        // Projet terminé avant cette année, compter le montant cible comme atteint
         totalCurrent += project.targetAmount;
         totalTarget += project.targetAmount;
       }
+      // Si targetDate > yearEnd, le projet commence après cette année, on ne l'inclut pas
     });
     
-    return { totalCurrent, totalTarget };
+    return { totalCurrent, totalTarget, totalContributions };
   };
 
   // Générer les prévisions pour chaque année future
@@ -215,7 +226,15 @@ export function generatePredictions(
     const projectedSavingsFromIncome = annualIncome - projectedSpending;
     const startingSavings = avgCurrentSavings || 0;
     const savingsGrowth = savingsTrend * yearsAhead;
-    const projectedSavings = startingSavings + (projectedSavingsFromIncome * (1 + savingsGrowth));
+    const baseProjectedSavings = startingSavings + (projectedSavingsFromIncome * (1 + savingsGrowth));
+    
+    // Ajouter les contributions aux projets d'épargne pour cette année
+    const projectedSavingsProjectsData = calculateProjectedSavingsProjects(year);
+    const projectsContributions = projectedSavingsProjectsData?.totalContributions || 0;
+    
+    // L'épargne projetée inclut les contributions aux projets d'épargne
+    // Les projets sont considérés comme de l'épargne allouée
+    const projectedSavings = baseProjectedSavings + projectsContributions;
 
     // Calculer les projections
     const projectedInvestmentsValue = calculateProjectedInvestments(year);

@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { UserGlobalData, YearData, Expense, Category } from '../types';
 import { currency, today, parseAmount } from '../utils';
+import { calculateProjectsContributionsForYear, calculateProjectsProjectedValue, calculateProjectsCurrentValue } from '../utils/savingsProjects';
 import { BudgetSuggestions } from './BudgetSuggestions';
 import { analyzeBudget } from '../utils/budgetAnalyzer';
 import { ExpensesPieChart } from './ExpensesPieChart';
@@ -121,7 +122,16 @@ export function Dashboard({
   
   const annualExpenses = variableTargets + subsAnnual + annualFixedExpensesTotal;
 
-  const projectedSavings = annualIncome - annualExpenses;
+  // Calculer l'épargne projetée en incluant les projets d'épargne
+  const currentMonth = today.getFullYear() === currentYear ? today.getMonth() + 1 : 1;
+  const projectsContributions = calculateProjectsContributionsForYear(savingsProjects, currentYear, currentMonth);
+  
+  // Épargne de base : revenus - dépenses
+  const baseProjectedSavings = annualIncome - annualExpenses;
+  
+  // Ajouter les contributions aux projets d'épargne
+  const projectedSavings = baseProjectedSavings + projectsContributions;
+  
   const savingsRate = annualIncome > 0 ? (projectedSavings / annualIncome) * 100 : 0;
 
   // Get suggestions
