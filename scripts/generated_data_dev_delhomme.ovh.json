@@ -1,0 +1,1459 @@
+{
+  "years": [
+    2024,
+    2025
+  ],
+  "datasets": {
+    "2024": {
+      "categories": [
+        {
+          "id": "alimentation",
+          "name": "Alimentation",
+          "target": 2678.0,
+          "monthlyTargets": [
+            206.0,
+            195.70000000000002,
+            216.3,
+            211.15,
+            226.6,
+            236.9,
+            221.45000000000002,
+            206.0,
+            216.3,
+            231.75,
+            247.20000000000002,
+            262.65000000000003
+          ]
+        },
+        {
+          "id": "transport",
+          "name": "Transport",
+          "target": 1236.0,
+          "monthlyTargets": [
+            103.0,
+            103.0,
+            103.0,
+            103.0,
+            103.0,
+            103.0,
+            103.0,
+            103.0,
+            103.0,
+            103.0,
+            103.0,
+            103.0
+          ]
+        },
+        {
+          "id": "logement",
+          "name": "Logement",
+          "target": 7416.0,
+          "monthlyTargets": [
+            618.0,
+            618.0,
+            618.0,
+            618.0,
+            618.0,
+            618.0,
+            618.0,
+            618.0,
+            618.0,
+            618.0,
+            618.0,
+            618.0
+          ]
+        },
+        {
+          "id": "loisirs",
+          "name": "Loisirs & Sorties",
+          "target": 1854.0,
+          "monthlyTargets": [
+            123.60000000000001,
+            103.0,
+            154.5,
+            185.4,
+            206.0,
+            257.5,
+            185.4,
+            154.5,
+            123.60000000000001,
+            144.20000000000002,
+            113.3,
+            103.0
+          ]
+        },
+        {
+          "id": "sante",
+          "name": "Santé",
+          "target": 618.0,
+          "monthlyTargets": [
+            51.5,
+            51.5,
+            51.5,
+            51.5,
+            51.5,
+            51.5,
+            51.5,
+            51.5,
+            51.5,
+            51.5,
+            51.5,
+            51.5
+          ]
+        },
+        {
+          "id": "vetements",
+          "name": "Vêtements",
+          "target": 824.0,
+          "monthlyTargets": [
+            51.5,
+            51.5,
+            103.0,
+            82.4,
+            51.5,
+            103.0,
+            51.5,
+            82.4,
+            103.0,
+            51.5,
+            61.800000000000004,
+            30.900000000000002
+          ]
+        },
+        {
+          "id": "high-tech",
+          "name": "High-Tech",
+          "target": 1236.0,
+          "monthlyTargets": [
+            51.5,
+            51.5,
+            206.0,
+            51.5,
+            51.5,
+            154.5,
+            51.5,
+            103.0,
+            206.0,
+            103.0,
+            103.0,
+            103.0
+          ]
+        }
+      ],
+      "expenses": [
+        {
+          "id": "db506d50-f11b-453c-ae1e-09b4bcad9677",
+          "date": "2024-01-05",
+          "amount": 85.5,
+          "categoryId": "alimentation",
+          "note": "Courses Carrefour"
+        },
+        {
+          "id": "ea2b1ab7-2df9-4cb0-83cb-6e36f6b42537",
+          "date": "2024-01-12",
+          "amount": 92.3,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "337d2f2d-82ea-4775-b882-661412a9599a",
+          "date": "2024-01-19",
+          "amount": 78.9,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "cff11703-3eba-4c03-85ff-1925c9463977",
+          "date": "2024-01-15",
+          "amount": 45.0,
+          "categoryId": "transport",
+          "note": "Essence"
+        },
+        {
+          "id": "5b0d4b42-755a-4e89-8d16-92152d3f30ae",
+          "date": "2024-01-20",
+          "amount": 65.0,
+          "categoryId": "loisirs",
+          "note": "Cinéma + resto"
+        },
+        {
+          "id": "d898de1c-9a44-4876-bc61-7c7f4edf6e28",
+          "date": "2024-01-25",
+          "amount": 120.0,
+          "categoryId": "vetements",
+          "note": "Jeans + t-shirts"
+        },
+        {
+          "id": "d9f578fd-d86e-4b23-9061-eb8280388322",
+          "date": "2024-02-03",
+          "amount": 88.2,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "a1416719-9192-4ae6-af0e-d99077c59b64",
+          "date": "2024-02-10",
+          "amount": 95.6,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "2e64187a-a96a-414c-87eb-26c2ddbc3838",
+          "date": "2024-02-17",
+          "amount": 72.4,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "7aaf844d-850b-4236-834e-702a608cb352",
+          "date": "2024-02-08",
+          "amount": 50.0,
+          "categoryId": "transport",
+          "note": "Essence"
+        },
+        {
+          "id": "02e60956-60eb-41ac-a1e7-3552cb10c4e7",
+          "date": "2024-02-14",
+          "amount": 55.0,
+          "categoryId": "loisirs",
+          "note": "Restaurant"
+        },
+        {
+          "id": "871b64ac-f9a6-4bbe-a7aa-bffbc36552a4",
+          "date": "2024-03-02",
+          "amount": 105.8,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "5afbea5e-a15e-492b-8f8a-4b7ec713f3da",
+          "date": "2024-03-09",
+          "amount": 98.5,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "4033b00d-15af-4294-9e48-179a59d21fc8",
+          "date": "2024-03-16",
+          "amount": 85.7,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "45c91be3-2afe-4761-ad0d-c38b05e8d509",
+          "date": "2024-03-22",
+          "amount": 89.3,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "41678202-bfda-4db6-9c00-f9a94bbd2eac",
+          "date": "2024-03-12",
+          "amount": 48.0,
+          "categoryId": "transport",
+          "note": "Essence"
+        },
+        {
+          "id": "f7d3ce24-385b-414e-9562-8b8ef1382f93",
+          "date": "2024-03-18",
+          "amount": 180.0,
+          "categoryId": "loisirs",
+          "note": "Concert"
+        },
+        {
+          "id": "e1807ba4-866f-4476-aed5-15a3b2d5451d",
+          "date": "2024-03-25",
+          "amount": 250.0,
+          "categoryId": "high-tech",
+          "note": "Nouveau smartphone"
+        },
+        {
+          "id": "cc146590-ea9b-49db-8722-32db1e8cbb8b",
+          "date": "2024-03-28",
+          "amount": 150.0,
+          "categoryId": "vetements",
+          "note": "Manteau printemps"
+        },
+        {
+          "id": "234c1867-3ecf-47bb-bb29-3036e19f1ce4",
+          "date": "2024-04-05",
+          "amount": 102.4,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "278cf267-6e4c-4946-af5d-1f2c0a5a85b7",
+          "date": "2024-04-12",
+          "amount": 96.8,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "0f6608d3-a4bf-481d-8957-92a75bd577dc",
+          "date": "2024-04-19",
+          "amount": 91.2,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "faba443e-7ce7-4c3a-a74f-478b7660e74c",
+          "date": "2024-04-26",
+          "amount": 88.6,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "dfa47d85-5aa2-4896-a191-e9cd6338f938",
+          "date": "2024-04-10",
+          "amount": 52.0,
+          "categoryId": "transport",
+          "note": "Essence"
+        },
+        {
+          "id": "ca56e6db-ff3d-40e8-81b0-71ab75987b25",
+          "date": "2024-04-15",
+          "amount": 200.0,
+          "categoryId": "loisirs",
+          "note": "Week-end à la mer"
+        },
+        {
+          "id": "3b1de1bc-b3a0-4b0c-a6d0-92a1259efae6",
+          "date": "2024-04-22",
+          "amount": 120.0,
+          "categoryId": "vetements",
+          "note": "Chaussures"
+        },
+        {
+          "id": "2ab38491-45ec-447f-bf11-4e7593b7297c",
+          "date": "2024-05-03",
+          "amount": 108.9,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "0638ffb4-3281-4c2c-ac37-0e3d19008903",
+          "date": "2024-05-10",
+          "amount": 103.5,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "5f4d89c0-1436-41d5-8229-63104bdd3e5c",
+          "date": "2024-05-17",
+          "amount": 97.8,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "de64ae6a-788b-494a-9707-1354abec67f1",
+          "date": "2024-05-24",
+          "amount": 95.4,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "e2de25b8-93db-4f66-92d7-08499893f6d0",
+          "date": "2024-05-31",
+          "amount": 101.2,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "a00be0ca-94ce-41a9-bdf8-e4408a92b1e8",
+          "date": "2024-05-08",
+          "amount": 55.0,
+          "categoryId": "transport",
+          "note": "Essence"
+        },
+        {
+          "id": "7bb64a8e-b487-4e35-8242-a1ded6766d54",
+          "date": "2024-05-20",
+          "amount": 240.0,
+          "categoryId": "loisirs",
+          "note": "Festival"
+        },
+        {
+          "id": "90b43b3c-13ab-4ad8-a280-198ca421c187",
+          "date": "2024-05-12",
+          "amount": 80.0,
+          "categoryId": "vetements",
+          "note": "T-shirts été"
+        },
+        {
+          "id": "3ee2b362-d947-45d9-ab34-4113816b068c",
+          "date": "2024-06-01",
+          "amount": 112.6,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "3d2010a1-e4d4-40f9-8194-5d2cdbdedae6",
+          "date": "2024-06-08",
+          "amount": 106.3,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "bd97b204-11d8-4f31-a3b5-38170a9acdde",
+          "date": "2024-06-15",
+          "amount": 99.7,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "969c1a25-ba80-4f5f-b1e8-25dd37302226",
+          "date": "2024-06-22",
+          "amount": 98.9,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "569d6480-2d19-469f-aea6-945796098885",
+          "date": "2024-06-29",
+          "amount": 104.5,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "6273e027-2e3e-4fe8-bf7c-0b029a8e6091",
+          "date": "2024-06-05",
+          "amount": 58.0,
+          "categoryId": "transport",
+          "note": "Essence"
+        },
+        {
+          "id": "b759e8dc-b038-479d-b4ba-f2eeb5cccd3c",
+          "date": "2024-06-18",
+          "amount": 300.0,
+          "categoryId": "loisirs",
+          "note": "Vacances début été"
+        },
+        {
+          "id": "073f212b-9cc6-4ba1-9eef-52f000a8d09f",
+          "date": "2024-06-25",
+          "amount": 150.0,
+          "categoryId": "high-tech",
+          "note": "Écouteurs"
+        },
+        {
+          "id": "5a4c1fb8-d6e6-4eec-8c53-403053c933a9",
+          "date": "2024-06-20",
+          "amount": 150.0,
+          "categoryId": "vetements",
+          "note": "Maillots de bain"
+        },
+        {
+          "id": "789b20bc-d099-4f8f-8803-f7afbfc9eabc",
+          "date": "2024-07-05",
+          "amount": 115.2,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "5fae7f4d-78a1-4036-b949-3afb4a93ccd9",
+          "date": "2024-07-12",
+          "amount": 109.8,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "60781be3-276b-4a08-a3ca-a472d04a2ccf",
+          "date": "2024-07-19",
+          "amount": 103.4,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "a9f4ff1f-3a94-4d8f-b3ca-cac983afe41d",
+          "date": "2024-07-26",
+          "amount": 100.6,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "97f5ca0f-d3c1-4051-a93a-ceb47c7d49bd",
+          "date": "2024-07-08",
+          "amount": 60.0,
+          "categoryId": "transport",
+          "note": "Essence"
+        },
+        {
+          "id": "43b3ef09-da94-42b2-9987-eb706e098dda",
+          "date": "2024-07-15",
+          "amount": 220.0,
+          "categoryId": "loisirs",
+          "note": "Sorties été"
+        },
+        {
+          "id": "cf7601a5-f725-48d7-a58f-abbac7fa851c",
+          "date": "2024-07-22",
+          "amount": 50.0,
+          "categoryId": "vetements",
+          "note": "Short"
+        },
+        {
+          "id": "04a953ef-03d0-472c-b83d-7ebe73be925d",
+          "date": "2024-08-02",
+          "amount": 110.4,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "d515accf-6ccd-4763-812a-c70518d9a7ca",
+          "date": "2024-08-09",
+          "amount": 105.9,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "42bd16e9-8f83-4b52-a7ce-1a0672ada86c",
+          "date": "2024-08-16",
+          "amount": 98.5,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "58c99455-2d91-436e-bb1f-ad6db3d6a34d",
+          "date": "2024-08-23",
+          "amount": 96.8,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "efa6350b-c03e-433e-a98c-6637ba038193",
+          "date": "2024-08-30",
+          "amount": 102.3,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "ae79e3ba-6b97-437d-8e11-0ff7465560b6",
+          "date": "2024-08-07",
+          "amount": 62.0,
+          "categoryId": "transport",
+          "note": "Essence"
+        },
+        {
+          "id": "903045bc-9580-4aeb-b030-8f0016150927",
+          "date": "2024-08-18",
+          "amount": 190.0,
+          "categoryId": "loisirs",
+          "note": "Week-end montagne"
+        },
+        {
+          "id": "a32321f1-ed36-409b-a35a-c7bc24c11f96",
+          "date": "2024-08-25",
+          "amount": 100.0,
+          "categoryId": "high-tech",
+          "note": "Câble USB-C"
+        },
+        {
+          "id": "740d517f-228a-4b46-8f04-ea5bbe5429b8",
+          "date": "2024-08-12",
+          "amount": 120.0,
+          "categoryId": "vetements",
+          "note": "Pull"
+        },
+        {
+          "id": "9648efc4-2631-4b1f-8435-72bd0cd46b52",
+          "date": "2024-09-06",
+          "amount": 107.6,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "e7d025c3-df34-4b9d-a88d-225d79067b7e",
+          "date": "2024-09-13",
+          "amount": 101.2,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "021ac27d-4cf0-4811-94b7-ec6e60ebc630",
+          "date": "2024-09-20",
+          "amount": 95.4,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "3fe9aef2-8bb7-4e45-a4f7-a8902df14dde",
+          "date": "2024-09-27",
+          "amount": 99.8,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "94b174b4-1ef2-4f9a-9915-a89307f8efaa",
+          "date": "2024-09-10",
+          "amount": 50.0,
+          "categoryId": "transport",
+          "note": "Essence"
+        },
+        {
+          "id": "2fc2eb84-a0be-4b7a-9f74-df728d17c68f",
+          "date": "2024-09-22",
+          "amount": 150.0,
+          "categoryId": "loisirs",
+          "note": "Concert"
+        },
+        {
+          "id": "bf14a118-64db-4153-ab59-a34ca093660a",
+          "date": "2024-09-15",
+          "amount": 150.0,
+          "categoryId": "vetements",
+          "note": "Veste automne"
+        },
+        {
+          "id": "843ed5a7-7df7-44ff-8103-c2365548eef6",
+          "date": "2024-10-04",
+          "amount": 113.8,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "6dfbaeca-b1b1-490e-a32d-7988161362b2",
+          "date": "2024-10-11",
+          "amount": 108.2,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "2d4e92f2-f32a-4b3d-9180-6834a1ca045f",
+          "date": "2024-10-18",
+          "amount": 102.6,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "54dcdac4-0787-4fec-9419-a02a0a779e1d",
+          "date": "2024-10-25",
+          "amount": 100.4,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "a9b4c49e-dbe7-4567-9339-fa391e508d41",
+          "date": "2024-10-08",
+          "amount": 55.0,
+          "categoryId": "transport",
+          "note": "Essence"
+        },
+        {
+          "id": "8564f516-64a6-46b0-be1e-e90fb0d5b84c",
+          "date": "2024-10-20",
+          "amount": 160.0,
+          "categoryId": "loisirs",
+          "note": "Théâtre"
+        },
+        {
+          "id": "6550739f-65f4-4692-af97-e93b0212b289",
+          "date": "2024-10-14",
+          "amount": 140.0,
+          "categoryId": "vetements",
+          "note": "Chaussures automne"
+        },
+        {
+          "id": "69814a20-fa9e-4250-a1c2-ff254cb32f6c",
+          "date": "2024-10-28",
+          "amount": 200.0,
+          "categoryId": "high-tech",
+          "note": "SSD externe"
+        },
+        {
+          "id": "53b08c0c-75db-4ed4-8d78-b3f3a192a92f",
+          "date": "2024-11-01",
+          "amount": 117.4,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "8a9c92e0-abec-4d3d-9344-1fa0e916926f",
+          "date": "2024-11-08",
+          "amount": 111.6,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "6ae94931-9a02-46b4-9537-d5e63f62decf",
+          "date": "2024-11-15",
+          "amount": 106.2,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "ceefb6e5-25a5-4af0-a7b8-67a0a8093bb6",
+          "date": "2024-11-22",
+          "amount": 104.8,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "a8d4ba68-2804-4624-9053-cb07e7290557",
+          "date": "2024-11-29",
+          "amount": 110.0,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "9aa7f0c9-e489-4219-b59b-49159ff663a0",
+          "date": "2024-11-06",
+          "amount": 52.0,
+          "categoryId": "transport",
+          "note": "Essence"
+        },
+        {
+          "id": "f64bea6c-c846-44db-8857-72d3b98d5b4b",
+          "date": "2024-11-18",
+          "amount": 130.0,
+          "categoryId": "loisirs",
+          "note": "Restaurant"
+        },
+        {
+          "id": "9b9613bf-0aae-4dbd-8a9c-bc658935312f",
+          "date": "2024-11-25",
+          "amount": 110.0,
+          "categoryId": "vetements",
+          "note": "Pull hiver"
+        },
+        {
+          "id": "ce872108-a217-43e4-99ec-63bdf52c7e0d",
+          "date": "2024-11-12",
+          "amount": 120.0,
+          "categoryId": "high-tech",
+          "note": "Clavier mécanique"
+        },
+        {
+          "id": "2008b172-7f3d-4479-9b23-55d9baa1d522",
+          "date": "2024-12-06",
+          "amount": 120.2,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "a111538b-5ae1-4ee7-8b1b-192f4c77fda1",
+          "date": "2024-12-13",
+          "amount": 125.8,
+          "categoryId": "alimentation",
+          "note": "Courses fêtes"
+        },
+        {
+          "id": "22470b93-593f-4453-8f8e-36cc8770ad1e",
+          "date": "2024-12-20",
+          "amount": 150.4,
+          "categoryId": "alimentation",
+          "note": "Réveillon"
+        },
+        {
+          "id": "d1a514c4-9acb-466a-88be-8c85314b82d7",
+          "date": "2024-12-27",
+          "amount": 108.6,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "02464f3c-7176-4b56-83c6-f481275ff1e6",
+          "date": "2024-12-10",
+          "amount": 60.0,
+          "categoryId": "transport",
+          "note": "Essence"
+        },
+        {
+          "id": "08d728f4-3afa-4231-bab3-03315570de76",
+          "date": "2024-12-22",
+          "amount": 280.0,
+          "categoryId": "loisirs",
+          "note": "Cadeaux + sorties"
+        },
+        {
+          "id": "f550514d-0303-4cea-b3f6-ee32ce5740a3",
+          "date": "2024-12-15",
+          "amount": 100.0,
+          "categoryId": "high-tech",
+          "note": "Cadeaux tech"
+        }
+      ],
+      "subs": [
+        {
+          "id": "34ef744c-2748-4c88-9370-7c6976856870",
+          "name": "Netflix",
+          "monthly": 15.99,
+          "startMonth": 1,
+          "endMonth": 12,
+          "ongoing": true,
+          "accountId": null
+        },
+        {
+          "id": "c20ec659-c87f-4dd5-8246-ea8d303c60e3",
+          "name": "Spotify",
+          "monthly": 9.99,
+          "startMonth": 1,
+          "endMonth": 12,
+          "ongoing": true,
+          "accountId": null
+        },
+        {
+          "id": "42d2756d-74ea-41f5-820d-d71c6aad322c",
+          "name": "Assurance voiture",
+          "monthly": 65.0,
+          "startMonth": 1,
+          "endMonth": 12,
+          "ongoing": true,
+          "accountId": null
+        },
+        {
+          "id": "a1deef17-1095-40f5-bff8-0225631dae29",
+          "name": "Abonnement téléphone",
+          "monthly": 25.99,
+          "startMonth": 1,
+          "endMonth": 12,
+          "ongoing": true,
+          "accountId": null
+        },
+        {
+          "id": "fb6613f0-0cea-4c07-8f9a-c22c299e7c59",
+          "name": "Salle de sport",
+          "monthly": 35.0,
+          "startMonth": 1,
+          "endMonth": 12,
+          "ongoing": true,
+          "accountId": null
+        }
+      ],
+      "annualFixedExpenses": [
+        {
+          "id": "f41068d6-c26d-4dd8-8e1b-532b14deceb3",
+          "name": "Assurance habitation",
+          "amount": 350.0,
+          "month": 3,
+          "note": "Renouvellement annuel",
+          "accountId": null
+        },
+        {
+          "id": "427244c0-ebb2-4469-96cb-e252b8845c9b",
+          "name": "Contrôle technique",
+          "amount": 120.0,
+          "month": 6,
+          "note": "Voiture",
+          "accountId": null
+        },
+        {
+          "id": "1285e830-cb06-4ac0-b9fc-66a4744ef21d",
+          "name": "Carte grise",
+          "amount": 80.0,
+          "month": 8,
+          "note": "Frais annuels",
+          "accountId": null
+        }
+      ],
+      "monthlySalary": 2500.0,
+      "variableMonthlyIncomes": null,
+      "additionalMonthlyIncomes": [
+        {
+          "id": "4c265c04-60ea-4d9f-bcd3-96b171772210",
+          "name": "Prime de Noël",
+          "amount": 500.0,
+          "month": 12,
+          "note": "Prime exceptionnelle"
+        }
+      ],
+      "currentSavings": 8500.0,
+      "savingsTransactions": [
+        {
+          "id": "68c820d5-81ab-4036-823c-db96bc4259bf",
+          "date": "2024-01-15",
+          "amount": 300.0,
+          "note": "Épargne janvier"
+        },
+        {
+          "id": "57b3ca99-f8d5-4794-8e45-e23cee5702ac",
+          "date": "2024-02-15",
+          "amount": 350.0,
+          "note": "Épargne février"
+        },
+        {
+          "id": "2310cfa4-c134-40fa-9c6c-58d22dd784ab",
+          "date": "2024-03-20",
+          "amount": 200.0,
+          "note": "Épargne mars"
+        },
+        {
+          "id": "021970a3-9991-414c-a538-352bb56365dd",
+          "date": "2024-04-15",
+          "amount": 400.0,
+          "note": "Épargne avril"
+        },
+        {
+          "id": "79707b5d-8960-4495-a00c-c929b29f962e",
+          "date": "2024-05-15",
+          "amount": 300.0,
+          "note": "Épargne mai"
+        },
+        {
+          "id": "d26a2442-8b7d-47b7-9909-133b36cc8be3",
+          "date": "2024-06-15",
+          "amount": 250.0,
+          "note": "Épargne juin"
+        },
+        {
+          "id": "b462ef95-562d-41a3-b536-29d442f782de",
+          "date": "2024-07-15",
+          "amount": 200.0,
+          "note": "Épargne juillet"
+        },
+        {
+          "id": "40b17bc9-fcd9-491d-92d8-6913c8c7d80b",
+          "date": "2024-08-15",
+          "amount": 180.0,
+          "note": "Épargne août"
+        },
+        {
+          "id": "646a37f6-bb77-47ad-953c-ce633bc860ba",
+          "date": "2024-09-15",
+          "amount": 320.0,
+          "note": "Épargne septembre"
+        },
+        {
+          "id": "65702c27-3af8-43cf-971d-e88993e53b59",
+          "date": "2024-10-15",
+          "amount": 280.0,
+          "note": "Épargne octobre"
+        },
+        {
+          "id": "c62359f3-561f-4c47-8335-f307c346e894",
+          "date": "2024-11-15",
+          "amount": 300.0,
+          "note": "Épargne novembre"
+        },
+        {
+          "id": "d8f24d1a-d999-4595-8926-331860ebfde7",
+          "date": "2024-12-20",
+          "amount": 500.0,
+          "note": "Prime investie"
+        }
+      ]
+    },
+    "2025": {
+      "categories": [
+        {
+          "id": "alimentation",
+          "name": "Alimentation",
+          "target": 2678.0,
+          "monthlyTargets": [
+            206.0,
+            195.70000000000002,
+            216.3,
+            211.15,
+            226.6,
+            236.9,
+            221.45000000000002,
+            206.0,
+            216.3,
+            231.75,
+            247.20000000000002,
+            262.65000000000003
+          ]
+        },
+        {
+          "id": "transport",
+          "name": "Transport",
+          "target": 1236.0,
+          "monthlyTargets": [
+            103.0,
+            103.0,
+            103.0,
+            103.0,
+            103.0,
+            103.0,
+            103.0,
+            103.0,
+            103.0,
+            103.0,
+            103.0,
+            103.0
+          ]
+        },
+        {
+          "id": "logement",
+          "name": "Logement",
+          "target": 7416.0,
+          "monthlyTargets": [
+            618.0,
+            618.0,
+            618.0,
+            618.0,
+            618.0,
+            618.0,
+            618.0,
+            618.0,
+            618.0,
+            618.0,
+            618.0,
+            618.0
+          ]
+        },
+        {
+          "id": "loisirs",
+          "name": "Loisirs & Sorties",
+          "target": 1854.0,
+          "monthlyTargets": [
+            123.60000000000001,
+            103.0,
+            154.5,
+            185.4,
+            206.0,
+            257.5,
+            185.4,
+            154.5,
+            123.60000000000001,
+            144.20000000000002,
+            113.3,
+            103.0
+          ]
+        },
+        {
+          "id": "sante",
+          "name": "Santé",
+          "target": 618.0,
+          "monthlyTargets": [
+            51.5,
+            51.5,
+            51.5,
+            51.5,
+            51.5,
+            51.5,
+            51.5,
+            51.5,
+            51.5,
+            51.5,
+            51.5,
+            51.5
+          ]
+        },
+        {
+          "id": "vetements",
+          "name": "Vêtements",
+          "target": 824.0,
+          "monthlyTargets": [
+            51.5,
+            51.5,
+            103.0,
+            82.4,
+            51.5,
+            103.0,
+            51.5,
+            82.4,
+            103.0,
+            51.5,
+            61.800000000000004,
+            30.900000000000002
+          ]
+        },
+        {
+          "id": "high-tech",
+          "name": "High-Tech",
+          "target": 1236.0,
+          "monthlyTargets": [
+            51.5,
+            51.5,
+            206.0,
+            51.5,
+            51.5,
+            154.5,
+            51.5,
+            103.0,
+            206.0,
+            103.0,
+            103.0,
+            103.0
+          ]
+        }
+      ],
+      "expenses": [
+        {
+          "id": "cc8bdb04-aaf0-4ef0-88eb-468a3bf18f2d",
+          "date": "2025-01-04",
+          "amount": 90.5,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "16833fea-0896-4de2-a651-595422868624",
+          "date": "2025-01-11",
+          "amount": 95.3,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "cbd4170c-5cbc-4be9-8e6a-a74d7e4ed16d",
+          "date": "2025-01-18",
+          "amount": 88.9,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "d5c8d815-a74a-4637-b513-caafecc48a90",
+          "date": "2025-01-25",
+          "amount": 92.7,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "608b76fc-c288-4943-87db-4e1ca02227ec",
+          "date": "2025-01-10",
+          "amount": 48.0,
+          "categoryId": "transport",
+          "note": "Essence"
+        },
+        {
+          "id": "f4997a04-4a0f-4c77-931a-aff9c78f7847",
+          "date": "2025-01-20",
+          "amount": 70.0,
+          "categoryId": "loisirs",
+          "note": "Cinéma"
+        },
+        {
+          "id": "02a918b0-d80d-4c08-af51-1c47a0fc1e82",
+          "date": "2025-02-01",
+          "amount": 93.2,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "d07959a4-c592-4c8c-a276-bac89796eaca",
+          "date": "2025-02-08",
+          "amount": 97.6,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "9a122e15-cfc2-47f5-b677-b498ceda9d83",
+          "date": "2025-02-15",
+          "amount": 91.4,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "61c58ac0-018c-4e61-9355-af0c133f9269",
+          "date": "2025-02-22",
+          "amount": 89.8,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "f3ec4888-6127-4f42-9fda-9da86bfedcdc",
+          "date": "2025-02-12",
+          "amount": 52.0,
+          "categoryId": "transport",
+          "note": "Essence"
+        },
+        {
+          "id": "22bdffe1-5283-4d75-8ef8-d089a7db46ae",
+          "date": "2025-02-14",
+          "amount": 120.0,
+          "categoryId": "loisirs",
+          "note": "Restaurant Saint-Valentin"
+        },
+        {
+          "id": "a85f82e0-3aa5-4753-b129-38f513a1b030",
+          "date": "2025-03-02",
+          "amount": 96.8,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "4ece6d41-3349-40ad-9e25-a1b0c4559d36",
+          "date": "2025-03-09",
+          "amount": 99.5,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "df75b7a1-113b-4e1b-b274-0399b441c265",
+          "date": "2025-03-16",
+          "amount": 94.7,
+          "categoryId": "alimentation",
+          "note": "Courses"
+        },
+        {
+          "id": "b495a771-32af-4ca6-9397-01d4901bebc1",
+          "date": "2025-03-10",
+          "amount": 50.0,
+          "categoryId": "transport",
+          "note": "Essence"
+        },
+        {
+          "id": "6fb43efa-d787-411e-acf9-690ed8437118",
+          "date": "2025-03-18",
+          "amount": 85.0,
+          "categoryId": "loisirs",
+          "note": "Bar avec amis"
+        }
+      ],
+      "subs": [
+        {
+          "id": "34ef744c-2748-4c88-9370-7c6976856870",
+          "name": "Netflix",
+          "monthly": 15.99,
+          "startMonth": 1,
+          "endMonth": 12,
+          "ongoing": true,
+          "accountId": null
+        },
+        {
+          "id": "c20ec659-c87f-4dd5-8246-ea8d303c60e3",
+          "name": "Spotify",
+          "monthly": 9.99,
+          "startMonth": 1,
+          "endMonth": 12,
+          "ongoing": true,
+          "accountId": null
+        },
+        {
+          "id": "42d2756d-74ea-41f5-820d-d71c6aad322c",
+          "name": "Assurance voiture",
+          "monthly": 65.0,
+          "startMonth": 1,
+          "endMonth": 12,
+          "ongoing": true,
+          "accountId": null
+        },
+        {
+          "id": "a1deef17-1095-40f5-bff8-0225631dae29",
+          "name": "Abonnement téléphone",
+          "monthly": 25.99,
+          "startMonth": 1,
+          "endMonth": 12,
+          "ongoing": true,
+          "accountId": null
+        },
+        {
+          "id": "fb6613f0-0cea-4c07-8f9a-c22c299e7c59",
+          "name": "Salle de sport",
+          "monthly": 35.0,
+          "startMonth": 1,
+          "endMonth": 12,
+          "ongoing": true,
+          "accountId": null
+        }
+      ],
+      "annualFixedExpenses": [
+        {
+          "id": "f41068d6-c26d-4dd8-8e1b-532b14deceb3",
+          "name": "Assurance habitation",
+          "amount": 350.0,
+          "month": 3,
+          "note": "Renouvellement annuel",
+          "accountId": null
+        },
+        {
+          "id": "427244c0-ebb2-4469-96cb-e252b8845c9b",
+          "name": "Contrôle technique",
+          "amount": 120.0,
+          "month": 6,
+          "note": "Voiture",
+          "accountId": null
+        },
+        {
+          "id": "1285e830-cb06-4ac0-b9fc-66a4744ef21d",
+          "name": "Carte grise",
+          "amount": 80.0,
+          "month": 8,
+          "note": "Frais annuels",
+          "accountId": null
+        }
+      ],
+      "monthlySalary": 2600.0,
+      "variableMonthlyIncomes": null,
+      "additionalMonthlyIncomes": [
+        {
+          "id": "4c265c04-60ea-4d9f-bcd3-96b171772210",
+          "name": "Prime de Noël",
+          "amount": 500.0,
+          "month": 12,
+          "note": "Prime exceptionnelle"
+        }
+      ],
+      "currentSavings": 9500.0,
+      "savingsTransactions": [
+        {
+          "id": "a98101de-b5cd-4fac-b2f4-762a108d738d",
+          "date": "2025-01-15",
+          "amount": 350.0,
+          "note": "Épargne janvier"
+        },
+        {
+          "id": "317ff193-3f4c-42d5-a1ef-f01a3ce2bbfe",
+          "date": "2025-02-15",
+          "amount": 380.0,
+          "note": "Épargne février"
+        },
+        {
+          "id": "40107eae-40d1-4658-ab5e-dcb89c42b474",
+          "date": "2025-03-15",
+          "amount": 320.0,
+          "note": "Épargne mars"
+        }
+      ]
+    }
+  },
+  "globalData": {
+    "initializationComplete": true,
+    "monthlySalary": 2500.0,
+    "monthlySalaryStartDate": "2023-01-01",
+    "bankAccounts": [
+      {
+        "id": "594af0fe-6e12-4b7b-a17d-3b6c70da6a30",
+        "name": "Compte Courant Principal",
+        "currentBalance": 3200.5,
+        "accountType": "checking",
+        "note": "Compte principal pour les dépenses courantes"
+      },
+      {
+        "id": "c2dc8f35-534f-483d-836f-c7bb9bc40ef9",
+        "name": "Livret A",
+        "currentBalance": 8500.0,
+        "accountType": "savings",
+        "note": "Épargne de sécurité"
+      },
+      {
+        "id": "4b5d4fb9-ac8c-43f3-b760-d2cda528196e",
+        "name": "Revolut",
+        "currentBalance": 450.75,
+        "accountType": "pocket",
+        "note": "Compte pour dépenses quotidiennes"
+      }
+    ],
+    "investments": [
+      {
+        "id": "5fbb1547-953b-438d-8e07-4e466271ebe2",
+        "type": "stocks",
+        "name": "Portefeuille Actions",
+        "platform": "Revolut",
+        "currentValue": 2800.0,
+        "monthlyContribution": 100.0,
+        "initialAmount": 500.0,
+        "startDate": "2023-06-01",
+        "transactions": [
+          {
+            "id": "027618f9-e197-4662-9db2-c537a30b9ce8",
+            "date": "2024-03-15",
+            "amount": 500.0,
+            "note": "Achat opportuniste"
+          },
+          {
+            "id": "e7d3fb9d-4f0a-4213-aedf-ffce0f215244",
+            "date": "2024-09-20",
+            "amount": 300.0,
+            "note": "Bonus investi"
+          },
+          {
+            "id": "85c072db-7ed9-4d54-a77f-61855b241c94",
+            "date": "2024-12-10",
+            "amount": 400.0,
+            "note": "Fin d'année"
+          }
+        ],
+        "note": "ETF World"
+      },
+      {
+        "id": "5857231a-9173-4134-92d8-26045eb7b956",
+        "type": "crypto",
+        "name": "Bitcoin & Ethereum",
+        "platform": "Binance",
+        "currentValue": 1200.0,
+        "monthlyContribution": 50.0,
+        "initialAmount": 200.0,
+        "startDate": "2024-01-15",
+        "transactions": [
+          {
+            "id": "622d5e77-6aeb-44ef-bfae-f2ae3c779ac0",
+            "date": "2024-05-10",
+            "amount": 200.0,
+            "note": "Achat BTC"
+          },
+          {
+            "id": "e6eefc70-f69d-4286-bc73-296a4c486049",
+            "date": "2024-11-15",
+            "amount": 150.0,
+            "note": "Achat ETH"
+          }
+        ],
+        "note": "Crypto long terme"
+      }
+    ],
+    "savingsGoals": [
+      {
+        "id": "2a30c7c4-2b14-44bd-a881-6c3447f02dcb",
+        "name": "Épargne de précaution",
+        "type": "precaution",
+        "targetAmount": 6000.0,
+        "currentAmount": 8500.0,
+        "priority": 1,
+        "accountId": null
+      },
+      {
+        "id": "63e52f70-77e2-43dc-86f5-3c0879cd5fcd",
+        "name": "Épargne minimale",
+        "type": "minimum",
+        "targetAmount": 3000.0,
+        "currentAmount": 3200.5,
+        "priority": 2,
+        "accountId": null
+      }
+    ],
+    "savingsProjects": [
+      {
+        "id": "17743e40-cb3c-45fc-b08e-98c486341378",
+        "name": "Vacances été 2025",
+        "targetAmount": 2500.0,
+        "currentAmount": 1200.0,
+        "targetDate": "2025-07-01",
+        "monthlyContribution": 150.0,
+        "description": "Road trip en Europe"
+      },
+      {
+        "id": "c494602c-5d4b-41d6-ab07-63e4b9bcc1cb",
+        "name": "Nouveau laptop",
+        "targetAmount": 1500.0,
+        "currentAmount": 800.0,
+        "targetDate": "2025-04-01",
+        "monthlyContribution": 100.0,
+        "description": "MacBook Pro"
+      }
+    ],
+    "temporaryIncomes": [
+      {
+        "id": "e0e12774-01a3-455c-b0d7-85009006782c",
+        "name": "Prime annuelle",
+        "type": "bonus",
+        "amount": 1500.0,
+        "duration": "once",
+        "startDate": "2024-12-15",
+        "endDate": null,
+        "numberOfMonths": null
+      }
+    ],
+    "sharedExpensePersons": [
+      {
+        "id": "c85ad48a-9bd2-4d1a-866a-c65a9c28e07c",
+        "name": "Copain/ine",
+        "defaultSharePercentage": 50.0,
+        "note": "Partage équitable"
+      }
+    ],
+    "personTransactions": [],
+    "salaryHistory": [
+      {
+        "id": "41febc9b-fb1e-4850-abe0-f62df5df65c7",
+        "amount": 2500.0,
+        "startDate": "2023-01-01",
+        "endDate": null,
+        "type": "salary",
+        "note": "Poste actuel"
+      }
+    ],
+    "lockedYears": [],
+    "excludedPredictedYears": [],
+    "maxPredictedYears": 3
+  }
+}
