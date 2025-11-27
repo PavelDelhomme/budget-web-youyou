@@ -205,6 +205,10 @@ def get_year_data():
     if 'annualFixedExpenses' not in result:
         result['annualFixedExpenses'] = []
     
+    # Ensure variableMonthlyIncomes exists (backward compatibility)
+    if 'variableMonthlyIncomes' not in result:
+        result['variableMonthlyIncomes'] = None
+    
     return jsonify(result)
 
 
@@ -238,6 +242,7 @@ def put_year_data():
         'subs': payload.get('subs', []),
         'annualFixedExpenses': payload.get('annualFixedExpenses', []),
         'monthlySalary': payload.get('monthlySalary', 0),
+        'variableMonthlyIncomes': payload.get('variableMonthlyIncomes'),  # Array of 12 values or None
         'currentSavings': payload.get('currentSavings', 0),
         'savingsTransactions': payload.get('savingsTransactions', [])
     }
@@ -275,6 +280,7 @@ def get_global_data():
                 'temporaryIncomes': [],
                 'sharedExpensePersons': [],
                 'personTransactions': [],
+                'salaryHistory': [],
                 'initializationComplete': has_years_data,  # If user has years, they're initialized
                 'monthlySalary': 0,
                 'monthlySalaryStartDate': None
@@ -295,6 +301,7 @@ def get_global_data():
             'temporaryIncomes': [],
             'sharedExpensePersons': [],
             'personTransactions': [],
+            'salaryHistory': [],
             'monthlySalary': 0,
             'monthlySalaryStartDate': None
         }

@@ -153,9 +153,10 @@ export interface UserGlobalData {
   temporaryIncomes: TemporaryIncome[];
   sharedExpensePersons: SharedExpensePerson[];
   personTransactions: PersonTransaction[];
+  salaryHistory?: SalaryHistory[]; // Historique des changements de salaire
   initializationComplete: boolean;
-  monthlySalary?: number; // Revenu mensuel principal (salaire, allocation chômage, etc.)
-  monthlySalaryStartDate?: string; // Date de début du revenu principal (ISO format)
+  monthlySalary?: number; // Revenu mensuel principal ACTUEL (salaire, allocation chômage, etc.)
+  monthlySalaryStartDate?: string; // Date de début du revenu principal actuel (ISO format)
 }
 
 export interface YearData {
@@ -163,8 +164,19 @@ export interface YearData {
   expenses: Expense[];
   subs: Subscription[];
   annualFixedExpenses?: AnnualFixedExpense[];
-  monthlySalary?: number;
+  monthlySalary?: number; // Salaire de base mensuel pour l'année
+  variableMonthlyIncomes?: number[]; // Revenus variables par mois [janvier, février, ..., décembre] (12 valeurs). Si défini, remplace monthlySalary pour ce mois
   currentSavings?: number;
   savingsTransactions?: SavingsTransaction[];
+}
+
+// Historique des salaires (changements de travail)
+export interface SalaryHistory {
+  id: string;
+  amount: number; // Montant mensuel
+  startDate: string; // Date de début (ISO format)
+  endDate?: string; // Date de fin (ISO format) - undefined si toujours actif
+  type: 'salary' | 'unemployment' | 'freelance' | 'other'; // Type de revenu
+  note?: string; // Note (ex: "Nouveau travail chez X")
 }
 

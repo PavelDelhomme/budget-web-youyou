@@ -1,9 +1,12 @@
-import { Category, Expense, Subscription, YearData } from '../types';
+import { Category, Expense, Subscription, YearData, UserGlobalData, AnnualFixedExpense } from '../types';
 
 /**
  * Analyse les années passées et génère des prévisions pour les années futures
  * Simple algorithme interne basé sur les moyennes et tendances
+ * 
+ * Taux d'inflation annuel utilisé pour les prévisions (2.5% par an, proche de la moyenne européenne)
  */
+const INFLATION_RATE = 0.025; // 2.5% par an
 
 export interface PredictedYearData {
   year: number;
@@ -13,6 +16,11 @@ export interface PredictedYearData {
   monthlySalary: number;
   projectedExpenses: number;
   projectedSavings: number;
+  projectedAnnualIncome?: number; // Revenus annuels totaux (incluant revenus supplémentaires)
+  projectedInvestments?: number;
+  projectedBankAccounts?: number; // Total des comptes bancaires projetés
+  projectedTotalAssets?: number; // Total actifs (comptes + investissements)
+  projectedSavingsProjects?: { totalCurrent: number; totalTarget: number };
 }
 
 interface HistoricalYearData {
@@ -25,7 +33,8 @@ interface HistoricalYearData {
  */
 export function generatePredictions(
   historicalYears: HistoricalYearData[],
-  futureYears: number[]
+  futureYears: number[],
+  globalData?: UserGlobalData | null
 ): PredictedYearData[] {
   if (historicalYears.length === 0) {
     return [];
@@ -36,6 +45,7 @@ export function generatePredictions(
   const avgSubs = calculateAverageSubscriptions(historicalYears);
   const avgSalary = calculateAverageSalary(historicalYears);
   const avgSpending = calculateAverageSpending(historicalYears);
+  const avgAnnualFixedExpenses = calculateAverageAnnualFixedExpenses(historicalYears);
   
   // Calculer la tendance d'évolution (augmentation/diminution moyenne par an)
   const spendingTrend = calculateTrend(historicalYears.map(h => ({
@@ -43,25 +53,195 @@ export function generatePredictions(
     value: calculateTotalSpending(h.data)
   })));
 
+  // Calculer l'évolution de l'épargne basée sur les transactions historiques
+  const savingsTrend = calculateSavingsTrend(historicalYears);
+  const avgCurrentSavings = calculateAverageCurrentSavings(historicalYears);
+
+  // Calculer les revenus supplémentaires pour chaque année future
+  const calculateAdditionalIncome = (year: number): number => {
+    if (!globalData?.temporaryIncomes) return 0;
+    
+    const yearStart = new Date(year, 0, 1);
+    const yearEnd = new Date(year, 11, 31);
+    
+    let total = 0;
+    for (const income of globalData.temporaryIncomes) {
+      const startDate = new Date(income.startDate);
+      const endDate = income.endDate ? new Date(income.endDate) : null;
+      
+      // Revenus permanents : 12 mois si l'année est après la date de début
+      if (income.duration === 'permanent' && startDate <= yearEnd) {
+        if (startDate <= yearStart) {
+          total += income.amount * 12;
+        } else {
+          const monthsActive = 12 - startDate.getMonth();
+          total += income.amount * monthsActive;
+        }
+      }
+      
+      // Revenus temporaires sur plusieurs mois
+      if (income.duration === 'months' && endDate) {
+        if (startDate <= yearEnd && endDate >= yearStart) {
+          const start = startDate < yearStart ? yearStart : startDate;
+          const end = endDate > yearEnd ? yearEnd : endDate;
+          const monthsActive = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1;
+          total += income.amount * Math.max(0, monthsActive);
+        }
+      }
+      
+      // Revenus ponctuels
+      if (income.duration === 'once' && startDate >= yearStart && startDate <= yearEnd) {
+        total += income.amount;
+      }
+    }
+    
+    return total;
+  };
+
+  // Calculer l'évolution prévue des investissements
+  const calculateProjectedInvestments = (year: number): number => {
+    if (!globalData?.investments) return 0;
+    
+    const lastHistoricalYear = Math.max(...historicalYears.map(h => h.year));
+    const yearsAhead = year - lastHistoricalYear;
+    
+    return globalData.investments.reduce((total, inv) => {
+      // Valeur actuelle + contributions mensuelles × 12 × années
+      const currentValue = inv.currentValue || 0;
+      const monthlyContrib = inv.monthlyContribution || 0;
+      const annualContrib = monthlyContrib * 12;
+      
+      // Estimation de croissance des investissements (conservative: 4% par an)
+      const growthRate = 0.04;
+      const projectedValue = currentValue * Math.pow(1 + growthRate, yearsAhead) + 
+                            (annualContrib * yearsAhead * (1 + growthRate / 2));
+      
+      return total + projectedValue;
+    }, 0);
+  };
+
+  // Calculer l'évolution prévue des comptes bancaires
+  const calculateProjectedBankAccounts = (year: number, projectedSavings: number): number => {
+    if (!globalData?.bankAccounts) return projectedSavings;
+    
+    const lastHistoricalYear = Math.max(...historicalYears.map(h => h.year));
+    const yearsAhead = year - lastHistoricalYear;
+    
+    // Total actuel des comptes bancaires
+    const currentTotal = globalData.bankAccounts.reduce((sum, acc) => sum + (acc.currentBalance || 0), 0);
+    
+    // Calculer l'évolution : solde actuel + épargne projetée accumulée
+    // On part du principe que l'épargne va principalement dans les comptes bancaires
+    // (une partie peut aussi aller dans les investissements, mais on simplifie)
+    const savingsFromIncome = projectedSavings - (avgCurrentSavings || 0);
+    const projectedTotal = currentTotal + savingsFromIncome;
+    
+    return Math.max(0, projectedTotal);
+  };
+
+  // Calculer l'évolution prévue des projets d'épargne
+  const calculateProjectedSavingsProjects = (year: number) => {
+    if (!globalData?.savingsProjects || globalData.savingsProjects.length === 0) {
+      return undefined;
+    }
+    
+    const lastHistoricalYear = Math.max(...historicalYears.map(h => h.year));
+    const yearsAhead = year - lastHistoricalYear;
+    
+    let totalCurrent = 0;
+    let totalTarget = 0;
+    
+    globalData.savingsProjects.forEach(project => {
+      const targetDate = new Date(project.targetDate);
+      const projectYear = targetDate.getFullYear();
+      
+      // Si le projet est encore actif pour cette année
+      if (projectYear >= year) {
+        const monthlyContrib = project.monthlyContribution || 0;
+        const monthsFromNow = Math.max(0, (year - lastHistoricalYear) * 12);
+        
+        // Projeter le montant actuel + contributions futures
+        const projectedCurrent = Math.min(
+          project.targetAmount,
+          project.currentAmount + (monthlyContrib * monthsFromNow)
+        );
+        
+        totalCurrent += projectedCurrent;
+        totalTarget += project.targetAmount;
+      } else {
+        // Projet terminé, compter le montant cible comme atteint
+        totalCurrent += project.targetAmount;
+        totalTarget += project.targetAmount;
+      }
+    });
+    
+    return { totalCurrent, totalTarget };
+  };
+
   // Générer les prévisions pour chaque année future
   return futureYears.map(year => {
-    const yearsAhead = year - Math.max(...historicalYears.map(h => h.year));
-    const projectedSpending = avgSpending * (1 + spendingTrend * yearsAhead);
+    const lastHistoricalYear = Math.max(...historicalYears.map(h => h.year));
+    const yearsAhead = year - lastHistoricalYear;
     
-    // Ajuster les catégories selon la tendance
-    const predictedCategories = avgCategories.map(cat => ({
-      ...cat,
-      target: Math.max(0, cat.target * (1 + spendingTrend * yearsAhead * 0.5))
+    // Calculer le facteur d'inflation cumulé
+    const inflationFactor = Math.pow(1 + INFLATION_RATE, yearsAhead);
+    
+    // Revenus : Ne pas augmenter automatiquement, garder le salaire moyen
+    // (Les augmentations de salaire doivent venir de l'historique utilisateur, pas de l'IA)
+    const baseSalary = avgSalary; // Pas d'augmentation automatique
+    const additionalIncome = calculateAdditionalIncome(year);
+    const annualIncome = (baseSalary * 12) + additionalIncome;
+    
+    // Dépenses : Appliquer l'inflation + tendance historique
+    // L'inflation s'applique à toutes les dépenses (catégories, abonnements, fixes)
+    const inflationAdjustedSpending = avgSpending * inflationFactor;
+    const trendAdjustedSpending = avgSpending * (1 + spendingTrend * yearsAhead);
+    // Prendre le maximum entre inflation et tendance pour être réaliste
+    const projectedSpending = Math.max(inflationAdjustedSpending, trendAdjustedSpending) + (avgAnnualFixedExpenses * inflationFactor);
+    
+    // Ajuster les catégories : inflation + tendance historique
+    const predictedCategories = avgCategories.map(cat => {
+      const inflationAdjusted = cat.target * inflationFactor;
+      const trendAdjusted = cat.target * (1 + spendingTrend * yearsAhead * 0.5);
+      // Prendre le maximum pour être réaliste
+      return {
+        ...cat,
+        target: Math.max(0, Math.max(inflationAdjusted, trendAdjusted))
+      };
+    });
+
+    // Calculer l'épargne projetée
+    // Épargne de départ + épargne accumulée selon la tendance
+    const projectedSavingsFromIncome = annualIncome - projectedSpending;
+    const startingSavings = avgCurrentSavings || 0;
+    const savingsGrowth = savingsTrend * yearsAhead;
+    const projectedSavings = startingSavings + (projectedSavingsFromIncome * (1 + savingsGrowth));
+
+    // Calculer les projections
+    const projectedInvestmentsValue = calculateProjectedInvestments(year);
+    const projectedBankAccountsValue = calculateProjectedBankAccounts(year, projectedSavings);
+    const projectedTotalAssetsValue = projectedBankAccountsValue + projectedInvestmentsValue;
+
+    // Ajuster les abonnements avec l'inflation
+    const predictedSubs = avgSubs.map(sub => ({
+      ...sub,
+      id: crypto.randomUUID(),
+      monthly: Math.round(sub.monthly * inflationFactor) // Appliquer l'inflation aux abonnements
     }));
 
     return {
       year,
       isPredicted: true,
       categories: predictedCategories,
-      subs: avgSubs.map(sub => ({ ...sub, id: crypto.randomUUID() })),
-      monthlySalary: avgSalary * (1 + 0.02 * yearsAhead), // Augmentation moyenne de 2% par an
+      subs: predictedSubs,
+      monthlySalary: baseSalary, // Pas d'augmentation automatique
       projectedExpenses: projectedSpending,
-      projectedSavings: avgSalary * 12 * (1 + 0.02 * yearsAhead) - projectedSpending
+      projectedSavings: projectedSavings,
+      projectedAnnualIncome: annualIncome,
+      projectedInvestments: projectedInvestmentsValue,
+      projectedBankAccounts: projectedBankAccountsValue,
+      projectedTotalAssets: projectedTotalAssetsValue,
+      projectedSavingsProjects: calculateProjectedSavingsProjects(year),
     };
   });
 }
@@ -159,7 +339,73 @@ function calculateTotalSpending(data: YearData): number {
     return sum + (sub.monthly * months);
   }, 0) || 0);
   
-  return categoriesTotal + subsTotal;
+  const annualFixedTotal = (data.annualFixedExpenses?.reduce((sum, exp) => sum + (exp.amount || 0), 0) || 0);
+  
+  return categoriesTotal + subsTotal + annualFixedTotal;
+}
+
+/**
+ * Calcule la moyenne des dépenses fixes annuelles
+ */
+function calculateAverageAnnualFixedExpenses(historicalYears: HistoricalYearData[]): number {
+  const totals = historicalYears
+    .map(h => (h.data.annualFixedExpenses || []).reduce((sum, exp) => sum + (exp.amount || 0), 0))
+    .filter(v => v > 0);
+  
+  if (totals.length === 0) return 0;
+  return totals.reduce((sum, v) => sum + v, 0) / totals.length;
+}
+
+/**
+ * Calcule la moyenne de l'épargne actuelle
+ */
+function calculateAverageCurrentSavings(historicalYears: HistoricalYearData[]): number {
+  const savings = historicalYears
+    .map(h => h.data.currentSavings || 0)
+    .filter(s => s > 0);
+  
+  if (savings.length === 0) return 0;
+  return savings.reduce((sum, s) => sum + s, 0) / savings.length;
+}
+
+/**
+ * Calcule la tendance d'évolution de l'épargne basée sur les transactions
+ */
+function calculateSavingsTrend(historicalYears: HistoricalYearData[]): number {
+  if (historicalYears.length < 2) return 0;
+  
+  const savingsByYear = historicalYears.map(h => {
+    const transactions = h.data.savingsTransactions || [];
+    const totalAdded = transactions
+      .filter(t => t.amount > 0)
+      .reduce((sum, t) => sum + t.amount, 0);
+    const totalWithdrawn = transactions
+      .filter(t => t.amount < 0)
+      .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+    const netSavings = totalAdded - totalWithdrawn;
+    
+    return {
+      year: h.year,
+      savings: (h.data.currentSavings || 0),
+      netMonthlySavings: netSavings / 12 // Épargne nette mensuelle moyenne
+    };
+  });
+  
+  // Calculer la tendance de l'épargne nette mensuelle
+  const sorted = savingsByYear.sort((a, b) => a.year - b.year);
+  const trends: number[] = [];
+  
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = sorted[i - 1].netMonthlySavings;
+    const curr = sorted[i].netMonthlySavings;
+    if (prev !== 0) {
+      trends.push((curr - prev) / Math.abs(prev));
+    }
+  }
+  
+  return trends.length > 0 
+    ? trends.reduce((sum, t) => sum + t, 0) / trends.length
+    : 0;
 }
 
 /**

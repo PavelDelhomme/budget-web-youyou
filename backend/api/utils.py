@@ -99,6 +99,7 @@ def get_default_global_data() -> dict:
         'temporaryIncomes': [],
         'sharedExpensePersons': [],
         'personTransactions': [],
+        'salaryHistory': [],
         'initializationComplete': False,
         'monthlySalary': 0,
         'monthlySalaryStartDate': None

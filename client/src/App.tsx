@@ -38,6 +38,7 @@ function App() {
   const [subs, setSubs] = useState<Subscription[]>([]);
   const [annualFixedExpenses, setAnnualFixedExpenses] = useState<AnnualFixedExpense[]>([]);
   const [monthlySalary, setMonthlySalary] = useState<number>(0);
+  const [variableMonthlyIncomes, setVariableMonthlyIncomes] = useState<number[] | undefined>(undefined);
   const [currentSavings, setCurrentSavings] = useState<number>(0);
   const [savingsTransactions, setSavingsTransactions] = useState<SavingsTransaction[]>([]);
   
@@ -107,8 +108,9 @@ function App() {
             }
             
             setYears(updatedYears);
-            // Always select dashboard by default (or current year if dashboard not available)
-            setYear('dashboard');
+            // Always select current year by default (or dashboard if current year not available)
+            const currentYearExists = updatedYears.includes(currentYear);
+            setYear(currentYearExists ? currentYear : 'dashboard');
           } else {
             // No years exist, create current year
             try {
@@ -172,7 +174,17 @@ function App() {
             data
           }));
           
-          const predictions = generatePredictions(historicalArray, futureYearsList);
+          // Load globalData if not already loaded
+          let globalDataForPredictions = globalData;
+          if (!globalDataForPredictions) {
+            try {
+              globalDataForPredictions = await Api.getGlobalData();
+            } catch (err) {
+              console.warn('Could not load globalData for predictions:', err);
+            }
+          }
+          
+          const predictions = generatePredictions(historicalArray, futureYearsList, globalDataForPredictions);
           setPredictedYears(predictions);
         }
       } catch (err) {
@@ -181,7 +193,7 @@ function App() {
     }
     
     loadHistoricalAndPredict();
-  }, [sessionEmail, years]);
+  }, [sessionEmail, years, globalData]);
 
   // Load data when sessionEmail or year changes
   useEffect(() => {
@@ -218,6 +230,7 @@ function App() {
         setAnnualFixedExpenses(Array.isArray(ds.annualFixedExpenses) ? ds.annualFixedExpenses : []);
         // Prendre monthlySalary depuis yearData, sinon depuis globalData
         setMonthlySalary(ds.monthlySalary || globalData?.monthlySalary || 0);
+        setVariableMonthlyIncomes(Array.isArray(ds.variableMonthlyIncomes) && ds.variableMonthlyIncomes.length === 12 ? ds.variableMonthlyIncomes : undefined);
         setCurrentSavings(ds.currentSavings || 0);
         setSavingsTransactions(Array.isArray(ds.savingsTransactions) ? ds.savingsTransactions : []);
       } catch (err) {
@@ -239,11 +252,12 @@ function App() {
         subs,
         annualFixedExpenses,
         monthlySalary,
+        variableMonthlyIncomes,
         currentSavings,
         savingsTransactions,
       }).catch((err) => console.error('save error', err));
     }, 500);
-  }, [categories, expenses, subs, annualFixedExpenses, monthlySalary, currentSavings, savingsTransactions, sessionEmail, year, isViewingPrediction]);
+  }, [categories, expenses, subs, annualFixedExpenses, monthlySalary, variableMonthlyIncomes, currentSavings, savingsTransactions, sessionEmail, year, isViewingPrediction]);
 
   // Use budget calculations hook (only for numeric years, not dashboard)
   const calculations = useBudgetCalculations(
@@ -315,9 +329,16 @@ function App() {
   }
 
   function addCategory() {
+    const newCategoryId = crypto.randomUUID();
+    // Créer une catégorie avec budgets mensuels par défaut (tous à 0)
     setCategories((prev) => [
       ...prev,
-      { id: crypto.randomUUID(), name: 'Nouvelle catégorie', target: 0 },
+      { 
+        id: newCategoryId, 
+        name: 'Nouvelle catégorie', 
+        target: 0,
+        monthlyTargets: Array(12).fill(0) // Budgets mensuels par défaut
+      },
     ]);
   }
 
@@ -371,8 +392,10 @@ function App() {
       }
       
       setYears(updatedYears);
-      // Always select dashboard by default after login
-      setYear('dashboard');
+      // Always select current year by default after login (not dashboard)
+      const currentYearNum = today.getFullYear();
+      const currentYearExists = updatedYears.includes(currentYearNum);
+      setYear(currentYearExists ? currentYearNum : (updatedYears[0] || 'dashboard'));
     } catch (err: any) {
       alert(err.message || 'Login error');
     }
@@ -578,10 +601,14 @@ function App() {
   };
   
   const additionalIncome = typeof year === 'number' ? calculateAdditionalIncome(year) : 0;
-  const annualIncome = (monthlySalary * 12) + additionalIncome;
+  // Calculer le revenu annuel : si variableMonthlyIncomes est défini, utiliser la somme, sinon monthlySalary * 12
+  const baseAnnualIncome = variableMonthlyIncomes && variableMonthlyIncomes.length === 12
+    ? variableMonthlyIncomes.reduce((sum, v) => sum + v, 0)
+    : monthlySalary * 12;
+  const annualIncome = baseAnnualIncome + additionalIncome;
   // annualBudgetTotal inclut déjà variableTargets + subsAnnualCommitted + annualFixedExpensesTotal
-  const annualExpenses = calculations.annualBudgetTotal;
-  const projectedSavings = currentSavings + (annualIncome - annualExpenses);
+  const annualExpenses = typeof year === 'number' ? calculations.annualBudgetTotal : 0;
+  const projectedSavings = typeof year === 'number' ? currentSavings + (annualIncome - annualExpenses) : 0;
 
   // UI for login
   if (!sessionEmail) {
@@ -590,7 +617,7 @@ function App() {
 
   // UI when logged in
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-gray-900">
       {/* Sidebar */}
       <Sidebar
         years={[...new Set([...years, ...predictedYears.map(p => p.year)])]}
@@ -612,7 +639,7 @@ function App() {
       />
 
       {/* Main content */}
-      <main className="flex-1 ml-64 p-4 md:p-8">
+      <main className="flex-1 ml-64 p-4 md:p-8 dark:text-gray-100">
         <div className="max-w-6xl mx-auto space-y-6">
           {/* Dashboard View */}
           {year === 'dashboard' && (
@@ -729,6 +756,9 @@ function App() {
           annualIncome={annualIncome}
           projectedSavings={projectedSavings}
           temporaryIncomes={globalData?.temporaryIncomes || []}
+          savingsProjects={globalData?.savingsProjects || []}
+          variableMonthlyIncomes={variableMonthlyIncomes}
+          onVariableMonthlyIncomesChange={typeof year === 'number' ? setVariableMonthlyIncomes : undefined}
           currentYear={typeof year === 'number' ? year : undefined}
         />
 

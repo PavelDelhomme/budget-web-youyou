@@ -38,32 +38,32 @@ export function AnnualFixedExpenses({
   const total = expenses.reduce((sum, exp) => sum + exp.amount, 0);
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold">Dépenses fixes annuelles</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Dépenses fixes annuelles</h2>
         <button
           onClick={() => setIsAdding(!isAdding)}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
         >
           {isAdding ? 'Annuler' : '+ Ajouter'}
         </button>
       </div>
 
       {isAdding && (
-        <div className="mb-4 p-4 border rounded-lg bg-gray-50">
+        <div className="mb-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/50">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Nom</label>
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Nom</label>
               <input
                 type="text"
                 value={newExpense.name}
                 onChange={(e) => setNewExpense({ ...newExpense, name: e.target.value })}
                 placeholder="Ex: Assurance habitation"
-                className="w-full px-3 py-2 border rounded"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Montant (€)</label>
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Montant (€)</label>
               <input
                 type="text"
                 value={newExpense.amount === 0 ? '' : newExpense.amount.toString().replace('.', ',')}
@@ -71,15 +71,15 @@ export function AnnualFixedExpenses({
                   setNewExpense({ ...newExpense, amount: parseAmount(e.target.value) || 0 })
                 }
                 placeholder="Ex: 1200,00 ou 1200.00"
-                className="w-full px-3 py-2 border rounded"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Mois</label>
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Mois</label>
               <select
                 value={newExpense.month}
                 onChange={(e) => setNewExpense({ ...newExpense, month: parseInt(e.target.value) })}
-                className="w-full px-3 py-2 border rounded"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
               >
                 {months.map((month, idx) => (
                   <option key={idx + 1} value={idx + 1}>
@@ -90,18 +90,18 @@ export function AnnualFixedExpenses({
             </div>
           </div>
           <div className="mt-3">
-            <label className="block text-sm font-medium mb-1">Note (optionnel)</label>
+            <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Note (optionnel)</label>
             <input
               type="text"
               value={newExpense.note}
               onChange={(e) => setNewExpense({ ...newExpense, note: e.target.value })}
               placeholder="Informations complémentaires"
-              className="w-full px-3 py-2 border rounded"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
             />
           </div>
           <button
             onClick={handleAdd}
-            className="mt-3 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            className="mt-3 px-4 py-2 bg-green-600 dark:bg-green-500 text-white rounded hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
           >
             Ajouter
           </button>
@@ -109,7 +109,7 @@ export function AnnualFixedExpenses({
       )}
 
       {expenses.length === 0 ? (
-        <p className="text-gray-500 text-center py-8">
+        <p className="text-gray-500 dark:text-gray-400 text-center py-8">
           Aucune dépense fixe annuelle. Cliquez sur "Ajouter" pour en créer une.
         </p>
       ) : (
@@ -117,29 +117,29 @@ export function AnnualFixedExpenses({
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2 px-3">Nom</th>
-                  <th className="text-left py-2 px-3">Mois</th>
-                  <th className="text-right py-2 px-3">Montant</th>
-                  <th className="text-left py-2 px-3">Note</th>
-                  <th className="text-right py-2 px-3">Actions</th>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <th className="text-left py-2 px-3 text-gray-700 dark:text-gray-300">Nom</th>
+                  <th className="text-left py-2 px-3 text-gray-700 dark:text-gray-300">Mois</th>
+                  <th className="text-right py-2 px-3 text-gray-700 dark:text-gray-300">Montant</th>
+                  <th className="text-left py-2 px-3 text-gray-700 dark:text-gray-300">Note</th>
+                  <th className="text-right py-2 px-3 text-gray-700 dark:text-gray-300">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {expenses
                   .sort((a, b) => a.month - b.month)
                   .map((exp) => (
-                    <tr key={exp.id} className="border-b hover:bg-gray-50">
-                      <td className="py-2 px-3">{exp.name}</td>
-                      <td className="py-2 px-3">{months[exp.month - 1]}</td>
-                      <td className="py-2 px-3 text-right font-semibold">
+                    <tr key={exp.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <td className="py-2 px-3 text-gray-900 dark:text-white">{exp.name}</td>
+                      <td className="py-2 px-3 text-gray-900 dark:text-white">{months[exp.month - 1]}</td>
+                      <td className="py-2 px-3 text-right font-semibold text-gray-900 dark:text-white">
                         {currency(exp.amount)}
                       </td>
-                      <td className="py-2 px-3 text-sm text-gray-600">{exp.note || '-'}</td>
+                      <td className="py-2 px-3 text-sm text-gray-600 dark:text-gray-400">{exp.note || '-'}</td>
                       <td className="py-2 px-3 text-right">
                         <button
                           onClick={() => onRemove(exp.id)}
-                          className="text-red-600 hover:text-red-800 text-sm"
+                          className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 text-sm transition-colors"
                         >
                           Supprimer
                         </button>
@@ -149,10 +149,10 @@ export function AnnualFixedExpenses({
               </tbody>
             </table>
           </div>
-          <div className="pt-4 border-t">
+          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
             <div className="flex justify-between items-center">
-              <span className="font-semibold">Total annuel :</span>
-              <span className="text-xl font-bold">{currency(total)}</span>
+              <span className="font-semibold text-gray-900 dark:text-white">Total annuel :</span>
+              <span className="text-xl font-bold text-gray-900 dark:text-white">{currency(total)}</span>
             </div>
           </div>
         </div>
