@@ -209,6 +209,10 @@ def get_year_data():
     if 'variableMonthlyIncomes' not in result:
         result['variableMonthlyIncomes'] = None
     
+    # Ensure additionalMonthlyIncomes exists (backward compatibility)
+    if 'additionalMonthlyIncomes' not in result:
+        result['additionalMonthlyIncomes'] = []
+    
     return jsonify(result)
 
 
@@ -243,6 +247,7 @@ def put_year_data():
         'annualFixedExpenses': payload.get('annualFixedExpenses', []),
         'monthlySalary': payload.get('monthlySalary', 0),
         'variableMonthlyIncomes': payload.get('variableMonthlyIncomes'),  # Array of 12 values or None
+        'additionalMonthlyIncomes': payload.get('additionalMonthlyIncomes', []),  # Array of MonthlyAdditionalIncome
         'currentSavings': payload.get('currentSavings', 0),
         'savingsTransactions': payload.get('savingsTransactions', [])
     }

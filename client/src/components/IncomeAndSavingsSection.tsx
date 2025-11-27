@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { currency, parseAmount } from '../utils';
-import { SavingsTransaction, SavingsProject, TemporaryIncome } from '../types';
+import { SavingsTransaction, SavingsProject, TemporaryIncome, MonthlyAdditionalIncome } from '../types';
 import { VariableMonthlyIncomes } from './VariableMonthlyIncomes';
+import { AdditionalMonthlyIncomes } from './AdditionalMonthlyIncomes';
 
 interface IncomeAndSavingsSectionProps {
   monthlySalary: number;
@@ -17,6 +18,8 @@ interface IncomeAndSavingsSectionProps {
   savingsProjects?: SavingsProject[]; // Projets d'épargne
   variableMonthlyIncomes?: number[]; // Revenus variables par mois
   onVariableMonthlyIncomesChange?: (incomes: number[] | undefined) => void;
+  additionalMonthlyIncomes?: MonthlyAdditionalIncome[]; // Revenus supplémentaires par mois (primes, cadeaux, etc.)
+  onAdditionalMonthlyIncomesChange?: (incomes: MonthlyAdditionalIncome[]) => void;
   currentYear?: number; // Pour calculer les revenus actifs
 }
 
@@ -34,6 +37,8 @@ export function IncomeAndSavingsSection({
   savingsProjects = [],
   variableMonthlyIncomes,
   onVariableMonthlyIncomesChange,
+  additionalMonthlyIncomes = [],
+  onAdditionalMonthlyIncomesChange,
   currentYear,
 }: IncomeAndSavingsSectionProps) {
   // Calculer les revenus supplémentaires actifs pour l'année
@@ -86,11 +91,20 @@ export function IncomeAndSavingsSection({
       .reduce((sum, inc) => sum + (inc.amount * (inc.numberOfMonths || 1)), 0);
   }, [activeTemporaryIncomes]);
 
-  // Calculer l'épargne projetée par mois
+  // Calculer l'épargne mensuelle moyenne
+  // projectedSavings = épargne actuelle + (revenus annuels - dépenses annuelles)
+  // L'épargne mensuelle moyenne = épargne projetée totale en fin d'année / 12 mois
+  // Exemple : si projectedSavings = 6000€, alors monthlyProjectedSavings = 500€/mois
+  // Cela représente la moyenne mensuelle sur toute l'année pour atteindre l'épargne projetée
+  // Note: Le calcul prend en compte l'état actuel car projectedSavings inclut déjà currentSavings
+  // et la différence (annualIncome - annualExpenses) représente ce qui sera épargné d'ici fin d'année
   const monthlyProjectedSavings = useMemo(() => {
-    const monthlyExpenses = annualIncome > 0 ? (annualIncome - projectedSavings) / 12 : 0;
-    return totalMonthlyIncome - monthlyExpenses;
-  }, [annualIncome, projectedSavings, totalMonthlyIncome]);
+    if (projectedSavings === 0) return 0;
+    // L'épargne mensuelle moyenne est l'épargne totale projetée divisée par 12
+    // Cela donne la moyenne mensuelle nécessaire sur toute l'année
+    // Exemple : 6000€ en fin d'année = 500€/mois en moyenne
+    return projectedSavings / 12;
+  }, [projectedSavings]);
   const [isEditingSalary, setIsEditingSalary] = useState(false);
   const [isEditingSavings, setIsEditingSavings] = useState(false);
   const [salaryInput, setSalaryInput] = useState(monthlySalary.toString());
@@ -201,6 +215,14 @@ export function IncomeAndSavingsSection({
             monthlySalary={monthlySalary}
             variableMonthlyIncomes={variableMonthlyIncomes}
             onUpdate={onVariableMonthlyIncomesChange}
+          />
+        )}
+
+        {/* Revenus supplémentaires par mois (primes, cadeaux, etc.) */}
+        {onAdditionalMonthlyIncomesChange && currentYear && (
+          <AdditionalMonthlyIncomes
+            additionalMonthlyIncomes={additionalMonthlyIncomes}
+            onUpdate={onAdditionalMonthlyIncomesChange}
           />
         )}
 
@@ -324,9 +346,14 @@ export function IncomeAndSavingsSection({
             <span className="text-lg font-bold text-blue-900 dark:text-blue-300">{currency(projectedSavings)}</span>
           </div>
           <div className="flex justify-between items-center border-t border-blue-200 dark:border-blue-700 pt-2">
-            <p className="text-xs text-blue-700 dark:text-blue-400">
-              <strong>Épargne mensuelle moyenne :</strong>
-            </p>
+            <div>
+              <p className="text-xs text-blue-700 dark:text-blue-400">
+                <strong>Épargne mensuelle moyenne :</strong>
+              </p>
+              <p className="text-xs text-blue-600 dark:text-blue-500 italic mt-0.5">
+                ({currency(projectedSavings)} projetés en fin d'année ÷ 12 = moyenne mensuelle)
+              </p>
+            </div>
             <span className="text-sm font-semibold text-blue-900 dark:text-blue-300">{currency(monthlyProjectedSavings)}/mois</span>
           </div>
           <p className="text-xs text-blue-700 dark:text-blue-400 mt-1">

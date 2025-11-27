@@ -51,7 +51,7 @@ venv: ## Crée l'environnement virtuel Python
 		echo "⚠️  L'environnement virtuel existe déjà"; \
 	fi
 
-dev: ## Démarre le serveur de développement via Docker (backend Flask + frontend React)
+dev: ## Démarre le serveur de développement via Docker avec affichage des logs
 	@echo "🚀 Démarrage du projet en mode développement avec Docker..."
 	@echo "📡 Backend Flask: http://localhost:$(BACKEND_PORT)"
 	@echo "🌐 Frontend React: http://localhost:$(FRONTEND_PORT)"
@@ -60,7 +60,14 @@ dev: ## Démarre le serveur de développement via Docker (backend Flask + fronte
 	@echo ""
 	docker-compose up
 
-start: dev ## Alias pour dev
+start: ## Démarre les conteneurs en arrière-plan (sans afficher les logs)
+	@echo "🚀 Démarrage des conteneurs en arrière-plan..."
+	@docker-compose up -d
+	@echo "✅ Conteneurs démarrés!"
+	@echo "📡 Backend Flask: http://localhost:$(BACKEND_PORT)"
+	@echo "🌐 Frontend React: http://localhost:$(FRONTEND_PORT)"
+	@echo ""
+	@echo "💡 Utilisez 'make logs' pour voir les logs"
 
 stop: ## Arrête les serveurs backend et frontend (Docker)
 	@echo "🛑 Arrêt des conteneurs Docker..."

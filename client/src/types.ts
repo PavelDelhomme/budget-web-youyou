@@ -159,13 +159,23 @@ export interface UserGlobalData {
   monthlySalaryStartDate?: string; // Date de début du revenu principal actuel (ISO format)
 }
 
+// Revenus variables supplémentaires par mois (primes, cadeaux, etc.)
+export interface MonthlyAdditionalIncome {
+  id: string;
+  name: string; // Ex: "Prime de Noël", "Cadeau", "Bonus trimestriel", etc.
+  amount: number;
+  month: number; // 1-12 pour janvier-décembre
+  note?: string;
+}
+
 export interface YearData {
   categories: Category[];
   expenses: Expense[];
   subs: Subscription[];
   annualFixedExpenses?: AnnualFixedExpense[];
   monthlySalary?: number; // Salaire de base mensuel pour l'année
-  variableMonthlyIncomes?: number[]; // Revenus variables par mois [janvier, février, ..., décembre] (12 valeurs). Si défini, remplace monthlySalary pour ce mois
+  variableMonthlyIncomes?: number[]; // Revenus variables par mois [janvier, février, ..., décembre] (12 valeurs). Si vide, utilise monthlySalary. Si défini, remplace monthlySalary pour ce mois
+  additionalMonthlyIncomes?: MonthlyAdditionalIncome[]; // Revenus supplémentaires par mois (primes, cadeaux, etc.) qui s'ajoutent au revenu de base
   currentSavings?: number;
   savingsTransactions?: SavingsTransaction[];
 }

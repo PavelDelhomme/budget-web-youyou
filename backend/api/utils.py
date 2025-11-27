@@ -84,6 +84,8 @@ def get_default_year_data() -> dict:
         'subs': [],
         'annualFixedExpenses': [],
         'monthlySalary': 0,
+        'variableMonthlyIncomes': None,
+        'additionalMonthlyIncomes': [],
         'currentSavings': 0,
         'savingsTransactions': []
     }

@@ -14,7 +14,7 @@ import { Dashboard } from './components/Dashboard';
 import { GlobalDataManager } from './components/GlobalDataManager';
 import { RevenusManager } from './components/RevenusManager';
 import { useBudgetCalculations } from './hooks/useBudgetData';
-import { Category, Expense, Subscription, SavingsTransaction, YearData, UserGlobalData, AnnualFixedExpense } from './types';
+import { Category, Expense, Subscription, SavingsTransaction, YearData, UserGlobalData, AnnualFixedExpense, MonthlyAdditionalIncome } from './types';
 import { generatePredictions, getFutureYears, getHistoricalYears, PredictedYearData } from './utils/budgetPredictor';
 import {
   defaultCategories,
@@ -39,6 +39,7 @@ function App() {
   const [annualFixedExpenses, setAnnualFixedExpenses] = useState<AnnualFixedExpense[]>([]);
   const [monthlySalary, setMonthlySalary] = useState<number>(0);
   const [variableMonthlyIncomes, setVariableMonthlyIncomes] = useState<number[] | undefined>(undefined);
+  const [additionalMonthlyIncomes, setAdditionalMonthlyIncomes] = useState<MonthlyAdditionalIncome[]>([]);
   const [currentSavings, setCurrentSavings] = useState<number>(0);
   const [savingsTransactions, setSavingsTransactions] = useState<SavingsTransaction[]>([]);
   
@@ -231,6 +232,7 @@ function App() {
         // Prendre monthlySalary depuis yearData, sinon depuis globalData
         setMonthlySalary(ds.monthlySalary || globalData?.monthlySalary || 0);
         setVariableMonthlyIncomes(Array.isArray(ds.variableMonthlyIncomes) && ds.variableMonthlyIncomes.length === 12 ? ds.variableMonthlyIncomes : undefined);
+        setAdditionalMonthlyIncomes(Array.isArray(ds.additionalMonthlyIncomes) ? ds.additionalMonthlyIncomes : []);
         setCurrentSavings(ds.currentSavings || 0);
         setSavingsTransactions(Array.isArray(ds.savingsTransactions) ? ds.savingsTransactions : []);
       } catch (err) {
@@ -253,11 +255,12 @@ function App() {
         annualFixedExpenses,
         monthlySalary,
         variableMonthlyIncomes,
+        additionalMonthlyIncomes,
         currentSavings,
         savingsTransactions,
       }).catch((err) => console.error('save error', err));
     }, 500);
-  }, [categories, expenses, subs, annualFixedExpenses, monthlySalary, variableMonthlyIncomes, currentSavings, savingsTransactions, sessionEmail, year, isViewingPrediction]);
+  }, [categories, expenses, subs, annualFixedExpenses, monthlySalary, variableMonthlyIncomes, additionalMonthlyIncomes, currentSavings, savingsTransactions, sessionEmail, year, isViewingPrediction]);
 
   // Use budget calculations hook (only for numeric years, not dashboard)
   const calculations = useBudgetCalculations(
@@ -605,7 +608,9 @@ function App() {
   const baseAnnualIncome = variableMonthlyIncomes && variableMonthlyIncomes.length === 12
     ? variableMonthlyIncomes.reduce((sum, v) => sum + v, 0)
     : monthlySalary * 12;
-  const annualIncome = baseAnnualIncome + additionalIncome;
+  // Ajouter les revenus supplémentaires par mois (primes, cadeaux, etc.)
+  const additionalMonthlyIncomeTotal = additionalMonthlyIncomes.reduce((sum, inc) => sum + inc.amount, 0);
+  const annualIncome = baseAnnualIncome + additionalIncome + additionalMonthlyIncomeTotal;
   // annualBudgetTotal inclut déjà variableTargets + subsAnnualCommitted + annualFixedExpensesTotal
   const annualExpenses = typeof year === 'number' ? calculations.annualBudgetTotal : 0;
   const projectedSavings = typeof year === 'number' ? currentSavings + (annualIncome - annualExpenses) : 0;
@@ -759,6 +764,8 @@ function App() {
           savingsProjects={globalData?.savingsProjects || []}
           variableMonthlyIncomes={variableMonthlyIncomes}
           onVariableMonthlyIncomesChange={typeof year === 'number' ? setVariableMonthlyIncomes : undefined}
+          additionalMonthlyIncomes={additionalMonthlyIncomes}
+          onAdditionalMonthlyIncomesChange={typeof year === 'number' ? setAdditionalMonthlyIncomes : undefined}
           currentYear={typeof year === 'number' ? year : undefined}
         />
 

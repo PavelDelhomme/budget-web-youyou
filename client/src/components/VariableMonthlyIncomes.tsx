@@ -90,7 +90,7 @@ export function VariableMonthlyIncomes({
             💰 Revenus mensuels variables (primes, variations)
           </h4>
           <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-            Définissez des revenus différents par mois si votre salaire varie (primes, allocations variables, etc.)
+            Définissez des revenus différents par mois si votre revenu principal varie. Si un mois n'est pas modifié, le revenu mensuel principal est utilisé par défaut.
           </p>
         </div>
         {!isEditing && (
