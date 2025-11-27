@@ -126,10 +126,14 @@ export function Dashboard({
   const currentMonth = today.getFullYear() === currentYear ? today.getMonth() + 1 : 1;
   const projectsContributions = calculateProjectsContributionsForYear(savingsProjects, currentYear, currentMonth);
   
-  // Épargne de base : revenus - dépenses
-  const baseProjectedSavings = annualIncome - annualExpenses;
+  // Épargne actuelle de l'année
+  const currentSavings = yearData.currentSavings || 0;
+  
+  // Épargne de base : épargne actuelle + (revenus - dépenses)
+  const baseProjectedSavings = currentSavings + (annualIncome - annualExpenses);
   
   // Ajouter les contributions aux projets d'épargne
+  // L'épargne projetée représente l'épargne totale en fin d'année
   const projectedSavings = baseProjectedSavings + projectsContributions;
   
   const savingsRate = annualIncome > 0 ? (projectedSavings / annualIncome) * 100 : 0;
