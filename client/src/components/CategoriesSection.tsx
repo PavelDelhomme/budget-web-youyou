@@ -26,25 +26,25 @@ export function CategoriesSection({
 
   // Note: toggleMonthlyTargets available for future use but not currently called in UI
   // const toggleMonthlyTargets = (categoryId: string) => {
-    const category = categories.find(c => c.id === categoryId);
-    if (!category) return;
-    
-    if (category.monthlyTargets) {
-      // Désactiver les budgets mensuels -> revenir au budget annuel simple
-      const annualTotal = category.monthlyTargets.reduce((sum, val) => sum + val, 0);
-      onUpsertCategory(categoryId, { 
-        monthlyTargets: undefined,
-        target: annualTotal || category.target 
-      });
-    } else {
-      // Activer les budgets mensuels avec le budget annuel divisé par 12
-      const monthlyAmount = category.target > 0 ? category.target / 12 : 0;
-      onUpsertCategory(categoryId, { 
-        monthlyTargets: Array(12).fill(monthlyAmount),
-        target: category.target || (monthlyAmount * 12)
-      });
-    }
-  };
+  //   const category = categories.find(c => c.id === categoryId);
+  //   if (!category) return;
+  //   
+  //   if (category.monthlyTargets) {
+  //     // Désactiver les budgets mensuels -> revenir au budget annuel simple
+  //     const annualTotal = category.monthlyTargets.reduce((sum, val) => sum + val, 0);
+  //     onUpsertCategory(categoryId, { 
+  //       monthlyTargets: undefined,
+  //       target: annualTotal || category.target 
+  //     });
+  //   } else {
+  //     // Activer les budgets mensuels avec le budget annuel divisé par 12
+  //     const monthlyAmount = category.target > 0 ? category.target / 12 : 0;
+  //     onUpsertCategory(categoryId, { 
+  //       monthlyTargets: Array(12).fill(monthlyAmount),
+  //       target: category.target || (monthlyAmount * 12)
+  //     });
+  //   }
+  // };
   
   const updateMonthlyTarget = (categoryId: string, monthIndex: number, value: string) => {
     const category = categories.find(c => c.id === categoryId);
