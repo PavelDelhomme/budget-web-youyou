@@ -1,4 +1,4 @@
-.PHONY: help install dev start restart stop build clean docker-build docker-up docker-down docker-logs docker-ps status ports logs logs-backend logs-frontend reset reset-and-restart test test-syntax test-backend test-frontend test-api test-containers test-integration check-errors test-all test-behavior test-files
+.PHONY: help install dev start restart stop build clean docker-build docker-up docker-down docker-logs docker-ps status ports logs logs-backend logs-frontend reset reset-and-restart test test-syntax test-backend test-frontend test-api test-containers test-integration check-errors test-all test-behavior test-files test-ui-components test-endpoints test-data-structure test-features
 
 # Variables
 BACKEND_PORT ?= 6060
