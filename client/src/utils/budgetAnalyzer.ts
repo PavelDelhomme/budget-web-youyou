@@ -1,4 +1,4 @@
-import { Category, Expense, Subscription, BudgetSuggestion, YearData } from '../types';
+import { BudgetSuggestion, YearData } from '../types';
 
 /**
  * Analyse le budget et génère des suggestions d'amélioration

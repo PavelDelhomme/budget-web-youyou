@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { currency, parseAmount } from '../utils';
 
 interface VariableMonthlyIncomesProps {
@@ -46,7 +46,7 @@ export function VariableMonthlyIncomes({
     }
 
     // Créer un tableau de 12 mois : si vide, utiliser monthlySalary, sinon la valeur
-    const incomes = monthlyValues.map((value, index) => {
+    const incomes = monthlyValues.map((value) => {
       const trimmed = value.trim();
       if (trimmed === '') {
         return monthlySalary;
@@ -77,7 +77,7 @@ export function VariableMonthlyIncomes({
     setIsEditing(false);
   }
 
-  const hasVariables = variableMonthlyIncomes && variableMonthlyIncomes.some((v, i) => v !== monthlySalary);
+  const hasVariables = variableMonthlyIncomes && variableMonthlyIncomes.some((v) => v !== monthlySalary);
   const totalVariable = variableMonthlyIncomes 
     ? variableMonthlyIncomes.reduce((sum, v) => sum + v, 0)
     : monthlySalary * 12;

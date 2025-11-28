@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { Expense, MonthlyAdditionalIncome, Category, Subscription, AnnualFixedExpense } from '../types';
-import { currency, parseAmount, today } from '../utils';
+import { currency } from '../utils';
 
 interface MonthlyExpensesIncomeChartProps {
   expenses: Expense[];

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { SharedExpensePerson, PersonTransaction } from '../types';
 import { currency, toISODate, today } from '../utils';
 

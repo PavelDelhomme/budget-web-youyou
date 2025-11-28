@@ -19,6 +19,7 @@ interface InitializationModalProps {
     investments?: Investment[];
     savingsGoals?: SavingsGoal[];
     monthlySalary?: number;
+    monthlySalaryStartDate?: string;
     temporaryIncomes?: TemporaryIncome[];
   }; // Données existantes pour pré-remplir le formulaire
 }
@@ -37,7 +38,7 @@ export function InitializationModal({ isOpen, onComplete, canSkip = false, initi
   const [temporaryIncomes, setTemporaryIncomes] = useState<TemporaryIncome[]>(initialData?.temporaryIncomes || []);
 
   // Reset and load data when modal opens
-  React.useEffect(() => {
+  useEffect(() => {
     if (isOpen && initialData) {
       setBankAccounts(initialData.bankAccounts || []);
       setInvestments(initialData.investments || []);

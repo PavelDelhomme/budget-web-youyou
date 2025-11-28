@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { ThemeToggle } from './ThemeToggle';
 
 interface SidebarProps {
@@ -114,7 +114,7 @@ export function Sidebar({
                     className={`group relative ${
                       y === currentYear && predicted
                         ? 'bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700'
-                        : y === currentYear && currentYear !== 'dashboard'
+                        : y === currentYear && typeof currentYear === 'number'
                         ? 'bg-gray-700 dark:bg-gray-600 text-white'
                         : ''
                     } rounded-lg transition-colors`}
@@ -170,7 +170,7 @@ export function Sidebar({
                     className={`group relative ${
                       y === currentYear && predicted
                         ? 'bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700'
-                        : y === currentYear && currentYear !== 'dashboard'
+                        : y === currentYear && typeof currentYear === 'number'
                         ? 'bg-green-600 dark:bg-green-500 text-white border-2 border-green-700 dark:border-green-400'
                         : ''
                     } rounded-lg transition-colors`}
@@ -231,7 +231,7 @@ export function Sidebar({
                     className={`group relative ${
                       y === currentYear && predicted
                         ? 'bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700'
-                        : y === currentYear && currentYear !== 'dashboard'
+                        : y === currentYear && typeof currentYear === 'number'
                         ? 'bg-blue-600 dark:bg-blue-500 text-white'
                         : ''
                     } rounded-lg transition-colors`}

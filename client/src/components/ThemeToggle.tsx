@@ -1,4 +1,4 @@
-import React from 'react';
+// ThemeToggle component
 import { useTheme } from '../contexts/ThemeContext';
 
 export function ThemeToggle() {

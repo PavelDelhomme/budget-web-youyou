@@ -1,4 +1,4 @@
-import React from 'react';
+// SummaryCard component
 
 interface SummaryCardProps {
   title: string;

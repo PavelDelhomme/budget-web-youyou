@@ -1,4 +1,4 @@
-import { Category, Expense, Subscription, YearData, UserGlobalData, AnnualFixedExpense } from '../types';
+import { Category, Subscription, YearData, UserGlobalData } from '../types';
 
 /**
  * Analyse les années passées et génère des prévisions pour les années futures

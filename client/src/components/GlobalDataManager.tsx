@@ -23,7 +23,7 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
   const [currentSystemYear] = useState(() => new Date().getFullYear());
   const [showResetCountdown, setShowResetCountdown] = useState(false);
   const [resetCountdown, setResetCountdown] = useState(10);
-  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   // Nettoyer l'interval quand le composant se démonte ou quand le countdown se termine
   useEffect(() => {
@@ -106,7 +106,7 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
   const [currentSalaryHistoryAmountInput, setCurrentSalaryHistoryAmountInput] = useState('');
 
   // Update local state when globalData changes
-  React.useEffect(() => {
+  useEffect(() => {
     setAccounts(globalData.bankAccounts || []);
     setInvestments(globalData.investments || []);
     setSavingsGoals(globalData.savingsGoals || []);
