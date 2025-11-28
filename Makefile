@@ -1,4 +1,4 @@
-.PHONY: help install dev start restart stop build clean docker-build docker-up docker-down docker-logs docker-ps status ports logs logs-backend logs-frontend reset reset-and-restart test test-syntax test-backend test-frontend test-api test-containers test-integration check-errors test-all test-behavior test-files test-ui-components test-endpoints test-data-structure test-features
+.PHONY: help install dev start restart stop down build clean docker-build docker-up docker-down docker-logs docker-ps status ports logs logs-backend logs-frontend reset reset-and-restart test test-syntax test-backend test-frontend test-api test-containers test-integration check-errors test-all test-behavior test-files test-ui-components test-endpoints test-data-structure test-features
 
 # Variables
 BACKEND_PORT ?= 6060
@@ -13,7 +13,7 @@ help: ## Affiche l'aide
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 	@echo ""
 	@echo "🚀 DÉMARRAGE / ARRÊT :"
-	@grep -E '^(dev|start|stop|restart|docker-up|docker-down|docker-restart):.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^(dev|start|stop|down|restart|docker-up|docker-down|docker-restart):.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 	@echo "📦 INSTALLATION / BUILD :"
 	@grep -E '^(install|install-all|docker-build|build|build-client):.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}'
@@ -76,6 +76,11 @@ stop: ## Arrête les serveurs backend et frontend (Docker)
 	@echo "🛑 Arrêt des conteneurs Docker..."
 	docker-compose down
 	@echo "✅ Conteneurs arrêtés!"
+
+down: ## Arrête et supprime tous les conteneurs du projet budget-web-youyou uniquement
+	@echo "🛑 Arrêt et suppression des conteneurs budget-web-youyou..."
+	@docker-compose down
+	@echo "✅ Conteneurs budget-web-youyou arrêtés et supprimés!"
 
 restart: ## Redémarre les serveurs backend et frontend (Docker en arrière-plan)
 	@echo "🔄 Redémarrage des conteneurs Docker..."
