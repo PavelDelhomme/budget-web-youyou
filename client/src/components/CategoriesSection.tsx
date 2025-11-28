@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Category } from '../types';
 import { currency, defaultCategories, parseAmount } from '../utils';
 
@@ -24,7 +24,8 @@ export function CategoriesSection({
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 
-  const toggleMonthlyTargets = (categoryId: string) => {
+  // Note: toggleMonthlyTargets available for future use but not currently called in UI
+  // const toggleMonthlyTargets = (categoryId: string) => {
     const category = categories.find(c => c.id === categoryId);
     if (!category) return;
     

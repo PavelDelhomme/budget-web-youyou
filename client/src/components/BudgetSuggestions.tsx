@@ -1,4 +1,4 @@
-import React from 'react';
+// Component for displaying budget suggestions
 import { BudgetSuggestion } from '../types';
 import { currency } from '../utils';
 

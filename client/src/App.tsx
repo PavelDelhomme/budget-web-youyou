@@ -128,8 +128,6 @@ function App() {
       } catch (err: any) {
         // Silently ignore - user is not logged in or session expired
         // This is normal behavior, no need to log or show errors
-      } finally {
-        setIsLoadingGlobalData(false);
       }
     }
     checkSession();

@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { UserGlobalData, YearData, Expense, Category } from '../types';
-import { currency, today, parseAmount } from '../utils';
-import { calculateProjectsContributionsForYear, calculateProjectsProjectedValue, calculateProjectsCurrentValue } from '../utils/savingsProjects';
+import { currency, today } from '../utils';
+import { calculateProjectsContributionsForYear } from '../utils/savingsProjects';
 import { BudgetSuggestions } from './BudgetSuggestions';
 import { analyzeBudget } from '../utils/budgetAnalyzer';
 import { ExpensesPieChart } from './ExpensesPieChart';
@@ -104,7 +104,7 @@ export function Dashboard({
   const variableTargets = yearData.categories.reduce((sum, cat) => {
     // Si monthlyTargets est défini, utiliser la somme des budgets mensuels
     if (cat.monthlyTargets && cat.monthlyTargets.length === 12) {
-      return sum + cat.monthlyTargets.reduce((s, val) => s + (typeof val === 'string' ? parseFloat(val.replace(',', '.')) : val || 0), 0);
+      return sum + cat.monthlyTargets.reduce((s, val) => s + (typeof val === 'string' ? parseFloat(String(val).replace(',', '.')) : (val || 0)), 0);
     }
     // Sinon, utiliser le target annuel
     return sum + (cat.target || 0);
@@ -152,7 +152,7 @@ export function Dashboard({
     : { trend: 0, message: 'Pas assez de données historiques' };
 
   // Calculate monthly expenses for the last 6 months
-  const { monthlyExpenses, currentMonthExpenses, categoryExpenses, allCategories } = useMemo(() => {
+  const { monthlyExpenses, currentMonthExpenses, categoryExpenses } = useMemo(() => {
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
@@ -162,7 +162,7 @@ export function Dashboard({
     const categoriesMap = new Map<string, Category>();
     
     // Collect all expenses and categories from historical data
-    for (const [year, data] of historicalData.entries()) {
+    for (const [, data] of historicalData.entries()) {
       allExpenses.push(...(data.expenses || []));
       (data.categories || []).forEach(cat => {
         if (!categoriesMap.has(cat.id)) {
@@ -253,8 +253,7 @@ export function Dashboard({
     return {
       monthlyExpenses: monthlyData,
       currentMonthExpenses: currentMonthExpensesTotal,
-      categoryExpenses: Array.from(categoryExpensesMap.values()),
-      allCategories: allCategoriesList,
+      categoryExpenses: Object.fromEntries(categoryExpensesMap),
     };
   }, [historicalData, yearData]);
 
@@ -497,22 +496,22 @@ export function Dashboard({
       </div>
 
       {/* Expenses by Category - Last 6 Months */}
-      {categoryExpenses.length > 0 && (
+      {Object.keys(categoryExpenses).length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
           <h3 className="font-semibold text-lg mb-4 text-gray-900 dark:text-white">📊 Évolution par catégorie (6 derniers mois)</h3>
           
           <div className="space-y-6">
-            {categoryExpenses
-              .filter(ce => ce.months.some(m => m.total > 0))
-              .sort((a, b) => {
-                const totalA = a.months.reduce((sum, m) => sum + m.total, 0);
-                const totalB = b.months.reduce((sum, m) => sum + m.total, 0);
+            {Object.values(categoryExpenses)
+              .filter((ce: { category: Category; months: Array<{ month: string; total: number }> }) => ce.months.some((m: { total: number }) => m.total > 0))
+              .sort((a: { months: Array<{ total: number }> }, b: { months: Array<{ total: number }> }) => {
+                const totalA = a.months.reduce((sum: number, m: { total: number }) => sum + m.total, 0);
+                const totalB = b.months.reduce((sum: number, m: { total: number }) => sum + m.total, 0);
                 return totalB - totalA;
               })
               .slice(0, 8)
-              .map((categoryData) => {
-                const categoryMax = Math.max(...categoryData.months.map(m => m.total), 1);
-                const categoryTotal = categoryData.months.reduce((sum, m) => sum + m.total, 0);
+              .map((categoryData: { category: Category; months: Array<{ month: string; total: number }> }) => {
+                const categoryMax = Math.max(...categoryData.months.map((m: { total: number }) => m.total), 1);
+                const categoryTotal = categoryData.months.reduce((sum: number, m: { total: number }) => sum + m.total, 0);
                 const categoryAvg = categoryTotal / categoryData.months.length;
                 
                 return (

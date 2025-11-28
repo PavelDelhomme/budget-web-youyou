@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { Category, Expense } from '../types';
-import { currency, parseAmount } from '../utils';
+import { currency } from '../utils';
 
 interface ExpensesPieChartProps {
   categories: Category[];
