@@ -61,7 +61,6 @@ export function calculateProjectsProjectedValue(
   
   const yearStart = new Date(year, 0, 1);
   const yearEnd = new Date(year, 11, 31);
-  const now = new Date();
   
   const isFutureYear = year > today.getFullYear();
   const monthsRemaining = isFutureYear ? 12 : Math.max(0, 12 - currentMonth + 1);
