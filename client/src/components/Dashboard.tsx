@@ -587,7 +587,7 @@ export function Dashboard({
           <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
             <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Catégories actives</div>
             <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
-              {categoryExpenses.filter(ce => ce.months.some(m => m.total > 0)).length}
+              {Object.values(categoryExpenses).filter((ce: { category: Category; months: Array<{ month: string; total: number }> }) => ce.months.some((m: { total: number }) => m.total > 0)).length}
             </div>
           </div>
           

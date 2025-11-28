@@ -116,13 +116,13 @@ export function ExpensesPieChart({ categories, expenses, size = 300, isPredictio
       </h3>
       <div className="flex flex-col md:flex-row items-center gap-6">
         <svg width={size} height={size} className="flex-shrink-0">
-          {data.slices.map((slice, index) => (
+          {data.slices.map((slice) => (
             <path
               key={slice.categoryId}
               d={getPath(slice.startAngle, slice.endAngle)}
               fill={slice.color}
               stroke="white"
-              strokeWidth="2"
+              strokeWidth={2}
               className="hover:opacity-80 transition-opacity cursor-pointer"
               title={`${slice.categoryName}: ${currency(slice.total)} (${slice.percentage.toFixed(1)}%)`}
             />
