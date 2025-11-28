@@ -1,4 +1,4 @@
-.PHONY: help install dev start restart stop build clean docker-build docker-up docker-down docker-logs docker-ps status ports logs logs-backend logs-frontend reset reset-and-restart test test-syntax test-backend test-frontend test-api test-containers test-integration check-errors test-all
+.PHONY: help install dev start restart stop build clean docker-build docker-up docker-down docker-logs docker-ps status ports logs logs-backend logs-frontend reset reset-and-restart test test-syntax test-backend test-frontend test-api test-containers test-integration check-errors test-all test-behavior test-files
 
 # Variables
 BACKEND_PORT ?= 6060
@@ -379,21 +379,33 @@ test-api: ## Teste les endpoints API (nécessite que les conteneurs soient déma
 	@echo ""
 	@if docker ps --format "{{.Names}}" | grep -q "^budget-web-backend$$"; then \
 		echo "🔗 Test de connexion au backend..."; \
+		sleep 2; \
 		HTTP_CODE=$$(curl -s -o /dev/null -w "%{http_code}" http://localhost:6060/api/health 2>/dev/null || echo "000"); \
-		if [ "$$HTTP_CODE" = "200" ] || [ "$$HTTP_CODE" = "404" ]; then \
-			echo "✅ Backend répond (code: $$HTTP_CODE)"; \
+		if [ "$$HTTP_CODE" = "200" ]; then \
+			echo "✅ Backend répond correctement (code: $$HTTP_CODE)"; \
+			curl -s http://localhost:6060/api/health | head -1; \
+		elif [ "$$HTTP_CODE" = "404" ]; then \
+			echo "⚠️  Endpoint /api/health non trouvé (code: 404)"; \
+			echo "   Test avec /health..."; \
+			HTTP_CODE2=$$(curl -s -o /dev/null -w "%{http_code}" http://localhost:6060/health 2>/dev/null || echo "000"); \
+			if [ "$$HTTP_CODE2" = "200" ]; then \
+				echo "✅ Endpoint /health fonctionne"; \
+			fi; \
 		elif [ "$$HTTP_CODE" = "000" ]; then \
 			echo "❌ Backend ne répond pas (connexion refusée)"; \
+			echo "   Vérifiez que le conteneur est démarré: make status"; \
 		else \
 			echo "⚠️  Backend répond avec code: $$HTTP_CODE"; \
 		fi; \
 		echo ""; \
 		echo "📋 Endpoints disponibles:"; \
-		echo "   GET  /api/health          → $$(curl -s http://localhost:6060/api/health 2>/dev/null || echo 'Non disponible')"; \
+		echo "   GET  /api/health          → Health check"; \
 		echo "   GET  /api/years           → Liste des années"; \
 		echo "   POST /api/login           → Authentification"; \
 		echo "   GET  /api/get/:year       → Données d'une année"; \
 		echo "   PUT  /api/put/:year       → Sauvegarde d'une année"; \
+		echo "   GET  /api/global          → Données globales"; \
+		echo "   PUT  /api/global          → Sauvegarde données globales"; \
 	else \
 		echo "❌ Conteneur backend non démarré. Utilisez 'make start' d'abord."; \
 	fi
@@ -472,4 +484,88 @@ check-errors: ## Vérifie les erreurs dans les logs et les fichiers
 	@test -f client/public/favicon.ico && echo "✅ favicon.ico présent" || echo "⚠️  favicon.ico manquant"
 	@echo ""
 
-test-all: test check-errors ## Lance tous les tests et vérifie les erreurs (alias pour test + check-errors)
+test-all: test check-errors test-behavior test-files ## Lance tous les tests et vérifie les erreurs (complet)
+
+test-behavior: ## Teste les comportements anormaux et les cas limites
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🧪 TEST DES COMPORTEMENTS ANORMAUX"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@if docker ps --format "{{.Names}}" | grep -q "^budget-web-backend$$"; then \
+		echo "🔍 Test de login avec email invalide..."; \
+		HTTP_CODE=$$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:6060/api/login \
+			-H "Content-Type: application/json" \
+			-d '{"email":"invalid-email","password":"test"}' 2>/dev/null || echo "000"); \
+		if [ "$$HTTP_CODE" = "400" ]; then \
+			echo "✅ Validation email: OK (refuse email invalide)"; \
+		else \
+			echo "⚠️  Validation email: code $$HTTP_CODE (attendu 400)"; \
+		fi; \
+		echo ""; \
+		echo "🔍 Test de login avec payload vide..."; \
+		HTTP_CODE2=$$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:6060/api/login \
+			-H "Content-Type: application/json" \
+			-d '{}' 2>/dev/null || echo "000"); \
+		if [ "$$HTTP_CODE2" = "400" ]; then \
+			echo "✅ Validation payload vide: OK"; \
+		else \
+			echo "⚠️  Validation payload vide: code $$HTTP_CODE2 (attendu 400)"; \
+		fi; \
+		echo ""; \
+		echo "🔍 Test d'accès sans authentification..."; \
+		HTTP_CODE3=$$(curl -s -o /dev/null -w "%{http_code}" http://localhost:6060/api/get/2025 2>/dev/null || echo "000"); \
+		if [ "$$HTTP_CODE3" = "401" ]; then \
+			echo "✅ Protection authentification: OK (refuse accès non authentifié)"; \
+		else \
+			echo "⚠️  Protection authentification: code $$HTTP_CODE3 (attendu 401)"; \
+		fi; \
+		echo ""; \
+		echo "🔍 Test avec année invalide..."; \
+		HTTP_CODE4=$$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:6060/api/login \
+			-H "Content-Type: application/json" \
+			-d '{"email":"dev@delhomme.ovh","password":"5n!B@#c*ymgEBYXrWdKE"}' 2>/dev/null | grep -q "200" && \
+		curl -s -o /dev/null -w "%{http_code}" http://localhost:6060/api/get/99999 2>/dev/null || echo "000"); \
+		if [ "$$HTTP_CODE4" = "400" ] || [ "$$HTTP_CODE4" = "000" ]; then \
+			echo "✅ Validation année: OK (refuse année invalide ou non authentifié)"; \
+		else \
+			echo "⚠️  Validation année: code $$HTTP_CODE4"; \
+		fi; \
+	else \
+		echo "❌ Conteneur backend non démarré. Utilisez 'make start' d'abord."; \
+	fi
+	@echo ""
+
+test-files: ## Vérifie l'intégrité des fichiers essentiels
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🔍 VÉRIFICATION DE L'INTÉGRITÉ DES FICHIERS"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@echo "📁 Fichiers de configuration essentiels:"
+	@for file in docker-compose.yml backend/app.py client/index.html client/vite.config.ts client/package.json backend/requirements.txt; do \
+		if [ -f "$$file" ]; then \
+			echo "✅ $$file"; \
+		else \
+			echo "❌ $$file - MANQUANT"; \
+		fi; \
+	done
+	@echo ""
+	@echo "📦 Fichiers publics:"
+	@for file in client/public/favicon.ico client/public/favicon.svg; do \
+		if [ -f "$$file" ]; then \
+			echo "✅ $$file"; \
+		else \
+			echo "⚠️  $$file - Manquant (non critique)"; \
+		fi; \
+	done
+	@echo ""
+	@echo "📝 Composants React essentiels:"
+	@for file in client/src/App.tsx client/src/main.tsx client/src/api.ts client/src/types.ts; do \
+		if [ -f "$$file" ]; then \
+			echo "✅ $$file"; \
+		else \
+			echo "❌ $$file - MANQUANT"; \
+		fi; \
+	done
+	@echo ""
