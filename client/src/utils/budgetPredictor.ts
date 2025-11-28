@@ -124,9 +124,6 @@ export function generatePredictions(
   const calculateProjectedBankAccounts = (year: number, projectedSavings: number): number => {
     if (!globalData?.bankAccounts) return projectedSavings;
     
-    const lastHistoricalYear = Math.max(...historicalYears.map(h => h.year));
-    const yearsAhead = year - lastHistoricalYear;
-    
     // Total actuel des comptes bancaires
     const currentTotal = globalData.bankAccounts.reduce((sum, acc) => sum + (acc.currentBalance || 0), 0);
     

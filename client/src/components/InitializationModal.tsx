@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal } from './Modal';
 import { BankAccount, Investment, SavingsGoal, TemporaryIncome } from '../types';
 import { currency, toISODate, today, parseAmount } from '../utils';
