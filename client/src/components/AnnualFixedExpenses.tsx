@@ -18,6 +18,7 @@ export function AnnualFixedExpenses({
   onUpdate,
 }: AnnualFixedExpensesProps) {
   const [isAdding, setIsAdding] = useState(false);
+  const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [newExpense, setNewExpense] = useState({
     name: '',
     amount: 0,
@@ -33,10 +34,42 @@ export function AnnualFixedExpenses({
 
   function handleAdd() {
     if (!newExpense.name || newExpense.amount <= 0) return;
-    onAdd({
-      ...newExpense,
-      accountId: newExpense.accountId || undefined,
+    
+    if (editingExpenseId) {
+      // Modification d'une dépense existante
+      onUpdate(editingExpenseId, {
+        ...newExpense,
+        accountId: newExpense.accountId || undefined,
+      });
+      setEditingExpenseId(null);
+    } else {
+      // Ajout d'une nouvelle dépense
+      onAdd({
+        ...newExpense,
+        accountId: newExpense.accountId || undefined,
+      });
+    }
+    
+    setNewExpense({ name: '', amount: 0, month: 1, note: '', accountId: '' });
+    setIsAdding(false);
+  }
+
+  function handleEdit(expense: AnnualFixedExpense) {
+    setEditingExpenseId(expense.id);
+    setNewExpense({
+      name: expense.name,
+      amount: expense.amount,
+      month: expense.month,
+      note: expense.note || '',
+      accountId: expense.accountId || '',
     });
+    setIsAdding(true);
+    // Scroll vers le formulaire
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function handleCancelEdit() {
+    setEditingExpenseId(null);
     setNewExpense({ name: '', amount: 0, month: 1, note: '', accountId: '' });
     setIsAdding(false);
   }
@@ -46,9 +79,17 @@ export function AnnualFixedExpenses({
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Dépenses fixes annuelles</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+          {editingExpenseId ? 'Modifier une dépense fixe annuelle' : 'Dépenses fixes annuelles'}
+        </h2>
         <button
-          onClick={() => setIsAdding(!isAdding)}
+          onClick={() => {
+            if (isAdding) {
+              handleCancelEdit();
+            } else {
+              setIsAdding(true);
+            }
+          }}
           className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
         >
           {isAdding ? 'Annuler' : '+ Ajouter'}
@@ -124,7 +165,7 @@ export function AnnualFixedExpenses({
             onClick={handleAdd}
             className="mt-3 px-4 py-2 bg-green-600 dark:bg-green-500 text-white rounded hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
           >
-            Ajouter
+            {editingExpenseId ? 'Modifier' : 'Ajouter'}
           </button>
         </div>
       )}
@@ -165,29 +206,18 @@ export function AnnualFixedExpenses({
                       <td className="py-2 px-3 text-sm text-gray-600 dark:text-gray-400">{exp.note || '-'}</td>
                       <td className="py-2 px-3 text-right">
                         <button
-                          onClick={() => {
-                            const editingExpense = expenses.find(e => e.id === exp.id);
-                            if (editingExpense) {
-                              setNewExpense({
-                                name: editingExpense.name,
-                                amount: editingExpense.amount,
-                                month: editingExpense.month,
-                                note: editingExpense.note || '',
-                                accountId: editingExpense.accountId || '',
-                              });
-                              setIsAdding(true);
-                              onRemove(exp.id);
-                            }
-                          }}
-                          className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm transition-colors mr-2"
+                          onClick={() => handleEdit(exp)}
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors mr-2"
+                          title="Modifier"
                         >
-                          ✏️ Modifier
+                          ✏️
                         </button>
                         <button
                           onClick={() => onRemove(exp.id)}
-                          className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 text-sm transition-colors"
+                          className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors"
+                          title="Supprimer"
                         >
-                          Supprimer
+                          🗑️
                         </button>
                       </td>
                     </tr>

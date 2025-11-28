@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Expense, MonthlyAdditionalIncome } from '../types';
+import { Expense, MonthlyAdditionalIncome, Category, Subscription, AnnualFixedExpense } from '../types';
 import { currency, parseAmount, today } from '../utils';
 
 interface MonthlyExpensesIncomeChartProps {
@@ -9,6 +9,10 @@ interface MonthlyExpensesIncomeChartProps {
   additionalMonthlyIncomes?: MonthlyAdditionalIncome[];
   year: number;
   height?: number;
+  isPrediction?: boolean;
+  categories?: Category[];
+  annualFixedExpenses?: AnnualFixedExpense[];
+  subs?: Subscription[];
 }
 
 const MONTH_NAMES = [
@@ -23,16 +27,50 @@ export function MonthlyExpensesIncomeChart({
   additionalMonthlyIncomes = [],
   year,
   height = 300,
+  isPrediction = false,
+  categories = [],
+  annualFixedExpenses = [],
+  subs = [],
 }: MonthlyExpensesIncomeChartProps) {
   const data = useMemo(() => {
     const monthlyData = Array.from({ length: 12 }, (_, index) => {
       const month = index + 1;
-      const monthExpenses = expenses
-        .filter(e => {
-          const expenseDate = new Date(e.date);
-          return expenseDate.getMonth() + 1 === month && expenseDate.getFullYear() === year;
-        })
-        .reduce((sum, e) => sum + (e.share?.yourAmount || e.amount || 0), 0);
+      
+      let monthExpenses = 0;
+      
+      if (isPrediction) {
+        // Pour les prédictions, calculer les dépenses projetées par mois
+        // Dépenses variables : budgets mensuels des catégories
+        categories.forEach(cat => {
+          if (cat.monthlyTargets && cat.monthlyTargets.length === 12) {
+            monthExpenses += cat.monthlyTargets[month - 1] || 0;
+          } else if (cat.target) {
+            monthExpenses += cat.target / 12;
+          }
+        });
+        
+        // Abonnements pour ce mois
+        subs.forEach(sub => {
+          if (sub.ongoing || (sub.startMonth <= month && sub.endMonth >= month)) {
+            monthExpenses += sub.monthly || 0;
+          }
+        });
+        
+        // Dépenses fixes annuelles pour ce mois
+        annualFixedExpenses
+          .filter(exp => exp.month === month)
+          .forEach(exp => {
+            monthExpenses += exp.amount || 0;
+          });
+      } else {
+        // Pour les années réelles, utiliser les dépenses réelles
+        monthExpenses = expenses
+          .filter(e => {
+            const expenseDate = new Date(e.date);
+            return expenseDate.getMonth() + 1 === month && expenseDate.getFullYear() === year;
+          })
+          .reduce((sum, e) => sum + (e.share?.yourAmount || e.amount || 0), 0);
+      }
 
       // Calculer le revenu pour ce mois
       let monthIncome = variableMonthlyIncomes && variableMonthlyIncomes.length === 12
@@ -60,7 +98,7 @@ export function MonthlyExpensesIncomeChart({
     );
 
     return { monthlyData, maxValue };
-  }, [expenses, monthlySalary, variableMonthlyIncomes, additionalMonthlyIncomes, year]);
+  }, [expenses, monthlySalary, variableMonthlyIncomes, additionalMonthlyIncomes, year, isPrediction, categories, annualFixedExpenses, subs]);
 
   const barWidth = 20;
   const spacing = 8;
@@ -71,7 +109,7 @@ export function MonthlyExpensesIncomeChart({
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-        Dépenses et revenus par mois ({year})
+        {isPrediction ? `Dépenses et revenus prévus par mois (${year})` : `Dépenses et revenus par mois (${year})`}
       </h3>
       <div className="overflow-x-auto">
         <svg width={Math.max(chartWidth + padding * 2, 800)} height={height}>

@@ -440,6 +440,7 @@ def put_global_data():
     return jsonify({'ok': True})
 
 
+@app.route('/api/health', methods=['GET'])
 @app.route('/health', methods=['GET'])
 def health():
     """Health check endpoint"""

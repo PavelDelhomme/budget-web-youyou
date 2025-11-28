@@ -370,6 +370,12 @@ function App() {
     setSubs((prev) => prev.filter((s) => s.id !== id));
   }
 
+  function updateSub(id: string, sub: Partial<Subscription>) {
+    setSubs((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, ...sub } : s))
+    );
+  }
+
   function addAnnualFixedExpense(expense: Omit<AnnualFixedExpense, 'id'>) {
     setAnnualFixedExpenses((prev) => [
       {
@@ -763,6 +769,20 @@ function App() {
     }
   }
 
+  function handleUpdateTransaction(id: string, amount: number, note: string) {
+    const transaction = savingsTransactions.find((t) => t.id === id);
+    if (transaction) {
+      // Revert the old transaction effect on savings
+      setCurrentSavings((prev) => prev - transaction.amount);
+      // Apply the new transaction effect
+      setCurrentSavings((prev) => prev + amount);
+      // Update the transaction
+      setSavingsTransactions((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, amount, note } : t))
+      );
+    }
+  }
+
   // Calculate projected savings at end of year
   // Inclure les revenus supplémentaires dans le calcul
   const calculateAdditionalIncome = (year: number) => {
@@ -984,6 +1004,7 @@ function App() {
           onSavingsChange={handleSavingsChange}
           onAddTransaction={handleAddTransaction}
           onRemoveTransaction={handleRemoveTransaction}
+          onUpdateTransaction={handleUpdateTransaction}
           annualIncome={annualIncome}
           projectedSavings={projectedSavings}
           temporaryIncomes={globalData?.temporaryIncomes || []}
@@ -1024,6 +1045,7 @@ function App() {
           bankAccounts={globalData?.bankAccounts || []}
           onAddSub={addSub}
           onRemoveSub={removeSub}
+          onUpdateSub={updateSub}
           monthsOverlapFullYear={calculations.monthsOverlapFullYear}
           monthsOverlapInYear={calculations.monthsOverlapInYear}
         />
@@ -1037,12 +1059,13 @@ function App() {
           onUpdate={updateAnnualFixedExpense}
         />
 
-        {/* Charts Section */}
+        {/* Charts Section - Full width below all cards */}
         <section className="grid md:grid-cols-1 lg:grid-cols-2 gap-6">
           <ExpensesPieChart
             categories={categories}
             expenses={expenses}
             size={300}
+            isPrediction={isViewingPrediction}
           />
           {typeof year === 'number' && (
             <MonthlyExpensesIncomeChart
@@ -1052,6 +1075,10 @@ function App() {
               additionalMonthlyIncomes={additionalMonthlyIncomes}
               year={year}
               height={300}
+              isPrediction={isViewingPrediction}
+              categories={isViewingPrediction ? categories : undefined}
+              annualFixedExpenses={isViewingPrediction ? annualFixedExpenses : undefined}
+              subs={isViewingPrediction ? subs : undefined}
             />
           )}
         </section>

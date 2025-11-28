@@ -6,6 +6,7 @@ interface ExpensesPieChartProps {
   categories: Category[];
   expenses: Expense[];
   size?: number;
+  isPrediction?: boolean;
 }
 
 const COLORS = [
@@ -21,15 +22,29 @@ const COLORS = [
   '#6366F1', // indigo
 ];
 
-export function ExpensesPieChart({ categories, expenses, size = 300 }: ExpensesPieChartProps) {
+export function ExpensesPieChart({ categories, expenses, size = 300, isPrediction = false }: ExpensesPieChartProps) {
   const data = useMemo(() => {
     const categoryTotals = new Map<string, number>();
     
-    expenses.forEach(exp => {
-      const amount = exp.share?.yourAmount || exp.amount || 0;
-      const current = categoryTotals.get(exp.categoryId) || 0;
-      categoryTotals.set(exp.categoryId, current + amount);
-    });
+    if (isPrediction) {
+      // Pour les prédictions, utiliser les budgets des catégories
+      categories.forEach(cat => {
+        // Utiliser monthlyTargets si disponible, sinon target/12
+        const annualTarget = cat.monthlyTargets && cat.monthlyTargets.length === 12
+          ? cat.monthlyTargets.reduce((sum, val) => sum + val, 0)
+          : (cat.target || 0);
+        if (annualTarget > 0) {
+          categoryTotals.set(cat.id, annualTarget);
+        }
+      });
+    } else {
+      // Pour les années réelles, utiliser les dépenses réelles
+      expenses.forEach(exp => {
+        const amount = exp.share?.yourAmount || exp.amount || 0;
+        const current = categoryTotals.get(exp.categoryId) || 0;
+        categoryTotals.set(exp.categoryId, current + amount);
+      });
+    }
 
     const totals = Array.from(categoryTotals.entries())
       .map(([categoryId, total]) => {
@@ -69,7 +84,9 @@ export function ExpensesPieChart({ categories, expenses, size = 300 }: ExpensesP
   if (data.slices.length === 0) {
     return (
       <div className="flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-lg p-8 border border-gray-200 dark:border-gray-700">
-        <p className="text-gray-500 dark:text-gray-400">Aucune dépense à afficher</p>
+        <p className="text-gray-500 dark:text-gray-400">
+          {isPrediction ? 'Aucun budget à afficher' : 'Aucune dépense à afficher'}
+        </p>
       </div>
     );
   }
@@ -95,7 +112,7 @@ export function ExpensesPieChart({ categories, expenses, size = 300 }: ExpensesP
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-        Répartition des dépenses par catégorie
+        {isPrediction ? 'Répartition des budgets par catégorie (prévu)' : 'Répartition des dépenses par catégorie'}
       </h3>
       <div className="flex flex-col md:flex-row items-center gap-6">
         <svg width={size} height={size} className="flex-shrink-0">

@@ -12,6 +12,7 @@ interface IncomeAndSavingsSectionProps {
   onSavingsChange: (savings: number) => void;
   onAddTransaction: (amount: number, note: string) => void;
   onRemoveTransaction: (id: string) => void;
+  onUpdateTransaction?: (id: string, amount: number, note: string) => void;
   annualIncome: number;
   projectedSavings: number;
   temporaryIncomes?: TemporaryIncome[]; // Revenus supplémentaires
@@ -31,6 +32,7 @@ export function IncomeAndSavingsSection({
   onSavingsChange,
   onAddTransaction,
   onRemoveTransaction,
+  onUpdateTransaction,
   annualIncome,
   projectedSavings,
   temporaryIncomes = [],
@@ -125,6 +127,7 @@ export function IncomeAndSavingsSection({
   const [showTransactionForm, setShowTransactionForm] = useState(false);
   const [transactionAmount, setTransactionAmount] = useState('');
   const [transactionNote, setTransactionNote] = useState('');
+  const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
 
   const handleSalarySubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,11 +149,33 @@ export function IncomeAndSavingsSection({
     e.preventDefault();
     const amount = parseAmount(transactionAmount);
     if (amount !== 0 && transactionNote.trim()) {
-      onAddTransaction(amount, transactionNote.trim());
+      if (editingTransactionId && onUpdateTransaction) {
+        // Modification d'une transaction existante
+        onUpdateTransaction(editingTransactionId, amount, transactionNote.trim());
+        setEditingTransactionId(null);
+      } else {
+        // Ajout d'une nouvelle transaction
+        onAddTransaction(amount, transactionNote.trim());
+      }
       setTransactionAmount('');
       setTransactionNote('');
       setShowTransactionForm(false);
     }
+  };
+
+  const handleEditTransaction = (transaction: SavingsTransaction) => {
+    setEditingTransactionId(transaction.id);
+    setTransactionAmount(transaction.amount.toString().replace('.', ','));
+    setTransactionNote(transaction.note);
+    setShowTransactionForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEditTransaction = () => {
+    setEditingTransactionId(null);
+    setTransactionAmount('');
+    setTransactionNote('');
+    setShowTransactionForm(false);
   };
 
   const totalWithdrawn = savingsTransactions
@@ -376,7 +401,13 @@ export function IncomeAndSavingsSection({
             </p>
           </div>
           <button
-            onClick={() => setShowTransactionForm(!showTransactionForm)}
+            onClick={() => {
+              if (showTransactionForm) {
+                handleCancelEditTransaction();
+              } else {
+                setShowTransactionForm(true);
+              }
+            }}
             className="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
           >
             {showTransactionForm ? 'Annuler' : '+ Ajouter'}
@@ -385,6 +416,11 @@ export function IncomeAndSavingsSection({
 
         {showTransactionForm && (
           <form onSubmit={handleAddTransaction} className="space-y-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+            {editingTransactionId && (
+              <div className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-2">
+                ✏️ Modification d'une transaction
+              </div>
+            )}
             <div>
               <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Montant</label>
               <input
@@ -411,7 +447,7 @@ export function IncomeAndSavingsSection({
               type="submit"
               className="w-full px-3 py-2 bg-black dark:bg-gray-700 text-white rounded-lg text-sm hover:bg-gray-800 dark:hover:bg-gray-600 transition-colors"
             >
-              Ajouter
+              {editingTransactionId ? 'Modifier' : 'Ajouter'}
             </button>
           </form>
         )}
@@ -436,12 +472,22 @@ export function IncomeAndSavingsSection({
                   </div>
                   <span className="text-xs text-gray-500 dark:text-gray-500">{t.date}</span>
                 </div>
-                <button
-                  onClick={() => onRemoveTransaction(t.id)}
-                  className="text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                >
-                  ✕
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEditTransaction(t)}
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+                    title="Modifier"
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    onClick={() => onRemoveTransaction(t.id)}
+                    className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors"
+                    title="Supprimer"
+                  >
+                    🗑️
+                  </button>
+                </div>
               </div>
             ))}
             <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400 pt-2 border-t border-gray-200 dark:border-gray-700">
