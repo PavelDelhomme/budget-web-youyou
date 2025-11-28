@@ -17,10 +17,6 @@ export function calculateProjectsContributionsForYear(
 ): number {
   if (!projects || projects.length === 0) return 0;
   
-  const yearStart = new Date(year, 0, 1);
-  const yearEnd = new Date(year, 11, 31);
-  const now = new Date();
-  
   // Si on calcule pour une année future, tous les mois comptent
   const isFutureYear = year > today.getFullYear();
   const monthsRemaining = isFutureYear ? 12 : Math.max(0, 12 - currentMonth + 1);
