@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Expense, Category, BankAccount, SavingsProject } from '../types';
 import { toISODate, parseAmount, currency, today } from '../utils';
 

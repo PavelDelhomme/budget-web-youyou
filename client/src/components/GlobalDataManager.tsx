@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Modal } from './Modal';
 import { BankAccount, Investment, InvestmentTransaction, SavingsGoal, SavingsProject, SalaryHistory, UserGlobalData } from '../types';
 import { currency, parseAmount, toISODate, today } from '../utils';
@@ -16,7 +16,7 @@ interface GlobalDataManagerProps {
   currentYear?: number | string;
 }
 
-export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years = [], predictedYears = [], onResetYear, onDeletePredictedYear, onResetAll, currentYear }: GlobalDataManagerProps) {
+export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years = [], predictedYears = [], onResetYear, onDeletePredictedYear, onResetAll }: GlobalDataManagerProps) {
   const [activeTab, setActiveTab] = useState<'accounts' | 'investments' | 'goals' | 'projects' | 'salaryHistory' | 'years'>('accounts');
   const [resettingYear, setResettingYear] = useState<number | null>(null);
   const [lockingYear, setLockingYear] = useState<number | null>(null);

@@ -124,12 +124,12 @@ export function ExpensesPieChart({ categories, expenses, size = 300, isPredictio
               stroke="white"
               strokeWidth={2}
               className="hover:opacity-80 transition-opacity cursor-pointer"
-              title={`${slice.categoryName}: ${currency(slice.total)} (${slice.percentage.toFixed(1)}%)`}
+              data-title={`${slice.categoryName}: ${currency(slice.total)} (${slice.percentage.toFixed(1)}%)`}
             />
           ))}
         </svg>
         <div className="flex-1 space-y-2">
-          {data.slices.map((slice, index) => (
+          {data.slices.map((slice) => (
             <div
               key={slice.categoryId}
               className="flex items-center gap-2 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
