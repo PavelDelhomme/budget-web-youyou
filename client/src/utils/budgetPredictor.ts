@@ -121,7 +121,7 @@ export function generatePredictions(
   };
 
   // Calculer l'évolution prévue des comptes bancaires
-  const calculateProjectedBankAccounts = (year: number, projectedSavings: number): number => {
+  const calculateProjectedBankAccounts = (_year: number, projectedSavings: number): number => {
     if (!globalData?.bankAccounts) return projectedSavings;
     
     // Total actuel des comptes bancaires
