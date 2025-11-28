@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { SavingsGoal, SavingsProject } from '../types';
 import { currency } from '../utils';
 
@@ -75,9 +75,10 @@ export function AdvancedSavings({
     onUpdateProjects(projects.filter((p) => p.id !== id));
   }
 
-  function updateProject(id: string, updates: Partial<SavingsProject>) {
-    onUpdateProjects(projects.map((p) => (p.id === id ? { ...p, ...updates } : p)));
-  }
+  // Note: updateProject is available for future use but not currently called in the UI
+  // function updateProject(id: string, updates: Partial<SavingsProject>) {
+  //   onUpdateProjects(projects.map((p) => (p.id === id ? { ...p, ...updates } : p)));
+  // }
 
   const totalGoalsTarget = goals.reduce((sum, g) => sum + g.targetAmount, 0);
   const totalGoalsCurrent = goals.reduce((sum, g) => sum + g.currentAmount, 0);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { currency, parseAmount } from '../utils';
 import { MonthlyAdditionalIncome } from '../types';
 

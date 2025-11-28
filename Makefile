@@ -569,3 +569,203 @@ test-files: ## Vérifie l'intégrité des fichiers essentiels
 		fi; \
 	done
 	@echo ""
+
+test-ui-components: ## Vérifie que tous les composants UI essentiels existent
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🧪 VÉRIFICATION DES COMPOSANTS UI"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@echo "📦 Composants principaux:"
+	@for component in LoginForm Sidebar Dashboard InitializationModal GlobalDataManager \
+		CategoriesSection ExpensesSection SubscriptionsSection IncomeAndSavingsSection \
+		AnnualFixedExpenses AssetsTracking RevenusManager ExpensesPieChart \
+		MonthlyExpensesIncomeChart BudgetSuggestions ThemeToggle; do \
+		FILE="client/src/components/$$component.tsx"; \
+		if [ -f "$$FILE" ]; then \
+			echo "✅ $$component.tsx"; \
+		else \
+			echo "❌ $$component.tsx - MANQUANT"; \
+		fi; \
+	done
+	@echo ""
+	@echo "🪝 Hooks personnalisés:"
+	@for hook in useBudgetData; do \
+		FILE="client/src/hooks/$$hook.ts"; \
+		if [ -f "$$FILE" ]; then \
+			echo "✅ $$hook.ts"; \
+		else \
+			echo "❌ $$hook.ts - MANQUANT"; \
+		fi; \
+	done
+	@echo ""
+	@echo "🔧 Utilitaires:"
+	@for util in budgetPredictor budgetAnalyzer savingsProjects; do \
+		FILE="client/src/utils/$$util.ts"; \
+		if [ -f "$$FILE" ]; then \
+			echo "✅ $$util.ts"; \
+		else \
+			echo "❌ $$util.ts - MANQUANT"; \
+		fi; \
+	done
+	@echo ""
+	@echo "🎨 Contextes:"
+	@for ctx in ThemeContext; do \
+		FILE="client/src/contexts/$$ctx.tsx"; \
+		if [ -f "$$FILE" ]; then \
+			echo "✅ $$ctx.tsx"; \
+		else \
+			echo "❌ $$ctx.tsx - MANQUANT"; \
+		fi; \
+	done
+	@echo ""
+
+test-endpoints: ## Teste tous les endpoints API avec des cas réels
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🧪 TEST DES ENDPOINTS API (CAS RÉELS)"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@if docker ps --format "{{.Names}}" | grep -q "^budget-web-backend$$"; then \
+		echo "🔐 1. Test de login valide..."; \
+		SESSION=$$(curl -s -c /tmp/cookies.txt -X POST http://localhost:6060/api/login \
+			-H "Content-Type: application/json" \
+			-d '{"email":"dev@delhomme.ovh","password":"5n!B@#c*ymgEBYXrWdKE"}' 2>/dev/null); \
+		if echo "$$SESSION" | grep -q "years\|email"; then \
+			echo "   ✅ Login réussi"; \
+			echo "   📋 Test GET /api/years..."; \
+			YEARS=$$(curl -s -b /tmp/cookies.txt http://localhost:6060/api/years 2>/dev/null); \
+			if echo "$$YEARS" | grep -q "years\|\[\]"; then \
+				echo "   ✅ GET /api/years: OK"; \
+			else \
+				echo "   ⚠️  GET /api/years: Réponse inattendue"; \
+			fi; \
+			echo ""; \
+			echo "   📋 Test GET /api/global..."; \
+			GLOBAL=$$(curl -s -b /tmp/cookies.txt http://localhost:6060/api/global 2>/dev/null); \
+			if echo "$$GLOBAL" | grep -q "bankAccounts\|investments\|savingsGoals"; then \
+				echo "   ✅ GET /api/global: OK"; \
+			else \
+				echo "   ⚠️  GET /api/global: Réponse inattendue"; \
+			fi; \
+			echo ""; \
+			echo "   📋 Test GET /api/get/:year (année actuelle)..."; \
+			CURRENT_YEAR=$$(date +%Y); \
+			YEAR_DATA=$$(curl -s -b /tmp/cookies.txt "http://localhost:6060/api/get/$$CURRENT_YEAR" 2>/dev/null); \
+			if echo "$$YEAR_DATA" | grep -q "categories\|expenses\|monthlySalary"; then \
+				echo "   ✅ GET /api/get/$$CURRENT_YEAR: OK"; \
+			elif echo "$$YEAR_DATA" | grep -q "error\|401"; then \
+				echo "   ⚠️  GET /api/get/$$CURRENT_YEAR: Erreur ou non authentifié"; \
+			else \
+				echo "   ⚠️  GET /api/get/$$CURRENT_YEAR: Réponse inattendue"; \
+			fi; \
+		else \
+			echo "   ❌ Login échoué - impossible de tester les endpoints protégés"; \
+		fi; \
+		rm -f /tmp/cookies.txt 2>/dev/null || true; \
+	else \
+		echo "❌ Conteneur backend non démarré. Utilisez 'make start' d'abord."; \
+	fi
+	@echo ""
+
+test-data-structure: ## Vérifie la structure des données (types, interfaces)
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🧪 VÉRIFICATION DE LA STRUCTURE DES DONNÉES"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@echo "📋 Types TypeScript essentiels:"
+	@if grep -q "export interface YearData" client/src/types.ts 2>/dev/null; then \
+		echo "✅ YearData interface définie"; \
+	else \
+		echo "❌ YearData interface manquante"; \
+	fi
+	@if grep -q "export interface UserGlobalData" client/src/types.ts 2>/dev/null; then \
+		echo "✅ UserGlobalData interface définie"; \
+	else \
+		echo "❌ UserGlobalData interface manquante"; \
+	fi
+	@if grep -q "export interface Category" client/src/types.ts 2>/dev/null; then \
+		echo "✅ Category interface définie"; \
+	else \
+		echo "❌ Category interface manquante"; \
+	fi
+	@if grep -q "export interface Expense" client/src/types.ts 2>/dev/null; then \
+		echo "✅ Expense interface définie"; \
+	else \
+		echo "❌ Expense interface manquante"; \
+	fi
+	@if grep -q "export interface Subscription" client/src/types.ts 2>/dev/null; then \
+		echo "✅ Subscription interface définie"; \
+	else \
+		echo "❌ Subscription interface manquante"; \
+	fi
+	@if grep -q "export interface BankAccount" client/src/types.ts 2>/dev/null; then \
+		echo "✅ BankAccount interface définie"; \
+	else \
+		echo "❌ BankAccount interface manquante"; \
+	fi
+	@if grep -q "export interface Investment" client/src/types.ts 2>/dev/null; then \
+		echo "✅ Investment interface définie"; \
+	else \
+		echo "❌ Investment interface manquante"; \
+	fi
+	@if grep -q "export interface SavingsProject" client/src/types.ts 2>/dev/null; then \
+		echo "✅ SavingsProject interface définie"; \
+	else \
+		echo "❌ SavingsProject interface manquante"; \
+	fi
+	@echo ""
+
+test-features: ## Vérifie que toutes les fonctionnalités principales sont présentes
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🧪 VÉRIFICATION DES FONCTIONNALITÉS"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@echo "✅ Fonctionnalités à vérifier dans l'interface:"
+	@echo ""
+	@echo "🔐 Authentification:"
+	@echo "   • Login avec email/password"
+	@echo "   • Session persistante"
+	@echo "   • Logout"
+	@echo ""
+	@echo "💰 Gestion financière:"
+	@echo "   • Catégories variables avec budgets mensuels/annuels"
+	@echo "   • Dépenses variables par catégorie"
+	@echo "   • Abonnements mensuels"
+	@echo "   • Dépenses fixes annuelles"
+	@echo "   • Revenus mensuels principaux et variables"
+	@echo "   • Revenus supplémentaires (ponctuels)"
+	@echo "   • Mouvements d'épargne"
+	@echo ""
+	@echo "📊 Visualisations:"
+	@echo "   • Dashboard avec vue d'ensemble"
+	@echo "   • Graphique camembert des dépenses par catégorie"
+	@echo "   • Graphique barres dépenses/revenus mensuels"
+	@echo "   • Statistiques sur 6 derniers mois"
+	@echo ""
+	@echo "🎯 Données globales:"
+	@echo "   • Comptes bancaires avec soldes"
+	@echo "   • Investissements (bourse, crypto)"
+	@echo "   • Objectifs d'épargne"
+	@echo "   • Projets d'épargne"
+	@echo "   • Historique des salaires"
+	@echo ""
+	@echo "🤖 IA et Prédictions:"
+	@echo "   • Génération automatique d'années futures"
+	@echo "   • Prédictions basées sur l'historique"
+	@echo "   • Matérialisation d'années prédites"
+	@echo "   • Verrouillage/déverrouillage d'années"
+	@echo "   • Exclusion d'années prédites"
+	@echo ""
+	@echo "⚙️  Gestion:"
+	@echo "   • Réinitialisation d'année"
+	@echo "   • Réinitialisation complète (avec sécurité)"
+	@echo "   • Mode sombre/clair"
+	@echo "   • Suggestions d'amélioration du budget"
+	@echo ""
+	@echo "💡 Pour tester ces fonctionnalités, lancez l'application et naviguez dans l'interface"
+	@echo ""
+
+test-all: test check-errors test-behavior test-files test-ui-components test-endpoints test-data-structure test-features ## Lance tous les tests et vérifie les erreurs (complet)

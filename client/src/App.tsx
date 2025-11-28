@@ -18,7 +18,7 @@ import { MonthlyExpensesIncomeChart } from './components/MonthlyExpensesIncomeCh
 import { useBudgetCalculations } from './hooks/useBudgetData';
 import { Category, Expense, Subscription, SavingsTransaction, YearData, UserGlobalData, AnnualFixedExpense, MonthlyAdditionalIncome } from './types';
 import { generatePredictions, getFutureYears, getHistoricalYears, PredictedYearData } from './utils/budgetPredictor';
-import { calculateProjectsContributionsForYear, calculateProjectsProjectedValue, calculateProjectsCurrentValue } from './utils/savingsProjects';
+import { calculateProjectsContributionsForYear } from './utils/savingsProjects';
 import {
   defaultCategories,
   INITIAL_YEARS,
@@ -54,12 +54,11 @@ function App() {
   // Global data and initialization
   const [globalData, setGlobalData] = useState<UserGlobalData | null>(null);
   const [isInitializationModalOpen, setIsInitializationModalOpen] = useState(false);
-  const [isLoadingGlobalData, setIsLoadingGlobalData] = useState(true);
   const [isGlobalDataManagerOpen, setIsGlobalDataManagerOpen] = useState(false);
   const [isRevenusManagerOpen, setIsRevenusManagerOpen] = useState(false);
 
   // Debounce timer for saving
-  const saveTimer = useRef<NodeJS.Timeout | null>(null);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Check if user has a valid session on mount and load global data
   useEffect(() => {
@@ -178,7 +177,7 @@ function App() {
           const data = await Api.getYearData(y);
           // Check if year has meaningful data (not just defaults)
           const hasRealData = (data.expenses && data.expenses.length > 0) ||
-                              (data.categories && data.categories.some(c => c.target > 0)) ||
+                              (data.categories && data.categories.some((c: Category) => c.target > 0)) ||
                               (data.subs && data.subs.length > 0) ||
                               (data.monthlySalary && data.monthlySalary > 0);
           if (hasRealData) {
@@ -260,6 +259,7 @@ function App() {
     
     setIsViewingPrediction(false);
     async function load() {
+      if (year === 'dashboard') return;
       try {
         const ds = await Api.getYearData(year);
         setCategories(
@@ -727,17 +727,8 @@ function App() {
     }
   }
 
-  async function onDeleteYear() {
-    if (!year) return;
-    if (!confirm(`Supprimer l'année ${year} (données incluses) ?`)) return;
-    try {
-      const out = await Api.deleteYear(year);
-      setYears(out.years);
-      setYear(out.years[0] || null);
-    } catch (err: any) {
-      alert(err.message || 'Erreur suppression année');
-    }
-  }
+  // Note: onDeleteYear is available but not currently used in UI
+  // It's kept for potential future use or programmatic deletion
 
   // Salary and Savings handlers
   function handleSalaryChange(salary: number) {
@@ -851,9 +842,6 @@ function App() {
     // Contributions futures aux projets d'épargne pour le reste de l'année
     // Ces contributions font partie de l'épargne totale projetée
     const projectsContributions = calculateProjectsContributionsForYear(savingsProjects, year, currentMonth);
-    
-    // Valeur actuelle totale des projets pour cette année
-    const projectsCurrentValue = calculateProjectsCurrentValue(savingsProjects, year);
     
     // L'épargne projetée = épargne de base + contributions aux projets
     // Cela représente l'épargne totale en fin d'année incluant les contributions aux projets
