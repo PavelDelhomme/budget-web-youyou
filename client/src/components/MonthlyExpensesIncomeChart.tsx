@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Expense, MonthlyAdditionalIncome, Category, Subscription, AnnualFixedExpense } from '../types';
 import { currency } from '../utils';
 
@@ -100,19 +100,50 @@ export function MonthlyExpensesIncomeChart({
     return { monthlyData, maxValue };
   }, [expenses, monthlySalary, variableMonthlyIncomes, additionalMonthlyIncomes, year, isPrediction, categories, annualFixedExpenses, subs]);
 
-  const barWidth = 20;
-  const spacing = 8;
+  // Responsive dimensions
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+  
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const handleResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setWindowWidth(window.innerWidth);
+      }, 150); // Debounce resize events
+    };
+    window.addEventListener('resize', handleResize);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  const isMobile = windowWidth < 640;
+  const isTablet = windowWidth >= 640 && windowWidth < 1024;
+  
+  const barWidth = isMobile ? 14 : isTablet ? 16 : 20;
+  const spacing = isMobile ? 4 : isTablet ? 6 : 8;
   const chartWidth = 12 * (barWidth * 2 + spacing);
-  const chartHeight = height - 60;
-  const padding = 40;
+  const chartHeight = (isMobile ? height - 80 : height - 60);
+  const padding = isMobile ? 30 : isTablet ? 35 : 40;
+  const responsiveHeight = isMobile ? Math.max(height - 40, 250) : height;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-3 sm:p-4 md:p-6 border border-gray-200 dark:border-gray-700">
+      <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 px-2 sm:px-0">
         {isPrediction ? `Dépenses et revenus prévus par mois (${year})` : `Dépenses et revenus par mois (${year})`}
       </h3>
-      <div className="overflow-x-auto">
-        <svg width={Math.max(chartWidth + padding * 2, 800)} height={height}>
+      <div className="overflow-x-auto -mx-3 sm:mx-0">
+        <div className="inline-block min-w-full px-3 sm:px-0">
+          <svg 
+            width={Math.max(chartWidth + padding * 2, isMobile ? windowWidth - 40 : 800)} 
+            height={responsiveHeight}
+            viewBox={`0 0 ${Math.max(chartWidth + padding * 2, 800)} ${responsiveHeight}`}
+            className="w-full h-auto"
+            preserveAspectRatio="xMidYMid meet"
+          >
           {/* Axes */}
           <line
             x1={padding}
@@ -149,10 +180,10 @@ export function MonthlyExpensesIncomeChart({
                   className="text-gray-200 dark:text-gray-700"
                 />
                 <text
-                  x={padding - 10}
+                  x={padding - (isMobile ? 5 : 10)}
                   y={y + 4}
                   textAnchor="end"
-                  className="text-xs fill-gray-500 dark:fill-gray-400"
+                  className={`${isMobile ? 'text-[10px]' : 'text-xs'} fill-gray-500 dark:fill-gray-400`}
                 >
                   {currency(data.maxValue * ratio)}
                 </text>
@@ -203,9 +234,9 @@ export function MonthlyExpensesIncomeChart({
                 {/* Month label */}
                 <text
                   x={x + barWidth}
-                  y={chartHeight + padding + 20}
+                  y={chartHeight + padding + (isMobile ? 15 : 20)}
                   textAnchor="middle"
-                  className="text-xs fill-gray-600 dark:fill-gray-400"
+                  className={`${isMobile ? 'text-[9px]' : 'text-xs'} fill-gray-600 dark:fill-gray-400`}
                 >
                   {monthData.monthName}
                 </text>
@@ -214,17 +245,18 @@ export function MonthlyExpensesIncomeChart({
           })}
 
           {/* Legend */}
-          <g transform={`translate(${padding + chartWidth - 120}, ${padding + 20})`}>
-            <rect x={0} y={0} width={12} height={12} fill="#10B981" rx="2" />
-            <text x={18} y={10} className="text-xs fill-gray-700 dark:fill-gray-300">
+          <g transform={`translate(${padding + chartWidth - (isMobile ? 100 : 120)}, ${padding + (isMobile ? 15 : 20)})`}>
+            <rect x={0} y={0} width={isMobile ? 10 : 12} height={isMobile ? 10 : 12} fill="#10B981" rx="2" />
+            <text x={isMobile ? 14 : 18} y={isMobile ? 8 : 10} className={`${isMobile ? 'text-[10px]' : 'text-xs'} fill-gray-700 dark:fill-gray-300`}>
               Revenus
             </text>
-            <rect x={80} y={0} width={12} height={12} fill="#EF4444" rx="2" />
-            <text x={98} y={10} className="text-xs fill-gray-700 dark:fill-gray-300">
+            <rect x={isMobile ? 65 : 80} y={0} width={isMobile ? 10 : 12} height={isMobile ? 10 : 12} fill="#EF4444" rx="2" />
+            <text x={isMobile ? 79 : 98} y={isMobile ? 8 : 10} className={`${isMobile ? 'text-[10px]' : 'text-xs'} fill-gray-700 dark:fill-gray-300`}>
               Dépenses
             </text>
           </g>
-        </svg>
+          </svg>
+        </div>
       </div>
     </div>
   );

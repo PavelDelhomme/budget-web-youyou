@@ -22,6 +22,7 @@ interface IncomeAndSavingsSectionProps {
   additionalMonthlyIncomes?: MonthlyAdditionalIncome[]; // Revenus supplémentaires par mois (primes, cadeaux, etc.)
   onAdditionalMonthlyIncomesChange?: (incomes: MonthlyAdditionalIncome[]) => void;
   currentYear?: number; // Pour calculer les revenus actifs
+  onOpenTaxManager?: () => void; // Ouvrir le gestionnaire fiscal
 }
 
 export function IncomeAndSavingsSection({
@@ -42,6 +43,7 @@ export function IncomeAndSavingsSection({
   additionalMonthlyIncomes = [],
   onAdditionalMonthlyIncomesChange,
   currentYear,
+  onOpenTaxManager,
 }: IncomeAndSavingsSectionProps) {
   // Calculer les revenus supplémentaires actifs pour l'année
   const activeTemporaryIncomes = useMemo(() => {
@@ -188,7 +190,18 @@ export function IncomeAndSavingsSection({
 
   return (
     <section className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm space-y-6 border border-gray-200 dark:border-gray-700">
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Revenus & Épargne</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Revenus & Épargne</h2>
+        {onOpenTaxManager && (
+          <button
+            onClick={onOpenTaxManager}
+            className="px-3 py-1.5 bg-purple-600 dark:bg-purple-500 text-white text-sm rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 transition-colors flex items-center gap-2"
+            title="Calculer vos impôts et optimiser votre fiscalité"
+          >
+            💰 Impôts
+          </button>
+        )}
+      </div>
 
       {/* Income Section */}
       <div className="space-y-3">

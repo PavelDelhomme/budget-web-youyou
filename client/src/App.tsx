@@ -13,6 +13,8 @@ import { InitializationModal } from './components/InitializationModal';
 import { Dashboard } from './components/Dashboard';
 import { GlobalDataManager } from './components/GlobalDataManager';
 import { RevenusManager } from './components/RevenusManager';
+import { MLTrainingInterface } from './components/MLTrainingInterface';
+import { TaxManager } from './components/TaxManager';
 import { ExpensesPieChart } from './components/ExpensesPieChart';
 import { MonthlyExpensesIncomeChart } from './components/MonthlyExpensesIncomeChart';
 import { useBudgetCalculations } from './hooks/useBudgetData';
@@ -32,7 +34,7 @@ function App() {
   const [sessionEmail, setSessionEmail] = useState<string | null>(null);
   const [years, setYears] = useState<number[]>(INITIAL_YEARS);
   const currentYearNum = today.getFullYear();
-  const [year, setYear] = useState<number | 'dashboard'>(currentYearNum);
+  const [year, setYear] = useState<number | 'dashboard'>('dashboard');
   const [isAddYearModalOpen, setIsAddYearModalOpen] = useState(false);
 
   // Data for the selected year
@@ -56,6 +58,8 @@ function App() {
   const [isInitializationModalOpen, setIsInitializationModalOpen] = useState(false);
   const [isGlobalDataManagerOpen, setIsGlobalDataManagerOpen] = useState(false);
   const [isRevenusManagerOpen, setIsRevenusManagerOpen] = useState(false);
+  const [isMLTrainingOpen, setIsMLTrainingOpen] = useState(false);
+  const [isTaxManagerOpen, setIsTaxManagerOpen] = useState(false);
 
   // Debounce timer for saving
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -111,15 +115,14 @@ function App() {
             }
             
             setYears(updatedYears);
-            // Always select current year by default (or dashboard if current year not available)
-            const currentYearExists = updatedYears.includes(currentYear);
-            setYear(currentYearExists ? currentYear : 'dashboard');
+            // Always select dashboard by default
+            setYear('dashboard');
           } else {
             // No years exist, create current year
             try {
               const result = await Api.addYear(currentYear);
               setYears(result.years);
-              setYear(currentYear);
+              setYear('dashboard');
             } catch (err) {
               console.error('Could not create current year:', err);
             }
@@ -226,9 +229,81 @@ function App() {
   }, [sessionEmail, years, globalData]);
 
   // Load historical data and generate predictions
+  // Use dependencies directly instead of the function reference to avoid infinite loops
   useEffect(() => {
-    reloadHistoricalDataAndRegeneratePredictions();
-  }, [reloadHistoricalDataAndRegeneratePredictions]);
+    if (!sessionEmail || years.length === 0) return;
+    
+    const loadData = async () => {
+      try {
+        const currentYearNum = today.getFullYear();
+        const historicalYearsList = getHistoricalYears(years, currentYearNum);
+        
+        // Load all historical year data AND current year for dashboard
+        const historicalDataMap = new Map<number, YearData>();
+        
+        // Load historical years
+        for (const y of historicalYearsList) {
+          try {
+            const data = await Api.getYearData(y);
+            historicalDataMap.set(y, data);
+          } catch (err) {
+            // Skip years with errors
+          }
+        }
+        
+        // Also load current year for dashboard stats
+        if (years.includes(currentYearNum)) {
+          try {
+            const data = await Api.getYearData(currentYearNum);
+            historicalDataMap.set(currentYearNum, data);
+          } catch (err) {
+            // Skip if error
+          }
+        }
+        
+        // Load ALL future years that exist in years list to check if they have real data
+        const futureRealYears = years.filter(y => y > currentYearNum);
+        for (const y of futureRealYears) {
+          try {
+            const data = await Api.getYearData(y);
+            // Check if year has meaningful data (not just defaults)
+            const hasRealData = (data.expenses && data.expenses.length > 0) ||
+                                (data.categories && data.categories.some((c: Category) => c.target > 0)) ||
+                                (data.subs && data.subs.length > 0) ||
+                                (data.monthlySalary && data.monthlySalary > 0);
+            if (hasRealData) {
+              historicalDataMap.set(y, data);
+            }
+          } catch (err) {
+            // Skip years with errors
+          }
+        }
+        
+        setHistoricalData(new Map(historicalDataMap));
+        
+        // Generate predictions ONLY for years that are NOT in the years list
+        if (historicalDataMap.size > 0 && globalData) {
+          const excludedYears = globalData.excludedPredictedYears || [];
+          const maxYears = globalData.maxPredictedYears || 3;
+          
+          const futureYearsList = getFutureYears(years, currentYearNum, excludedYears, maxYears);
+          const predictedYearsOnly = futureYearsList.filter(y => !years.includes(y));
+          
+          const historicalArray = Array.from(historicalDataMap.entries()).map(([year, data]) => ({
+            year,
+            data
+          }));
+          
+          const predictions = generatePredictions(historicalArray, predictedYearsOnly, globalData);
+          setPredictedYears(predictions);
+        }
+      } catch (err) {
+        console.error('Error loading historical data:', err);
+      }
+    };
+    
+    loadData();
+  }, [sessionEmail, years, globalData]);
 
   // Load data when sessionEmail or year changes
   useEffect(() => {
@@ -307,21 +382,33 @@ function App() {
           savingsTransactions,
         });
         
-        // Si l'année modifiée est une année passée ou l'année actuelle,
-        // régénérer les prédictions pour les années futures
-        // (car les prédictions se basent sur les données historiques)
-        if (typeof year === 'number' && year <= currentYearNum) {
-          // Attendre un peu pour s'assurer que les données sont bien sauvegardées
-          // puis régénérer les prédictions avec les nouvelles données historiques
-          setTimeout(() => {
-            reloadHistoricalDataAndRegeneratePredictions();
-          }, 200);
+        // Update historical data with local data (no API call needed - we just saved it)
+        // Only update if this is a historical year (for dashboard/predictions)
+        if (typeof year === 'number') {
+          const currentYearNum = today.getFullYear();
+          if (year <= currentYearNum) {
+            setHistoricalData((prev) => {
+              const newMap = new Map(prev);
+              newMap.set(year, {
+                categories,
+                expenses,
+                subs,
+                annualFixedExpenses,
+                monthlySalary,
+                variableMonthlyIncomes,
+                additionalMonthlyIncomes,
+                currentSavings,
+                savingsTransactions,
+              } as YearData);
+              return newMap;
+            });
+          }
         }
       } catch (err) {
         console.error('save error', err);
       }
     }, 500);
-  }, [categories, expenses, subs, annualFixedExpenses, monthlySalary, variableMonthlyIncomes, additionalMonthlyIncomes, currentSavings, savingsTransactions, sessionEmail, year, isViewingPrediction, globalData?.lockedYears, reloadHistoricalDataAndRegeneratePredictions]);
+  }, [categories, expenses, subs, annualFixedExpenses, monthlySalary, variableMonthlyIncomes, additionalMonthlyIncomes, currentSavings, savingsTransactions, sessionEmail, year, isViewingPrediction, globalData?.lockedYears, globalData, years]);
 
   // Use budget calculations hook (only for numeric years, not dashboard)
   const calculations = useBudgetCalculations(
@@ -468,10 +555,8 @@ function App() {
       }
       
       setYears(updatedYears);
-      // Always select current year by default after login (not dashboard)
-      const currentYearNum = today.getFullYear();
-      const currentYearExists = updatedYears.includes(currentYearNum);
-      setYear(currentYearExists ? currentYearNum : (updatedYears[0] || 'dashboard'));
+      // Always select dashboard by default after login
+      setYear('dashboard');
     } catch (err: any) {
       alert(err.message || 'Login error');
     }
@@ -873,6 +958,8 @@ function App() {
         onMaterializeYear={handleMaterializeYear}
         onOpenGlobalData={() => setIsGlobalDataManagerOpen(true)}
         onOpenRevenus={() => setIsRevenusManagerOpen(true)}
+        onOpenMLTraining={() => setIsMLTrainingOpen(true)}
+        onOpenTaxManager={() => setIsTaxManagerOpen(true)}
       />
 
       {/* Main content */}
@@ -1000,6 +1087,7 @@ function App() {
           additionalMonthlyIncomes={additionalMonthlyIncomes}
           onAdditionalMonthlyIncomesChange={typeof year === 'number' ? setAdditionalMonthlyIncomes : undefined}
           currentYear={typeof year === 'number' ? year : undefined}
+          onOpenTaxManager={() => setIsTaxManagerOpen(true)}
         />
 
         {/* Categories */}
@@ -1147,6 +1235,19 @@ function App() {
           }}
         />
       )}
+
+      {/* ML Training Interface */}
+      <MLTrainingInterface
+        isOpen={isMLTrainingOpen}
+        onClose={() => setIsMLTrainingOpen(false)}
+      />
+
+      {/* Tax Manager */}
+      <TaxManager
+        isOpen={isTaxManagerOpen}
+        onClose={() => setIsTaxManagerOpen(false)}
+        annualIncome={annualIncome}
+      />
     </div>
   );
 }

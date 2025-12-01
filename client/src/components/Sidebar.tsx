@@ -12,6 +12,8 @@ interface SidebarProps {
   onMaterializeYear?: (year: number) => void;
   onOpenGlobalData?: () => void;
   onOpenRevenus?: () => void;
+  onOpenMLTraining?: () => void;
+  onOpenTaxManager?: () => void;
 }
 
 export function Sidebar({
@@ -25,6 +27,8 @@ export function Sidebar({
   onMaterializeYear,
   onOpenGlobalData,
   onOpenRevenus,
+  onOpenMLTraining,
+  onOpenTaxManager,
 }: SidebarProps) {
   const isPredicted = (y: number) => predictedYears.includes(y);
   
@@ -100,62 +104,6 @@ export function Sidebar({
         </div>
         
         <nav className="space-y-3">
-          {/* Années passées */}
-          {categorizedYears.past.length > 0 && (
-            <div className="space-y-1">
-              <div className="text-xs font-semibold text-gray-400 dark:text-gray-500 px-2 mb-1">
-                Passées
-              </div>
-              {categorizedYears.past.map((y) => {
-                const predicted = isPredicted(y);
-                return (
-                  <div
-                    key={y}
-                    className={`group relative ${
-                      y === currentYear && predicted
-                        ? 'bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700'
-                        : y === currentYear && typeof currentYear === 'number'
-                        ? 'bg-gray-700 dark:bg-gray-600 text-white'
-                        : ''
-                    } rounded-lg transition-colors`}
-                  >
-                    <button
-                      onClick={() => onYearSelect(y)}
-                      className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
-                        y === currentYear && !predicted
-                          ? 'text-white font-medium'
-                          : predicted
-                          ? 'text-gray-400 dark:text-gray-500 hover:opacity-80'
-                          : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
-                      }`}
-                    >
-                      <span className="flex items-center gap-2">
-                        {y}
-                        {predicted && (
-                          <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 px-2 py-0.5 rounded-full">
-                            IA
-                          </span>
-                        )}
-                      </span>
-                    </button>
-                    {predicted && onMaterializeYear && y === currentYear && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onMaterializeYear(y);
-                        }}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white text-xs px-2 py-1 rounded transition-opacity"
-                        title="Créer cette année à partir de la prévision"
-                      >
-                        Créer
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
           {/* Année en cours */}
           {categorizedYears.current.length > 0 && (
             <div className="space-y-1">
@@ -272,6 +220,62 @@ export function Sidebar({
               })}
             </div>
           )}
+
+          {/* Années passées */}
+          {categorizedYears.past.length > 0 && (
+            <div className="space-y-1">
+              <div className="text-xs font-semibold text-gray-400 dark:text-gray-500 px-2 mb-1">
+                Passées
+              </div>
+              {categorizedYears.past.map((y) => {
+                const predicted = isPredicted(y);
+                return (
+                  <div
+                    key={y}
+                    className={`group relative ${
+                      y === currentYear && predicted
+                        ? 'bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700'
+                        : y === currentYear && typeof currentYear === 'number'
+                        ? 'bg-gray-700 dark:bg-gray-600 text-white'
+                        : ''
+                    } rounded-lg transition-colors`}
+                  >
+                    <button
+                      onClick={() => onYearSelect(y)}
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
+                        y === currentYear && !predicted
+                          ? 'text-white font-medium'
+                          : predicted
+                          ? 'text-gray-400 dark:text-gray-500 hover:opacity-80'
+                          : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        {y}
+                        {predicted && (
+                          <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 px-2 py-0.5 rounded-full">
+                            IA
+                          </span>
+                        )}
+                      </span>
+                    </button>
+                    {predicted && onMaterializeYear && y === currentYear && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onMaterializeYear(y);
+                        }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white text-xs px-2 py-1 rounded transition-opacity"
+                        title="Créer cette année à partir de la prévision"
+                      >
+                        Créer
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </nav>
         
         {predictedYears.length > 0 && (
@@ -302,6 +306,24 @@ export function Sidebar({
           >
             <span>💰</span>
             Revenus supplémentaires
+          </button>
+        )}
+        {onOpenMLTraining && (
+          <button
+            onClick={onOpenMLTraining}
+            className="w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors flex items-center gap-2"
+          >
+            <span>🤖</span>
+            Entraînement IA
+          </button>
+        )}
+        {onOpenTaxManager && (
+          <button
+            onClick={onOpenTaxManager}
+            className="w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors flex items-center gap-2"
+          >
+            <span>💰</span>
+            Gestion fiscale
           </button>
         )}
         <button

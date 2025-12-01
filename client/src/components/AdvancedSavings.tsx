@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SavingsGoal, SavingsProject } from '../types';
 import { currency } from '../utils';
+import { MLApi } from '../utils/mlApi';
 
 interface AdvancedSavingsProps {
   goals: SavingsGoal[];
@@ -201,12 +202,30 @@ export function AdvancedSavings({
                   />
                 </div>
               </div>
-              <button
-                onClick={addGoal}
-                className="mt-3 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-              >
-                Ajouter
-              </button>
+              <div className="mt-4 flex gap-2">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      const rec = await MLApi.recommendGoal(newGoal.type, 12);
+                      if (rec.recommended_amount) {
+                        setNewGoal({ ...newGoal, targetAmount: rec.recommended_amount });
+                      }
+                    } catch (err) {
+                      console.error('Erreur recommandation IA:', err);
+                    }
+                  }}
+                  className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
+                >
+                  🤖 IA: Recommandation Montant
+                </button>
+                <button
+                  onClick={addGoal}
+                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                >
+                  Ajouter
+                </button>
+              </div>
             </div>
           )}
 
@@ -363,6 +382,53 @@ export function AdvancedSavings({
                         par mois pour atteindre l'objectif.
                       </p>
                     )}
+                </div>
+              </div>
+              <div className="mt-4 flex gap-2">
+                {newProject.targetAmount > 0 && newProject.targetDate && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const rec = await MLApi.recommendContribution(
+                          newProject.targetAmount,
+                          newProject.targetDate,
+                          newProject.currentAmount
+                        );
+                        if (rec.monthly_contribution !== undefined) {
+                          setNewProject({ ...newProject, monthlyContribution: rec.monthly_contribution });
+                        }
+                      } catch (err) {
+                        console.error('Erreur recommandation IA:', err);
+                      }
+                    }}
+                    className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
+                  >
+                    🤖 IA: Recommandation Contribution
+                  </button>
+                )}
+                {newProject.targetAmount > 0 && newProject.monthlyContribution > 0 && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const rec = await MLApi.recommendDate(
+                          newProject.targetAmount,
+                          newProject.monthlyContribution,
+                          newProject.currentAmount
+                        );
+                        if (rec.target_date) {
+                          setNewProject({ ...newProject, targetDate: rec.target_date.split('T')[0] });
+                        }
+                      } catch (err) {
+                        console.error('Erreur recommandation IA:', err);
+                      }
+                    }}
+                    className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
+                  >
+                    🤖 IA: Recommandation Date
+                  </button>
+                )}
                 </div>
               </div>
               <button

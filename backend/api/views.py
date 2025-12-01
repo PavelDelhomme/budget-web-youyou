@@ -9,35 +9,40 @@ from django.views.decorators.csrf import csrf_exempt
 import re
 
 from .utils import load_user, save_user, get_default_year_data
+from .security import (
+    sanitize_email, validate_email, validate_year, 
+    validate_year_data, validate_string
+)
 
 
 def require_session_user(request):
-    """Check if user email is in session"""
+    """Check if user email is in session and validate it"""
     if 'user_email' not in request.session:
         return None
-    return request.session['user_email']
+    user_email = request.session['user_email']
+    # Validate email format for security
+    if not validate_email(user_email):
+        request.session.flush()
+        return None
+    return user_email
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 @csrf_exempt
 def login(request):
-    """Login endpoint"""
-    email = request.data.get('email', '').strip()
-    password = request.data.get('password', '')
+    """Login endpoint with security validation"""
+    email_input = request.data.get('email', '')
     
+    # Sanitize and validate email
+    email = sanitize_email(email_input)
     if not email:
-        return Response({'error': 'Email invalide'}, status=status.HTTP_400_BAD_REQUEST)
-    
-    # Validate email format
-    email_regex = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
-    if not re.match(email_regex, email):
         return Response({'error': 'Email invalide'}, status=status.HTTP_400_BAD_REQUEST)
     
     # Note: Password verification not implemented (same as original)
     # In production, implement proper password hashing
     
-    # Set session user
+    # Set session user with validated email
     request.session['user_email'] = email
     
     # Ensure user data exists
@@ -75,13 +80,10 @@ def years_view(request):
         })
     
     elif request.method == 'POST':
-        # Add a new year
+        # Add a new year with validation
         year = request.data.get('year')
-        try:
-            year_num = int(year)
-            if year_num < 1900 or year_num > 2100:
-                return Response({'error': 'Année invalide'}, status=status.HTTP_400_BAD_REQUEST)
-        except (ValueError, TypeError):
+        year_num = validate_year(year)
+        if year_num is None:
             return Response({'error': 'Année invalide'}, status=status.HTTP_400_BAD_REQUEST)
         
         data = load_user(user_email)
@@ -93,14 +95,13 @@ def years_view(request):
         return Response({'years': data['years']})
     
     elif request.method == 'DELETE':
-        # Delete a year
+        # Delete a year with validation
         year_str = request.GET.get('year')
         if not year_str:
             return Response({'error': 'Année requise'}, status=status.HTTP_400_BAD_REQUEST)
         
-        try:
-            year_num = int(year_str)
-        except ValueError:
+        year_num = validate_year(year_str)
+        if year_num is None:
             return Response({'error': 'Année invalide'}, status=status.HTTP_400_BAD_REQUEST)
         
         data = load_user(user_email)
@@ -131,11 +132,8 @@ def get_year_data(request):
     if not year_str:
         return Response({'error': 'Année requise'}, status=status.HTTP_400_BAD_REQUEST)
     
-    try:
-        year_num = int(year_str)
-        if year_num < 1900 or year_num > 2100:
-            return Response({'error': 'Année invalide'}, status=status.HTTP_400_BAD_REQUEST)
-    except ValueError:
+    year_num = validate_year(year_str)
+    if year_num is None:
         return Response({'error': 'Année invalide'}, status=status.HTTP_400_BAD_REQUEST)
     
     data = load_user(user_email)
@@ -162,25 +160,24 @@ def put_year_data(request):
     if not year_str:
         return Response({'error': 'Année requise'}, status=status.HTTP_400_BAD_REQUEST)
     
-    try:
-        year_num = int(year_str)
-        if year_num < 1900 or year_num > 2100:
-            return Response({'error': 'Année invalide'}, status=status.HTTP_400_BAD_REQUEST)
-    except ValueError:
+    year_num = validate_year(year_str)
+    if year_num is None:
         return Response({'error': 'Année invalide'}, status=status.HTTP_400_BAD_REQUEST)
     
     payload = request.data
     if not isinstance(payload, dict):
         return Response({'error': 'Payload invalide'}, status=status.HTTP_400_BAD_REQUEST)
     
+    # Validate and sanitize all data before saving
+    validated_data = validate_year_data(payload)
+    if validated_data is None:
+        return Response({'error': 'Données invalides'}, status=status.HTTP_400_BAD_REQUEST)
+    
     data = load_user(user_email)
     year_key = str(year_num)
     
-    data['datasets'][year_key] = {
-        'categories': payload.get('categories', []),
-        'expenses': payload.get('expenses', []),
-        'subs': payload.get('subs', [])
-    }
+    # Replace with validated data (security: only validated data is saved)
+    data['datasets'][year_key] = validated_data
     
     # Ensure year is in years array
     if year_num not in data['years']:

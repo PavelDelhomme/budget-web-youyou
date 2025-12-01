@@ -15,8 +15,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Create data directory
-RUN mkdir -p /app/data
+# Create data directories
+RUN mkdir -p /app/data /app/data/models
 
 # Expose port
 EXPOSE 6060

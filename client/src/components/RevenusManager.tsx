@@ -85,9 +85,9 @@ export function RevenusManager({ isOpen, onClose, temporaryIncomes, onUpdate }: 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="💰 Gérer mes revenus supplémentaires" closeable>
       <div className="space-y-6">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="font-semibold text-blue-900 mb-2">💡 Guide - Revenus supplémentaires</h4>
-          <p className="text-sm text-blue-800">
+        <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+          <h4 className="font-semibold text-blue-900 dark:text-blue-200 mb-2">💡 Guide - Revenus supplémentaires</h4>
+          <p className="text-sm text-blue-800 dark:text-blue-200">
             Vous pouvez ajouter des revenus supplémentaires en plus de votre salaire mensuel :
             <br />
             <strong>• Permanents :</strong> Allocations, aides mensuelles récurrentes (ex: APL, RSA)
@@ -99,21 +99,21 @@ export function RevenusManager({ isOpen, onClose, temporaryIncomes, onUpdate }: 
         </div>
 
         {/* Form */}
-        <div className="border p-4 rounded-lg space-y-2">
-          <label className="block text-sm font-medium">Nom / Description</label>
+        <div className="border border-gray-200 dark:border-gray-700 p-4 rounded-lg space-y-2 bg-white dark:bg-gray-800">
+          <label className="block text-sm font-medium text-gray-900 dark:text-white">Nom / Description</label>
           <input
             type="text"
             value={currentIncome.name}
             onChange={(e) => setCurrentIncome({ ...currentIncome, name: e.target.value })}
             placeholder="Ex: Allocation logement (APL), Aide de l'État, Prime annuelle"
-            className="w-full px-3 py-2 border rounded"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
           />
 
-          <label className="block text-sm font-medium">Type</label>
+          <label className="block text-sm font-medium text-gray-900 dark:text-white">Type</label>
           <select
             value={currentIncome.type}
             onChange={(e) => setCurrentIncome({ ...currentIncome, type: e.target.value as any })}
-            className="w-full px-3 py-2 border rounded"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
           >
             <option value="allocation">Allocation (APL, RSA, etc.)</option>
             <option value="government_aid">Aide de l'État</option>
@@ -122,7 +122,7 @@ export function RevenusManager({ isOpen, onClose, temporaryIncomes, onUpdate }: 
             <option value="other">Autre</option>
           </select>
 
-          <label className="block text-sm font-medium">Montant (€)</label>
+          <label className="block text-sm font-medium text-gray-900 dark:text-white">Montant (€)</label>
           <input
             type="text"
             value={currentIncome.amount || ''}
@@ -133,10 +133,10 @@ export function RevenusManager({ isOpen, onClose, temporaryIncomes, onUpdate }: 
               })
             }
             placeholder="Ex: 200,00 ou 200.00"
-            className="w-full px-3 py-2 border rounded"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
           />
 
-          <label className="block text-sm font-medium">Durée</label>
+          <label className="block text-sm font-medium text-gray-900 dark:text-white">Durée</label>
           <select
             value={currentIncome.duration}
             onChange={(e) => {
@@ -147,14 +147,14 @@ export function RevenusManager({ isOpen, onClose, temporaryIncomes, onUpdate }: 
                 endDate: newDuration === 'months' ? calculateEndDate(currentIncome.startDate, currentIncome.numberOfMonths || 1) : '',
               });
             }}
-            className="w-full px-3 py-2 border rounded"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
           >
             <option value="permanent">Permanent (mensuel récurrent)</option>
             <option value="once">Une seule fois</option>
             <option value="months">Sur plusieurs mois</option>
           </select>
 
-          <label className="block text-sm font-medium">Date de début</label>
+          <label className="block text-sm font-medium text-gray-900 dark:text-white">Date de début</label>
           <input
             type="date"
             value={currentIncome.startDate}
@@ -168,12 +168,12 @@ export function RevenusManager({ isOpen, onClose, temporaryIncomes, onUpdate }: 
                   : currentIncome.endDate,
               });
             }}
-            className="w-full px-3 py-2 border rounded"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
           />
 
           {currentIncome.duration === 'months' && (
             <>
-              <label className="block text-sm font-medium">Nombre de mois</label>
+              <label className="block text-sm font-medium text-gray-900 dark:text-white">Nombre de mois</label>
               <input
                 type="number"
                 min="1"
@@ -186,10 +186,10 @@ export function RevenusManager({ isOpen, onClose, temporaryIncomes, onUpdate }: 
                     endDate: calculateEndDate(currentIncome.startDate, months),
                   });
                 }}
-                className="w-full px-3 py-2 border rounded"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
               />
               {currentIncome.endDate && (
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-gray-600 dark:text-gray-400">
                   Date de fin calculée : {new Date(currentIncome.endDate).toLocaleDateString('fr-FR')}
                 </p>
               )}
@@ -197,23 +197,23 @@ export function RevenusManager({ isOpen, onClose, temporaryIncomes, onUpdate }: 
           )}
 
           {currentIncome.duration === 'permanent' && (
-            <p className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
+            <p className="text-xs text-blue-600 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 p-2 rounded border border-blue-200 dark:border-blue-700">
               💡 Ce revenu sera comptabilisé chaque mois à partir de la date de début.
             </p>
           )}
 
-          <label className="block text-sm font-medium">Note (optionnel)</label>
+          <label className="block text-sm font-medium text-gray-900 dark:text-white">Note (optionnel)</label>
           <input
             type="text"
             value={currentIncome.note}
             onChange={(e) => setCurrentIncome({ ...currentIncome, note: e.target.value })}
             placeholder="Informations complémentaires"
-            className="w-full px-3 py-2 border rounded"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
           />
 
           <button
             onClick={addIncome}
-            className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="w-full px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
           >
             Ajouter
           </button>
@@ -222,13 +222,13 @@ export function RevenusManager({ isOpen, onClose, temporaryIncomes, onUpdate }: 
         {/* List */}
         {incomes.length > 0 && (
           <div className="space-y-2">
-            <h4 className="font-medium">Revenus supplémentaires :</h4>
+            <h4 className="font-medium text-gray-900 dark:text-white">Revenus supplémentaires :</h4>
             <div className="space-y-2 max-h-96 overflow-y-auto">
               {incomes.map((ti) => (
-                <div key={ti.id} className="flex justify-between items-start p-3 bg-gray-50 rounded border">
+                <div key={ti.id} className="flex justify-between items-start p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
                   <div className="flex-1">
-                    <div className="font-medium">{ti.name}</div>
-                    <div className="text-sm text-gray-600">
+                    <div className="font-medium text-gray-900 dark:text-white">{ti.name}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
                       {ti.type === 'gift' ? 'Cadeau' : 
                        ti.type === 'government_aid' ? 'Aide de l\'État' : 
                        ti.type === 'allocation' ? 'Allocation' :
@@ -237,30 +237,30 @@ export function RevenusManager({ isOpen, onClose, temporaryIncomes, onUpdate }: 
                        ti.duration === 'once' ? ' Une fois' : 
                        ` ${ti.numberOfMonths} mois`}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
                       Du {new Date(ti.startDate).toLocaleDateString('fr-FR')}
                       {ti.endDate && ` au ${new Date(ti.endDate).toLocaleDateString('fr-FR')}`}
                       {ti.duration === 'permanent' && ' (récurrent)'}
                     </div>
                     {ti.note && (
-                      <div className="text-xs text-gray-500 mt-1">Note: {ti.note}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Note: {ti.note}</div>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="text-right">
-                      <span className="font-semibold">{currency(ti.amount)}</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">{currency(ti.amount)}</span>
                       {ti.duration === 'permanent' && (
-                        <span className="text-xs text-gray-600 block">/mois</span>
+                        <span className="text-xs text-gray-600 dark:text-gray-400 block">/mois</span>
                       )}
                       {ti.duration === 'months' && (
-                        <span className="text-xs text-gray-600 block">
+                        <span className="text-xs text-gray-600 dark:text-gray-400 block">
                           /mois = {currency((ti.amount * (ti.numberOfMonths || 1)))} total
                         </span>
                       )}
                     </div>
                     <button
                       onClick={() => removeIncome(ti.id)}
-                      className="text-red-600 hover:text-red-800 ml-2"
+                      className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 ml-2 transition-colors"
                     >
                       ✕
                     </button>
@@ -268,11 +268,11 @@ export function RevenusManager({ isOpen, onClose, temporaryIncomes, onUpdate }: 
                 </div>
               ))}
             </div>
-            <div className="pt-2 border-t space-y-1">
-              <p className="text-sm">
+            <div className="pt-2 border-t border-gray-200 dark:border-gray-700 space-y-1">
+              <p className="text-sm text-gray-900 dark:text-white">
                 <strong>Total mensuel récurrent :</strong> {currency(totalMonthly)}/mois
               </p>
-              <p className="text-sm">
+              <p className="text-sm text-gray-900 dark:text-white">
                 <strong>Total ponctuel :</strong> {currency(totalOneTime)}
               </p>
             </div>
@@ -280,22 +280,22 @@ export function RevenusManager({ isOpen, onClose, temporaryIncomes, onUpdate }: 
         )}
 
         {incomes.length === 0 && (
-          <p className="text-gray-500 text-center py-4 text-sm">
+          <p className="text-gray-500 dark:text-gray-400 text-center py-4 text-sm">
             Aucun revenu supplémentaire défini. Vous pouvez en ajouter ci-dessus.
           </p>
         )}
 
         {/* Save Button */}
-        <div className="pt-4 border-t flex gap-2">
+        <div className="pt-4 border-t border-gray-200 dark:border-gray-700 flex gap-2">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
           >
             Annuler
           </button>
           <button
             onClick={handleSave}
-            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="flex-1 px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
           >
             ✅ Enregistrer
           </button>

@@ -304,6 +304,26 @@ export function Dashboard({
         </div>
       </div>
 
+      {/* Charts Section - Full Width */}
+      <div className="space-y-6">
+        {/* Répartition des dépenses par catégorie */}
+        <ExpensesPieChart
+          categories={yearData.categories || []}
+          expenses={yearData.expenses || []}
+          size={400}
+        />
+
+        {/* Dépenses et revenus par mois */}
+        <MonthlyExpensesIncomeChart
+          expenses={yearData.expenses || []}
+          monthlySalary={monthlySalary}
+          variableMonthlyIncomes={yearData.variableMonthlyIncomes}
+          additionalMonthlyIncomes={yearData.additionalMonthlyIncomes || []}
+          year={currentYear}
+          height={350}
+        />
+      </div>
+
       {/* Trends and Analysis */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
@@ -332,25 +352,25 @@ export function Dashboard({
 
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
           <h3 className="font-semibold text-lg mb-4 text-gray-900 dark:text-white">🎯 Objectifs d'épargne</h3>
-          <div className="space-y-3">
+          <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
             {savingsGoals.length > 0 ? savingsGoals.map((goal) => (
-              <div key={goal.id}>
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">{goal.name}</span>
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
+              <div key={goal.id} className="min-w-0">
+                <div className="flex justify-between items-center mb-1 gap-2">
+                  <span className="text-sm font-medium text-gray-900 dark:text-white truncate flex-1">{goal.name}</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
                     {currency(goal.currentAmount)} / {currency(goal.targetAmount)}
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
                   <div
-                    className={`h-2 rounded-full ${goal.type === 'minimum' ? 'bg-blue-600 dark:bg-blue-500' : goal.type === 'precaution' ? 'bg-yellow-600 dark:bg-yellow-500' : 'bg-green-600 dark:bg-green-500'}`}
-                    style={{ width: `${goal.targetAmount > 0 ? (goal.currentAmount / goal.targetAmount) * 100 : 0}%` }}
+                    className={`h-2 rounded-full transition-all ${goal.type === 'minimum' ? 'bg-blue-600 dark:bg-blue-500' : goal.type === 'precaution' ? 'bg-yellow-600 dark:bg-yellow-500' : 'bg-green-600 dark:bg-green-500'}`}
+                    style={{ width: `${Math.min(100, goal.targetAmount > 0 ? (goal.currentAmount / goal.targetAmount) * 100 : 0)}%` }}
                   />
                 </div>
               </div>
             )) : <p className="text-sm text-gray-500 dark:text-gray-400">Aucun objectif défini</p>}
             {savingsGoals.length > 0 && (
-              <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+              <div className="pt-2 border-t border-gray-200 dark:border-gray-700 sticky bottom-0 bg-white dark:bg-gray-800">
                 <p className="text-sm font-semibold text-gray-900 dark:text-white">
                   Total: {currency(totalSavingsGoals)} / {currency(totalSavingsTarget)}
                 </p>

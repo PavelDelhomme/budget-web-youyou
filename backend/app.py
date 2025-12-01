@@ -10,15 +10,36 @@ import time
 from datetime import datetime, timedelta
 
 from api.utils import load_user, save_user, get_default_year_data
+from api.middleware import (
+    add_security_headers, get_client_ip, rate_limit,
+    require_csrf, prevent_session_fixation, log_security_event,
+    get_csrf_token
+)
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
+
+# Security configuration
 app.secret_key = os.environ.get('SECRET_KEY', 'budget-annuel-secret-key-change-in-production')
+if app.secret_key == 'budget-annuel-secret-key-change-in-production':
+    # Generate a secure secret key if default is used
+    import secrets
+    app.secret_key = secrets.token_hex(32)
+
+# Cookie security configuration
 app.config['SESSION_COOKIE_HTTPONLY'] = True  # Empêche l'accès JavaScript aux cookies
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Protection CSRF
-app.config['SESSION_COOKIE_SECURE'] = os.environ.get('FLASK_ENV') == 'production'  # HTTPS en production
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Protection CSRF (Lax pour permettre les liens)
+app.config['SESSION_COOKIE_SECURE'] = os.environ.get('FLASK_ENV') == 'production' or os.environ.get('FORCE_HTTPS', '').lower() == 'true'  # HTTPS en production
+app.config['SESSION_COOKIE_NAME'] = 'budget_session'  # Nom personnalisé pour éviter les collisions
+app.config['SESSION_COOKIE_PATH'] = '/'  # Restreindre le chemin
+app.config['SESSION_COOKIE_DOMAIN'] = None  # Ne pas partager entre sous-domaines
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
-app.config['SESSION_COOKIE_NAME'] = 'budget_session'  # Nom personnalisé
+app.config['SESSION_COOKIE_SAMESITE_FORCE_ALL'] = True
+
+# Add security headers to all responses
+@app.after_request
+def set_security_headers(response):
+    return add_security_headers(response)
 
 # Credentials - stockés comme variables d'environnement pour la sécurité
 ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'dev@delhomme.ovh')
@@ -82,14 +103,21 @@ def require_auth(f):
     return decorated_function
 
 
+@app.route('/api/csrf-token', methods=['GET'])
+def get_csrf():
+    """Get CSRF token for authenticated users"""
+    if 'user_email' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    token = get_csrf_token(session)
+    return jsonify({'csrf_token': token})
+
+
 @app.route('/api/login', methods=['POST'])
+@rate_limit(max_requests=5, window=60)  # Stricter rate limiting for login
+@prevent_session_fixation
 def login():
     """Login endpoint with security measures"""
-    # Rate limiting - protection contre les attaques brute force
-    client_ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR', 'unknown'))
-    if client_ip == 'unknown':
-        client_ip = request.remote_addr or 'unknown'
-    
+    client_ip = get_client_ip()
     current_time = time.time()
     
     # Vérifier si l'IP est bloquée
@@ -154,6 +182,9 @@ def login():
                 'error': f'Trop de tentatives échouées. Veuillez réessayer dans {LOCKOUT_DURATION // 60} minute(s).'
             }), 429
         
+        # Log failed login attempt
+        log_security_event('LOGIN_FAILED', f'Failed attempt #{login_attempts[client_ip]["count"]}', client_ip, 'WARNING')
+        
         # Message générique pour ne pas révéler lequel est incorrect
         return jsonify({'error': 'Email ou mot de passe incorrect'}), 401
     
@@ -161,30 +192,49 @@ def login():
     if client_ip in login_attempts:
         del login_attempts[client_ip]
     
-    # Set session user avec sécurité renforcée
-    session['user_email'] = ADMIN_EMAIL
+    # Regenerate session ID to prevent session fixation
+    session.permanent = False
+    session.clear()
+    session.regenerate()
     session.permanent = True
     
-    # Set session lifetime (already configured globally)
+    # Set session user avec sécurité renforcée
+    session['user_email'] = ADMIN_EMAIL
+    session['login_time'] = current_time
+    session['csrf_token'] = get_csrf_token(session)
+    
+    # Log successful login
+    log_security_event('LOGIN_SUCCESS', f'User: {ADMIN_EMAIL}', client_ip, 'INFO')
     
     # Ensure user data exists
     user_data = load_user(ADMIN_EMAIL)
     
     return jsonify({
         'email': ADMIN_EMAIL,
-        'years': user_data['years']
+        'years': user_data['years'],
+        'csrf_token': session['csrf_token']
     })
 
 
 @app.route('/api/logout', methods=['POST'])
+@require_auth
 def logout():
     """Logout endpoint"""
+    user_email = session.get('user_email', 'unknown')
+    client_ip = get_client_ip()
+    
+    # Log logout
+    log_security_event('LOGOUT', f'User: {user_email}', client_ip, 'INFO')
+    
+    # Clear session completely
     session.clear()
+    
     return jsonify({'done': True})
 
 
 @app.route('/api/years', methods=['GET'])
 @require_auth
+@rate_limit(max_requests=100, window=60)
 def get_years():
     """Get all years for authenticated user"""
     from datetime import datetime
@@ -207,6 +257,8 @@ def get_years():
 
 @app.route('/api/years', methods=['POST'])
 @require_auth
+@require_csrf
+@rate_limit(max_requests=20, window=60)
 def add_year():
     """Add a new year"""
     user_email = session['user_email']
@@ -231,6 +283,8 @@ def add_year():
 
 @app.route('/api/years', methods=['DELETE'])
 @require_auth
+@require_csrf
+@rate_limit(max_requests=20, window=60)
 def delete_year():
     """Delete a year"""
     user_email = session['user_email']
@@ -302,6 +356,8 @@ def get_year_data():
 
 @app.route('/api/put', methods=['PUT'])
 @require_auth
+@require_csrf
+@rate_limit(max_requests=50, window=60)
 def put_year_data():
     """Update data for a specific year with input validation"""
     user_email = session['user_email']
@@ -421,6 +477,8 @@ def get_global_data():
 
 @app.route('/api/global', methods=['PUT'])
 @require_auth
+@require_csrf
+@rate_limit(max_requests=50, window=60)
 def put_global_data():
     """Update global user data with input validation"""
     user_email = session['user_email']
@@ -445,6 +503,15 @@ def put_global_data():
 def health():
     """Health check endpoint"""
     return jsonify({'status': 'ok'})
+
+
+# Register ML routes
+from api.ml_service import register_ml_routes
+register_ml_routes(app)
+
+# Register Government API routes
+from api.government_service import register_government_routes
+register_government_routes(app)
 
 
 if __name__ == '__main__':
