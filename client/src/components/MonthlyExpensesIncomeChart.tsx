@@ -146,15 +146,25 @@ export function MonthlyExpensesIncomeChart({
         {isPrediction ? `Dépenses et revenus prévus par mois (${year})` : `Dépenses et revenus par mois (${year})`}
       </h3>
       {/* Container avec scroll horizontal */}
-      <div className="overflow-x-auto -mx-3 sm:-mx-4 md:-mx-6 px-3 sm:px-4 md:px-6" style={{ scrollbarWidth: 'thin' }}>
-        <div className="inline-block" style={{ minWidth: '100%' }}>
+      <div 
+        className="overflow-x-auto -mx-3 sm:-mx-4 md:-mx-6 px-3 sm:px-4 md:px-6" 
+        style={{ 
+          scrollbarWidth: 'thin',
+          WebkitOverflowScrolling: 'touch',
+          scrollBehavior: 'smooth'
+        }}
+      >
+        <div className="inline-block" style={{ minWidth: svgWidth }}>
           <svg 
             width={svgWidth}
             height={responsiveHeight}
             viewBox={`0 0 ${svgWidth} ${responsiveHeight}`}
             className="block"
-            style={{ minWidth: svgWidth }}
-            preserveAspectRatio="none"
+            style={{ 
+              minWidth: svgWidth,
+              maxWidth: 'none',
+              display: 'block'
+            }}
           >
           {/* Axes */}
           <line
@@ -246,9 +256,9 @@ export function MonthlyExpensesIncomeChart({
                 {/* Month label */}
                 <text
                   x={x + barWidth}
-                  y={chartHeight + padding + (isMobile ? 16 : 22)}
+                  y={chartHeight + padding + (isMobile ? 18 : isTablet ? 24 : 28)}
                   textAnchor="middle"
-                  className={`${isMobile ? 'text-[10px]' : 'text-sm'} font-medium fill-gray-700 dark:fill-gray-300`}
+                  className={`${isMobile ? 'text-[11px]' : isTablet ? 'text-sm' : 'text-base'} font-medium fill-gray-700 dark:fill-gray-300`}
                 >
                   {monthData.monthName}
                 </text>
