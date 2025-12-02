@@ -245,7 +245,7 @@ export function SubscriptionsSection({
                 <th className="py-2 pr-4">Mois actifs</th>
                 <th className="py-2 pr-4">Total annuel</th>
                 <th className="py-2 pr-4" title="Montant total payé depuis le début de l'année jusqu'à maintenant">Payé à date</th>
-                <th></th>
+                <th className="py-2 px-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
