@@ -87,10 +87,10 @@ export function Sidebar({
   
   return (
     <>
-      {/* Overlay pour mobile */}
+      {/* Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden transition-opacity"
+          className="fixed inset-0 bg-black/50 z-40 transition-opacity"
           onClick={setIsOpen}
           aria-hidden="true"
         />
@@ -109,10 +109,10 @@ export function Sidebar({
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">Budget Annuel</h1>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">{sessionEmail}</p>
           </div>
-          {/* Bouton fermer visible uniquement sur mobile */}
+          {/* Bouton fermer */}
           <button
             onClick={setIsOpen}
-            className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 transition-colors"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 transition-colors"
             aria-label="Fermer le menu"
           >
             <svg
