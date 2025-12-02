@@ -328,6 +328,11 @@ from api.statistical_service import register_statistical_routes
 from api.backup_service_routes import register_backup_routes
 from api.health_routes import register_health_routes
 from api.swagger_docs import register_swagger_routes
+from api.export_routes import register_export_routes
+from api.compression_middleware import enable_compression
+
+# Enable compression for all API responses
+enable_compression(app)
 
 # Register all routes
 views.register_routes(app)
@@ -337,6 +342,7 @@ register_statistical_routes(app)
 register_backup_routes(app)
 register_health_routes(app)
 register_swagger_routes(app)
+register_export_routes(app)
 
 
 if __name__ == '__main__':
