@@ -68,13 +68,8 @@ function App() {
   const [isMLTrainingOpen, setIsMLTrainingOpen] = useState(false);
   const [isTaxManagerOpen, setIsTaxManagerOpen] = useState(false);
   const [isAdvancedFiscalManagerOpen, setIsAdvancedFiscalManagerOpen] = useState(false);
-  // Drawer : ouvert par défaut sur desktop, fermé sur mobile
-  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return window.innerWidth >= 1024; // Desktop = ouvert, mobile = fermé
-    }
-    return true; // Par défaut ouvert si on ne peut pas détecter
-  });
+  // Drawer : toujours fermé par défaut, s'ouvre avec hamburger
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Gérer le redimensionnement de la fenêtre (avec debounce pour éviter les boucles)
   useEffect(() => {
@@ -1165,7 +1160,7 @@ function App() {
             setYear(y);
           }
           // Fermer le drawer après sélection sur mobile
-          if (window.innerWidth < 1024) {
+          if (typeof window !== 'undefined' && window.innerWidth < 1024) {
             setIsSidebarOpen(false);
           }
         }}
@@ -1184,7 +1179,7 @@ function App() {
       />
 
       {/* Main content */}
-      <main className={`flex-1 p-3 sm:p-4 md:p-8 dark:text-gray-100 transition-all duration-300 ${isSidebarOpen ? 'lg:ml-64' : ''} min-h-screen bg-gray-50 dark:bg-gray-900`}>
+      <main className={`flex-1 p-3 sm:p-4 md:p-8 dark:text-gray-100 transition-all duration-300 lg:ml-64 min-h-screen bg-gray-50 dark:bg-gray-900`}>
         <div className="max-w-6xl mx-auto space-y-6">
           {/* Dashboard View */}
           {year === 'dashboard' && (
