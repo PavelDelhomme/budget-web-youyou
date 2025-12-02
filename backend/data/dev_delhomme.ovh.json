@@ -256,13 +256,27 @@
   },
   "globalData": {
     "bankAccounts": [],
+    "initializationComplete": true,
     "investments": [],
+    "monthlySalary": 0,
+    "monthlySalaryStartDate": null,
+    "personTransactions": [],
+    "salaryHistory": [],
     "savingsGoals": [],
     "savingsProjects": [],
-    "temporaryIncomes": [],
     "sharedExpensePersons": [],
-    "personTransactions": [],
-    "initializationComplete": true,
-    "monthlySalary": 0
+    "temporaryIncomes": [],
+    "userProfile": {
+      "geographic_location": {
+        "region": "europe",
+        "country": "FR",
+        "countryName": "France",
+        "city": "Rennes",
+        "department": "Ille-et-Vilaine"
+      },
+      "age": 19,
+      "profession": "Chômeur",
+      "secteur_activite": "Informatique"
+    }
   }
 }

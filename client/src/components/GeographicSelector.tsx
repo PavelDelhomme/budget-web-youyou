@@ -34,7 +34,7 @@ export function GeographicSelector({ value, onChange, label = 'Zone géographiqu
   const [department, setDepartment] = useState<string>(value?.department || '');
   
   const [countries, setCountries] = useState<Array<{ code: string; name: string }>>([]);
-  const [cities, setCities] = useState<Array<{ name: string; region?: string }>>([]);
+  const [cities, setCities] = useState<Array<{ name: string; region?: string; department?: string; departmentCode?: string }>>([]);
   const [departments, setDepartments] = useState<Array<{ code: string; name: string }>>([]);
   
   const [loadingCountries, setLoadingCountries] = useState(false);
@@ -142,23 +142,23 @@ export function GeographicSelector({ value, onChange, label = 'Zone géographiqu
       // Use GeoDB Cities API (free tier: 1000 requests/day)
       // Fallback to a simple list for common countries
       if (countryCode === 'FR') {
-        // French cities - use a predefined list for major cities
+        // French cities - use a predefined list for major cities with department mapping
         const frenchCities = [
-          { name: 'Paris', region: 'Île-de-France' },
-          { name: 'Lyon', region: 'Auvergne-Rhône-Alpes' },
-          { name: 'Marseille', region: "Provence-Alpes-Côte d'Azur" },
-          { name: 'Toulouse', region: 'Occitanie' },
-          { name: 'Nice', region: "Provence-Alpes-Côte d'Azur" },
-          { name: 'Nantes', region: 'Pays de la Loire' },
-          { name: 'Strasbourg', region: 'Grand Est' },
-          { name: 'Montpellier', region: 'Occitanie' },
-          { name: 'Bordeaux', region: 'Nouvelle-Aquitaine' },
-          { name: 'Lille', region: 'Hauts-de-France' },
-          { name: 'Rennes', region: 'Bretagne' },
-          { name: 'Reims', region: 'Grand Est' },
-          { name: 'Le Havre', region: 'Normandie' },
-          { name: 'Saint-Étienne', region: 'Auvergne-Rhône-Alpes' },
-          { name: 'Toulon', region: "Provence-Alpes-Côte d'Azur" },
+          { name: 'Paris', region: 'Île-de-France', department: 'Paris', departmentCode: '75' },
+          { name: 'Lyon', region: 'Auvergne-Rhône-Alpes', department: 'Rhône', departmentCode: '69' },
+          { name: 'Marseille', region: "Provence-Alpes-Côte d'Azur", department: 'Bouches-du-Rhône', departmentCode: '13' },
+          { name: 'Toulouse', region: 'Occitanie', department: 'Haute-Garonne', departmentCode: '31' },
+          { name: 'Nice', region: "Provence-Alpes-Côte d'Azur", department: 'Alpes-Maritimes', departmentCode: '06' },
+          { name: 'Nantes', region: 'Pays de la Loire', department: 'Loire-Atlantique', departmentCode: '44' },
+          { name: 'Strasbourg', region: 'Grand Est', department: 'Bas-Rhin', departmentCode: '67' },
+          { name: 'Montpellier', region: 'Occitanie', department: 'Hérault', departmentCode: '34' },
+          { name: 'Bordeaux', region: 'Nouvelle-Aquitaine', department: 'Gironde', departmentCode: '33' },
+          { name: 'Lille', region: 'Hauts-de-France', department: 'Nord', departmentCode: '59' },
+          { name: 'Rennes', region: 'Bretagne', department: 'Ille-et-Vilaine', departmentCode: '35' },
+          { name: 'Reims', region: 'Grand Est', department: 'Marne', departmentCode: '51' },
+          { name: 'Le Havre', region: 'Normandie', department: 'Seine-Maritime', departmentCode: '76' },
+          { name: 'Saint-Étienne', region: 'Auvergne-Rhône-Alpes', department: 'Loire', departmentCode: '42' },
+          { name: 'Toulon', region: "Provence-Alpes-Côte d'Azur", department: 'Var', departmentCode: '83' },
         ];
         setCities(frenchCities);
         return;
@@ -295,11 +295,25 @@ export function GeographicSelector({ value, onChange, label = 'Zone géographiqu
     updateLocation({ region, country: countryCode, countryName: countryNameValue });
   };
 
-  const handleCitySelect = (cityName: string, cityRegion?: string) => {
+  const handleCitySelect = (cityName: string, cityRegion?: string, cityDepartment?: string) => {
     setCity(cityName);
     setCitySearch(cityName);
     setShowCityDropdown(false);
-    updateLocation({ region, country, countryName, city: cityName, department: cityRegion || department });
+    
+    // Si un département est associé à la ville, l'utiliser automatiquement
+    const selectedDepartment = cityDepartment || department;
+    if (cityDepartment) {
+      setDepartment(cityDepartment);
+      setDepartmentSearch(cityDepartment);
+    }
+    
+    updateLocation({ 
+      region, 
+      country, 
+      countryName, 
+      city: cityName, 
+      department: selectedDepartment 
+    });
   };
 
   const handleDepartmentSelect = (deptCode: string, deptName: string) => {
@@ -397,10 +411,11 @@ export function GeographicSelector({ value, onChange, label = 'Zone géographiqu
                 <button
                   key={idx}
                   type="button"
-                  onClick={() => handleCitySelect(c.name, c.region)}
+                  onClick={() => handleCitySelect(c.name, c.region, c.department)}
                   className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
                 >
-                  {c.name} {c.region && <span className="text-xs text-gray-500">({c.region})</span>}
+                  {c.name} {c.department && <span className="text-xs text-gray-500">({c.department})</span>}
+                  {!c.department && c.region && <span className="text-xs text-gray-500">({c.region})</span>}
                 </button>
               ))}
             </div>
