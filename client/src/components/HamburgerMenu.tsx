@@ -7,7 +7,7 @@ export function HamburgerMenu({ isOpen, onToggle }: HamburgerMenuProps) {
   return (
     <button
       onClick={onToggle}
-      className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+      className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
       aria-label={isOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
       aria-expanded={isOpen}
     >
