@@ -68,73 +68,22 @@ function App() {
   const [isMLTrainingOpen, setIsMLTrainingOpen] = useState(false);
   const [isTaxManagerOpen, setIsTaxManagerOpen] = useState(false);
   const [isAdvancedFiscalManagerOpen, setIsAdvancedFiscalManagerOpen] = useState(false);
-  // Drawer : état initialisé selon la taille d'écran au chargement
-  // Sur desktop : toujours ouvert par défaut, toujours visible
-  // Sur mobile : toujours fermé par défaut, peut être ouvert/fermé
+  // Drawer : simple et robuste
+  // - Sur desktop : toujours visible via CSS (lg:translate-x-0), pas besoin d'état
+  // - Sur mobile : fermé par défaut, peut être ouvert/fermé, persiste dans localStorage
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     if (typeof window === 'undefined') return false;
-    // Toujours fermé par défaut, s'ouvre avec le bouton hamburger
-    return false;
+    // Sur mobile uniquement, restaurer depuis localStorage
+    const savedState = localStorage.getItem('sidebar-open');
+    return savedState === 'true';
   });
   
-  // Sauvegarder l'état du drawer dans localStorage à chaque changement
+  // Sauvegarder l'état dans localStorage (mobile uniquement)
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // Ne sauvegarder que sur mobile (sur desktop, toujours visible)
-      if (window.innerWidth < 1024) {
-        localStorage.setItem('sidebar-open', isSidebarOpen.toString());
-      }
+      localStorage.setItem('sidebar-open', isSidebarOpen.toString());
     }
   }, [isSidebarOpen]);
-  
-  // Initialiser depuis localStorage uniquement sur mobile après le premier rendu
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const checkAndRestoreState = () => {
-      const isMobile = window.innerWidth < 1024;
-      if (isMobile) {
-        // Sur mobile, restaurer l'état sauvegardé
-        const savedState = localStorage.getItem('sidebar-open');
-        if (savedState !== null) {
-          setIsSidebarOpen(savedState === 'true');
-        }
-      } else {
-        // Sur desktop, toujours ouvrir (mais le drawer est toujours visible via CSS)
-        setIsSidebarOpen(true);
-      }
-    };
-    
-    // Vérifier après un court délai pour éviter les conflits
-    const timeoutId = setTimeout(checkAndRestoreState, 100);
-    return () => clearTimeout(timeoutId);
-  }, []);
-  
-  // Gérer le redimensionnement de la fenêtre
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    let timeoutId: ReturnType<typeof setTimeout>;
-    const handleResize = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        const isMobile = window.innerWidth < 1024;
-        if (isMobile) {
-          // Sur mobile, fermer le drawer si ouvert
-          setIsSidebarOpen(false);
-        } else {
-          // Sur desktop, le drawer est toujours visible via CSS
-          setIsSidebarOpen(true);
-        }
-      }, 150);
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => {
-      clearTimeout(timeoutId);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
 
   // L'état du drawer est maintenant persistant via localStorage
   // Plus besoin de logique resize qui force l'ouverture/fermeture
