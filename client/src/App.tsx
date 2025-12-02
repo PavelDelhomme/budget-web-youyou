@@ -68,8 +68,26 @@ function App() {
   const [isMLTrainingOpen, setIsMLTrainingOpen] = useState(false);
   const [isTaxManagerOpen, setIsTaxManagerOpen] = useState(false);
   const [isAdvancedFiscalManagerOpen, setIsAdvancedFiscalManagerOpen] = useState(false);
-  // Drawer : toujours fermé par défaut, s'ouvre avec hamburger
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  // Drawer : état initialisé depuis localStorage ou selon la taille d'écran
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    
+    // Vérifier si on a un état sauvegardé
+    const savedState = localStorage.getItem('sidebar-open');
+    if (savedState !== null) {
+      return savedState === 'true';
+    }
+    
+    // Sinon, initialiser selon la taille d'écran (ouvert sur desktop, fermé sur mobile)
+    return window.innerWidth >= 1024;
+  });
+  
+  // Sauvegarder l'état du drawer dans localStorage à chaque changement
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sidebar-open', isSidebarOpen.toString());
+    }
+  }, [isSidebarOpen]);
 
   // Gérer le redimensionnement de la fenêtre (avec debounce pour éviter les boucles)
   useEffect(() => {
