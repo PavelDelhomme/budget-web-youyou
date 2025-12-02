@@ -832,9 +832,9 @@ export function Dashboard({
 
       {/* Charts for complete years */}
       {historicalArray.length > 0 && (
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">📊 Graphiques par année</h2>
-          <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-4 sm:space-y-6 w-full min-w-0">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">📊 Graphiques par année</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 md:gap-6 w-full">
             {historicalArray
               .filter(({ data }) => data.expenses && data.expenses.length > 0)
               .map(({ year, data }) => {
@@ -843,21 +843,25 @@ export function Dashboard({
                 const yearAdditionalIncomes = data.additionalMonthlyIncomes || [];
                 
                 return (
-                  <div key={year} className="space-y-6">
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Année {year}</h3>
-                    <ExpensesPieChart
-                      categories={data.categories || []}
-                      expenses={data.expenses || []}
-                      size={300}
-                    />
-                    <MonthlyExpensesIncomeChart
-                      expenses={data.expenses || []}
-                      monthlySalary={yearMonthlySalary}
-                      variableMonthlyIncomes={yearVariableIncomes}
-                      additionalMonthlyIncomes={yearAdditionalIncomes}
-                      year={year}
-                      height={300}
-                    />
+                  <div key={year} className="space-y-4 sm:space-y-5 md:space-y-6 w-full min-w-0">
+                    <h3 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900 dark:text-white">Année {year}</h3>
+                    <div className="w-full min-w-0">
+                      <ExpensesPieChart
+                        categories={data.categories || []}
+                        expenses={data.expenses || []}
+                        size={isMobile ? 280 : isTablet ? 320 : 350}
+                      />
+                    </div>
+                    <div className="w-full min-w-0">
+                      <MonthlyExpensesIncomeChart
+                        expenses={data.expenses || []}
+                        monthlySalary={yearMonthlySalary}
+                        variableMonthlyIncomes={yearVariableIncomes}
+                        additionalMonthlyIncomes={yearAdditionalIncomes}
+                        year={year}
+                        height={isMobile ? 320 : isTablet ? 350 : 400}
+                      />
+                    </div>
                   </div>
                 );
               })}

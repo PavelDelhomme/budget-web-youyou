@@ -124,34 +124,34 @@ export function MonthlyExpensesIncomeChart({
   const isTablet = windowWidth >= 640 && windowWidth < 1024;
   
   // Barres plus larges pour meilleure lisibilité
-  const barWidth = isMobile ? 24 : isTablet ? 28 : 40;
-  const spacing = isMobile ? 8 : isTablet ? 10 : 16;
+  const barWidth = isMobile ? 28 : isTablet ? 32 : 40;
+  const spacing = isMobile ? 10 : isTablet ? 12 : 16;
   
-  // Calculer la largeur minimale du graphique (beaucoup plus large)
-  // On veut que le graphique soit vraiment large pour être lisible
-  const minChartWidth = isMobile ? windowWidth - 40 : isTablet ? 900 : 1600;
+  // Calculer la largeur minimale du graphique - plus large sur mobile
+  const minChartWidth = isMobile ? Math.max(windowWidth - 80, 600) : isTablet ? 900 : 1600;
   // Calculer la largeur nécessaire pour 12 mois avec les nouvelles barres
   const requiredWidth = 12 * (barWidth * 2 + spacing);
   const chartWidth = Math.max(requiredWidth, minChartWidth);
-  const chartHeight = (isMobile ? height - 80 : height - 60);
-  const padding = isMobile ? 35 : isTablet ? 40 : 50;
-  const responsiveHeight = isMobile ? Math.max(height - 40, 250) : height;
+  const chartHeight = (isMobile ? height - 100 : isTablet ? height - 80 : height - 60);
+  const padding = isMobile ? 45 : isTablet ? 45 : 50;
+  const responsiveHeight = isMobile ? Math.max(height - 60, 280) : isTablet ? Math.max(height - 40, 320) : height;
   
   // Largeur totale du SVG (avec padding)
   const svgWidth = chartWidth + padding * 2;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-3 sm:p-4 md:p-6 border border-gray-200 dark:border-gray-700">
-      <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 px-2 sm:px-0">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-5 md:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+      <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-5 px-2 sm:px-0">
         {isPrediction ? `Dépenses et revenus prévus par mois (${year})` : `Dépenses et revenus par mois (${year})`}
       </h3>
       {/* Container avec scroll horizontal */}
       <div 
-        className="overflow-x-auto -mx-3 sm:-mx-4 md:-mx-6 px-3 sm:px-4 md:px-6" 
+        className="overflow-x-auto w-full -mx-4 sm:-mx-5 md:-mx-6 px-4 sm:px-5 md:px-6" 
         style={{ 
           scrollbarWidth: 'thin',
           WebkitOverflowScrolling: 'touch',
-          scrollBehavior: 'smooth'
+          scrollBehavior: 'smooth',
+          minHeight: '300px'
         }}
       >
         <div className="inline-block" style={{ minWidth: svgWidth }}>
