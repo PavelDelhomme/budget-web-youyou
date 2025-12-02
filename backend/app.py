@@ -11,6 +11,8 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
+# Import structured logger after DATA_DIR is defined
+
 from api.utils import load_user, save_user, get_default_year_data
 from api.middleware import (
     add_security_headers, get_client_ip, rate_limit,
@@ -330,9 +332,17 @@ from api.health_routes import register_health_routes
 from api.swagger_docs import register_swagger_routes
 from api.export_routes import register_export_routes
 from api.compression_middleware import enable_compression
+from api.structured_logging import create_structured_logger
 
 # Enable compression for all API responses
 enable_compression(app)
+
+# Initialize structured logging
+structured_logger = create_structured_logger('app', DATA_DIR / 'logs')
+structured_logger.info('Application démarrée', {
+    'version': '1.0.0',
+    'environment': os.environ.get('FLASK_ENV', 'development')
+})
 
 # Register all routes
 views.register_routes(app)
