@@ -272,17 +272,17 @@ export function SubscriptionsSection({
                     <td className="py-2 pr-4 text-gray-900 dark:text-white font-medium" title={`Montant payé depuis le début de l'année jusqu'au mois ${monthNow}`}>
                       {currency(s.monthly * monthsToDate)}
                     </td>
-                    <td className="py-2 pr-2 text-right">
+                    <td className="py-2 px-3 text-right">
                       <button
-                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors mr-2"
                         onClick={() => handleEdit(s)}
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors mr-2"
                         title="Modifier"
                       >
                         ✏️
                       </button>
                       <button
-                        className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors"
                         onClick={() => onRemoveSub(s.id)}
+                        className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors"
                         title="Supprimer"
                       >
                         🗑️
