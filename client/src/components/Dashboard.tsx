@@ -849,7 +849,7 @@ export function Dashboard({
                       <ExpensesPieChart
                         categories={data.categories || []}
                         expenses={data.expenses || []}
-                        size={isMobile ? 280 : isTablet ? 320 : 350}
+                        size={300}
                       />
                     </div>
                     <div className="w-full min-w-0">
@@ -859,7 +859,7 @@ export function Dashboard({
                         variableMonthlyIncomes={yearVariableIncomes}
                         additionalMonthlyIncomes={yearAdditionalIncomes}
                         year={year}
-                        height={isMobile ? 320 : isTablet ? 350 : 400}
+                        height={350}
                       />
                     </div>
                   </div>
