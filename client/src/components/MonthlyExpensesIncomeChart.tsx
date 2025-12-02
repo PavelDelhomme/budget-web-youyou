@@ -132,12 +132,17 @@ export function MonthlyExpensesIncomeChart({
   // Calculer la largeur nécessaire pour 12 mois avec les nouvelles barres
   const requiredWidth = 12 * (barWidth * 2 + spacing);
   const chartWidth = Math.max(requiredWidth, minChartWidth);
-  const chartHeight = (isMobile ? height - 100 : isTablet ? height - 80 : height - 60);
-  const padding = isMobile ? 45 : isTablet ? 45 : 50;
-  const responsiveHeight = isMobile ? Math.max(height - 60, 280) : isTablet ? Math.max(height - 40, 320) : height;
+  // Padding plus important en bas pour les labels des mois
+  const bottomPadding = isMobile ? 50 : isTablet ? 55 : 60;
+  const topPadding = isMobile ? 45 : isTablet ? 45 : 50;
+  const leftPadding = isMobile ? 50 : isTablet ? 50 : 55;
+  const rightPadding = isMobile ? 20 : isTablet ? 20 : 25;
+  const padding = topPadding; // Pour compatibilité
+  const chartHeight = (isMobile ? height - 140 : isTablet ? height - 120 : height - 100);
+  const responsiveHeight = isMobile ? Math.max(height + 40, 320) : isTablet ? Math.max(height + 30, 370) : height + 60;
   
   // Largeur totale du SVG (avec padding)
-  const svgWidth = chartWidth + padding * 2;
+  const svgWidth = chartWidth + leftPadding + rightPadding;
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-5 md:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
@@ -159,28 +164,30 @@ export function MonthlyExpensesIncomeChart({
             width={svgWidth}
             height={responsiveHeight}
             viewBox={`0 0 ${svgWidth} ${responsiveHeight}`}
+            preserveAspectRatio="xMinYMin meet"
             className="block"
             style={{ 
               minWidth: svgWidth,
               maxWidth: 'none',
-              display: 'block'
+              display: 'block',
+              overflow: 'visible'
             }}
           >
           {/* Axes */}
           <line
-            x1={padding}
-            y1={chartHeight + padding}
-            x2={chartWidth + padding}
-            y2={chartHeight + padding}
+            x1={leftPadding}
+            y1={chartHeight + topPadding}
+            x2={chartWidth + leftPadding}
+            y2={chartHeight + topPadding}
             stroke="currentColor"
             strokeWidth="2"
             className="text-gray-400 dark:text-gray-500"
           />
           <line
-            x1={padding}
-            y1={padding}
-            x2={padding}
-            y2={chartHeight + padding}
+            x1={leftPadding}
+            y1={topPadding}
+            x2={leftPadding}
+            y2={chartHeight + topPadding}
             stroke="currentColor"
             strokeWidth="2"
             className="text-gray-400 dark:text-gray-500"
@@ -188,13 +195,13 @@ export function MonthlyExpensesIncomeChart({
 
           {/* Grid lines */}
           {[0, 0.25, 0.5, 0.75, 1].map(ratio => {
-            const y = padding + chartHeight * (1 - ratio);
+            const y = topPadding + chartHeight * (1 - ratio);
             return (
               <g key={ratio}>
                 <line
-                  x1={padding}
+                  x1={leftPadding}
                   y1={y}
-                  x2={chartWidth + padding}
+                  x2={chartWidth + leftPadding}
                   y2={y}
                   stroke="currentColor"
                   strokeWidth="1"
@@ -202,7 +209,7 @@ export function MonthlyExpensesIncomeChart({
                   className="text-gray-200 dark:text-gray-700"
                 />
                 <text
-                  x={padding - (isMobile ? 5 : 10)}
+                  x={leftPadding - (isMobile ? 5 : 10)}
                   y={y + 4}
                   textAnchor="end"
                   className={`${isMobile ? 'text-[10px]' : 'text-xs'} fill-gray-500 dark:fill-gray-400`}
@@ -215,11 +222,11 @@ export function MonthlyExpensesIncomeChart({
 
           {/* Bars */}
           {data.monthlyData.map((monthData, index) => {
-            const x = padding + index * (barWidth * 2 + spacing);
+            const x = leftPadding + index * (barWidth * 2 + spacing);
             const incomeHeight = (monthData.income / data.maxValue) * chartHeight;
             const expensesHeight = (monthData.expenses / data.maxValue) * chartHeight;
-            const incomeY = padding + chartHeight - incomeHeight;
-            const expensesY = padding + chartHeight - expensesHeight;
+            const incomeY = topPadding + chartHeight - incomeHeight;
+            const expensesY = topPadding + chartHeight - expensesHeight;
 
             return (
               <g key={monthData.month}>
@@ -256,9 +263,9 @@ export function MonthlyExpensesIncomeChart({
                 {/* Month label */}
                 <text
                   x={x + barWidth}
-                  y={chartHeight + padding + (isMobile ? 18 : isTablet ? 24 : 28)}
+                  y={chartHeight + topPadding + (isMobile ? 25 : isTablet ? 30 : 35)}
                   textAnchor="middle"
-                  className={`${isMobile ? 'text-[11px]' : isTablet ? 'text-sm' : 'text-base'} font-medium fill-gray-700 dark:fill-gray-300`}
+                  className={`${isMobile ? 'text-xs' : isTablet ? 'text-sm' : 'text-base'} font-semibold fill-gray-700 dark:fill-gray-300`}
                 >
                   {monthData.monthName}
                 </text>
@@ -267,7 +274,7 @@ export function MonthlyExpensesIncomeChart({
           })}
 
           {/* Legend */}
-          <g transform={`translate(${padding + chartWidth - (isMobile ? 100 : 120)}, ${padding + (isMobile ? 15 : 20)})`}>
+          <g transform={`translate(${leftPadding + chartWidth - (isMobile ? 100 : 120)}, ${topPadding + (isMobile ? 15 : 20)})`}>
             <rect x={0} y={0} width={isMobile ? 10 : 12} height={isMobile ? 10 : 12} fill="#10B981" rx="2" />
             <text x={isMobile ? 14 : 18} y={isMobile ? 8 : 10} className={`${isMobile ? 'text-[10px]' : 'text-xs'} fill-gray-700 dark:fill-gray-300`}>
               Revenus

@@ -299,7 +299,7 @@ export function AdvancedFiscalManager({ isOpen, onClose, annualIncome = 0 }: Adv
       <div className="space-y-6">
         {/* Tabs */}
         <div className="border-b border-gray-200 dark:border-gray-700">
-          <nav className="flex space-x-4">
+          <nav className="flex space-x-2 sm:space-x-4 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
             {(['declarations', 'calendar', 'regulations', 'deductions'] as const).map((tab) => (
               <button
                 key={tab}

@@ -527,10 +527,10 @@ export function Dashboard({
 
       {/* Expenses by Category - Last 6 Months */}
       {Object.keys(categoryExpenses).length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
-          <h3 className="font-semibold text-lg mb-4 text-gray-900 dark:text-white">📊 Évolution par catégorie (6 derniers mois)</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-5 md:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+          <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-5 text-gray-900 dark:text-white">📊 Évolution par catégorie (6 derniers mois)</h3>
           
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-5 md:space-y-6 w-full min-w-0">
             {Object.values(categoryExpenses)
               .filter((ce: { category: Category; months: Array<{ month: string; total: number }> }) => ce.months.some((m: { total: number }) => m.total > 0))
               .sort((a: { months: Array<{ total: number }> }, b: { months: Array<{ total: number }> }) => {
@@ -545,10 +545,10 @@ export function Dashboard({
                 const categoryAvg = categoryTotal / categoryData.months.length;
                 
                 return (
-                  <div key={categoryData.category.id} className="border-b border-gray-200 dark:border-gray-700 last:border-b-0 pb-4 last:pb-0">
-                    <div className="flex justify-between items-center mb-2">
-                      <div>
-                        <div className="font-semibold text-gray-900 dark:text-white">
+                  <div key={categoryData.category.id} className="border-b border-gray-200 dark:border-gray-700 last:border-b-0 pb-4 last:pb-0 w-full min-w-0">
+                    <div className="flex justify-between items-center mb-2 min-w-0">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white truncate">
                           {categoryData.category.name}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">
@@ -557,27 +557,29 @@ export function Dashboard({
                       </div>
                     </div>
                     
-                    {/* Mini chart */}
-                    <div className="flex items-end gap-1 h-16">
-                      {categoryData.months.map((monthData, idx) => {
-                        const height = categoryMax > 0 ? (monthData.total / categoryMax) * 100 : 0;
-                        return (
-                          <div key={idx} className="flex-1 flex flex-col items-center">
-                            <div
-                              className={`w-full rounded-t transition-all duration-300 ${
-                                monthData.total > 0
-                                  ? 'bg-blue-500 dark:bg-blue-400 hover:bg-blue-600 dark:hover:bg-blue-500'
-                                  : 'bg-gray-200 dark:bg-gray-700'
-                              }`}
-                              style={{ height: `${height}%` }}
-                              title={`${monthData.month}: ${currency(monthData.total)}`}
-                            />
-                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 transform -rotate-45 origin-top-left whitespace-nowrap">
-                              {monthData.month.substring(0, 3)}
+                    {/* Mini chart avec scroll horizontal */}
+                    <div className="w-full overflow-x-auto pb-2">
+                      <div className="flex items-end gap-1 h-20 min-w-max">
+                        {categoryData.months.map((monthData, idx) => {
+                          const height = categoryMax > 0 ? (monthData.total / categoryMax) * 100 : 0;
+                          return (
+                            <div key={idx} className="flex flex-col items-center min-w-[40px] sm:min-w-[50px]">
+                              <div
+                                className={`w-full rounded-t transition-all duration-300 cursor-pointer ${
+                                  monthData.total > 0
+                                    ? 'bg-blue-500 dark:bg-blue-400 hover:bg-blue-600 dark:hover:bg-blue-500'
+                                    : 'bg-gray-200 dark:bg-gray-700'
+                                }`}
+                                style={{ height: `${Math.max(height, 2)}%`, minHeight: '2px' }}
+                                title={`${monthData.month}: ${currency(monthData.total)}`}
+                              />
+                              <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-1 whitespace-nowrap">
+                                {monthData.month.substring(0, 3)}
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 );

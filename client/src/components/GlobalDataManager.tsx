@@ -556,7 +556,7 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
     <Modal isOpen={isOpen} onClose={onClose} title="⚙️ Gérer mes données globales" closeable>
       <div className="space-y-6">
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 dark:border-gray-700">
+        <div className="flex border-b border-gray-200 dark:border-gray-700 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
           <button
             onClick={() => setActiveTab('accounts')}
             className={`px-4 py-2 font-medium text-sm ${
