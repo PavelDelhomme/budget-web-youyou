@@ -1,0 +1,34 @@
+interface HamburgerMenuProps {
+  isOpen: boolean;
+  onToggle: () => void;
+}
+
+export function HamburgerMenu({ isOpen, onToggle }: HamburgerMenuProps) {
+  return (
+    <button
+      onClick={onToggle}
+      className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+      aria-label={isOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+      aria-expanded={isOpen}
+    >
+      <svg
+        className="w-6 h-6 text-gray-700 dark:text-gray-300"
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        {isOpen ? (
+          // Icône X (fermer)
+          <path d="M6 18L18 6M6 6l12 12" />
+        ) : (
+          // Icône hamburger (ouvrir)
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        )}
+      </svg>
+    </button>
+  );
+}
+

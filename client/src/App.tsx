@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Api } from './api';
 import { LoginForm } from './components/LoginForm';
 import { Sidebar } from './components/Sidebar';
+import { HamburgerMenu } from './components/HamburgerMenu';
 import { SummaryCard } from './components/SummaryCard';
 import { CategoriesSection } from './components/CategoriesSection';
 import { ExpensesSection } from './components/ExpensesSection';
@@ -67,6 +68,7 @@ function App() {
   const [isMLTrainingOpen, setIsMLTrainingOpen] = useState(false);
   const [isTaxManagerOpen, setIsTaxManagerOpen] = useState(false);
   const [isAdvancedFiscalManagerOpen, setIsAdvancedFiscalManagerOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Debounce timer for saving
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1110,6 +1112,9 @@ function App() {
   // UI when logged in
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-gray-900">
+      {/* Hamburger Menu Button */}
+      <HamburgerMenu isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+      
       {/* Sidebar */}
       <Sidebar
         years={[...new Set([...years, ...predictedYears.map(p => p.year)])]}
@@ -1131,10 +1136,12 @@ function App() {
         onOpenMLTraining={() => setIsMLTrainingOpen(true)}
         onOpenTaxManager={() => setIsTaxManagerOpen(true)}
         onOpenAdvancedFiscal={() => setIsAdvancedFiscalManagerOpen(true)}
+        isOpen={isSidebarOpen}
+        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
       />
 
       {/* Main content */}
-      <main className="flex-1 ml-64 p-4 md:p-8 dark:text-gray-100">
+      <main className="flex-1 lg:ml-64 p-4 md:p-8 dark:text-gray-100 transition-all duration-300">
         <div className="max-w-6xl mx-auto space-y-6">
           {/* Dashboard View */}
           {year === 'dashboard' && (
