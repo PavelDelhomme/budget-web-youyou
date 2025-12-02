@@ -11,6 +11,7 @@ from api.fiscal_tracking import (
     FiscalService, FiscalDeclarationManager, FiscalDeductionManager,
     FiscalCalendar, FiscalRegulationTracker
 )
+from api.fiscal_country_manager import CountryFiscalManager
 from api.utils import load_user
 
 
@@ -188,16 +189,45 @@ def register_fiscal_routes(app):
     @app.route('/api/fiscal/calendar/<int:year>', methods=['GET'])
     @require_auth
     def get_fiscal_calendar(year: int):
-        """Get fiscal calendar for a year"""
+        """Get fiscal calendar for a year, adapted to user's country"""
+        user_email = session['user_email']
+        user_data = load_user(user_email)
+        global_data = user_data.get('globalData', {})
+        user_profile = global_data.get('userProfile', {})
+        geographic_location = user_profile.get('geographic_location', {})
+        country_code = geographic_location.get('country', 'FR')  # Default to FR
+        
         try:
+            # Use country-specific calendar if available
+            country_manager = CountryFiscalManager()
+            country_calendar = country_manager.get_fiscal_calendar(country_code, year)
+            
+            # Merge with default calendar
             calendar = FiscalCalendar(year)
+            default_dates = calendar.important_dates
+            
+            # Combine dates (country-specific dates take priority)
+            all_dates = {}
+            for date_info in default_dates:
+                key = date_info['date']
+                all_dates[key] = date_info
+            for date_info in country_calendar:
+                key = date_info['date']
+                all_dates[key] = date_info  # Override if exists
+            
+            combined_dates = sorted(all_dates.values(), key=lambda x: x['date'])
+            
+            # Get fiscal info for country
+            fiscal_info = country_manager.get_tax_info(country_code)
             
             return jsonify({
                 'success': True,
                 'year': year,
-                'important_dates': calendar.important_dates,
+                'country': country_code,
+                'important_dates': combined_dates,
                 'upcoming_deadlines': calendar.get_upcoming_deadlines(days_ahead=60),
-                'next_deadline': calendar.get_next_deadline()
+                'next_deadline': calendar.get_next_deadline(),
+                'fiscal_info': fiscal_info
             })
         except Exception as e:
             return jsonify({
