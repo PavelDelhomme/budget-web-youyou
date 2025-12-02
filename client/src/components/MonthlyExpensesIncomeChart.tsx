@@ -124,12 +124,15 @@ export function MonthlyExpensesIncomeChart({
   const isTablet = windowWidth >= 640 && windowWidth < 1024;
   
   // Barres plus larges pour meilleure lisibilité
-  const barWidth = isMobile ? 20 : isTablet ? 24 : 32;
-  const spacing = isMobile ? 6 : isTablet ? 8 : 12;
+  const barWidth = isMobile ? 24 : isTablet ? 28 : 40;
+  const spacing = isMobile ? 8 : isTablet ? 10 : 16;
   
-  // Calculer la largeur minimale du graphique (plus large)
-  const minChartWidth = isMobile ? windowWidth - 60 : isTablet ? 700 : 1200;
-  const chartWidth = Math.max(12 * (barWidth * 2 + spacing), minChartWidth);
+  // Calculer la largeur minimale du graphique (beaucoup plus large)
+  // On veut que le graphique soit vraiment large pour être lisible
+  const minChartWidth = isMobile ? windowWidth - 40 : isTablet ? 900 : 1600;
+  // Calculer la largeur nécessaire pour 12 mois avec les nouvelles barres
+  const requiredWidth = 12 * (barWidth * 2 + spacing);
+  const chartWidth = Math.max(requiredWidth, minChartWidth);
   const chartHeight = (isMobile ? height - 80 : height - 60);
   const padding = isMobile ? 35 : isTablet ? 40 : 50;
   const responsiveHeight = isMobile ? Math.max(height - 40, 250) : height;
@@ -143,7 +146,7 @@ export function MonthlyExpensesIncomeChart({
         {isPrediction ? `Dépenses et revenus prévus par mois (${year})` : `Dépenses et revenus par mois (${year})`}
       </h3>
       {/* Container avec scroll horizontal */}
-      <div className="overflow-x-auto -mx-3 sm:-mx-4 md:-mx-6 px-3 sm:px-4 md:px-6">
+      <div className="overflow-x-auto -mx-3 sm:-mx-4 md:-mx-6 px-3 sm:px-4 md:px-6" style={{ scrollbarWidth: 'thin' }}>
         <div className="inline-block" style={{ minWidth: '100%' }}>
           <svg 
             width={svgWidth}
@@ -151,6 +154,7 @@ export function MonthlyExpensesIncomeChart({
             viewBox={`0 0 ${svgWidth} ${responsiveHeight}`}
             className="block"
             style={{ minWidth: svgWidth }}
+            preserveAspectRatio="none"
           >
           {/* Axes */}
           <line
