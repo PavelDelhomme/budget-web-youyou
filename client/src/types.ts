@@ -213,6 +213,7 @@ export interface UserGlobalData {
   sharedExpensePersons: SharedExpensePerson[];
   personTransactions: PersonTransaction[];
   salaryHistory?: SalaryHistory[]; // Historique des changements de salaire
+  payrollSlips?: PayrollSlip[]; // Fiches de paie importées
   initializationComplete: boolean;
   monthlySalary?: number; // Revenu mensuel principal ACTUEL (salaire, allocation chômage, etc.)
   monthlySalaryStartDate?: string; // Date de début du revenu principal actuel (ISO format)
@@ -252,5 +253,117 @@ export interface SalaryHistory {
   endDate?: string; // Date de fin (ISO format) - undefined si toujours actif
   type: 'salary' | 'unemployment' | 'freelance' | 'other'; // Type de revenu
   note?: string; // Note (ex: "Nouveau travail chez X")
+}
+
+// Fiche de paie - Structure complète pour import et gestion
+export type ContractType = 'CDI' | 'CDD' | 'interim' | 'freelance' | 'internship' | 'apprenticeship' | 'other';
+
+export interface PayrollSlip {
+  id: string;
+  year: number;
+  month: number; // 1-12 (janvier = 1, décembre = 12)
+  
+  // Informations générales
+  contractType: ContractType; // Type de contrat
+  employer: string; // Nom de l'employeur
+  employeeName?: string; // Nom du salarié (optionnel)
+  
+  // Données financières
+  grossSalary: number; // Salaire brut
+  netSalary: number; // Salaire net
+  baseSalary?: number; // Salaire de base (hors primes)
+  
+  // Cotisations sociales
+  socialContributions?: {
+    employee: number; // Cotisations salariales totales
+    employer: number; // Cotisations patronales totales
+    breakdown?: { // Détail des cotisations (optionnel)
+      name: string; // Ex: "Sécurité sociale", "Retraite", etc.
+      employeeAmount: number;
+      employerAmount?: number;
+      rate?: number; // Taux en %
+    }[];
+  };
+  
+  // Primes et compléments
+  bonuses?: number; // Primes (optionnel)
+  overtime?: number; // Heures sup (optionnel)
+  overtimeHours?: number; // Nombre d'heures sup (optionnel)
+  
+  // Détails supplémentaires
+  hoursWorked?: number; // Nombre d'heures travaillées
+  hourlyRate?: number; // Taux horaire
+  paidDays?: number; // Nombre de jours payés
+  
+  // Informations fiscales
+  taxableIncome?: number; // Revenu imposable
+  incomeTaxWithheld?: number; // Prélevement à la source (optionnel)
+  
+  // Métadonnées
+  paymentDate?: string; // Date de paiement (ISO format)
+  periodStart?: string; // Début de période (ISO format)
+  periodEnd?: string; // Fin de période (ISO format)
+  filePath?: string; // Chemin vers le fichier PDF/image original (optionnel)
+  
+  // Notes
+  note?: string; // Note optionnelle
+  verified: boolean; // Si les données ont été vérifiées par l'utilisateur
+  extractedAutomatically: boolean; // Si les données ont été extraites automatiquement
+}
+
+// Fiche de paie - Structure complète pour import et gestion
+export type ContractType = 'CDI' | 'CDD' | 'interim' | 'freelance' | 'internship' | 'apprenticeship' | 'other';
+
+export interface PayrollSlip {
+  id: string;
+  year: number;
+  month: number; // 1-12 (janvier = 1, décembre = 12)
+  
+  // Informations générales
+  contractType: ContractType; // Type de contrat
+  employer: string; // Nom de l'employeur
+  employeeName?: string; // Nom du salarié (optionnel)
+  
+  // Données financières
+  grossSalary: number; // Salaire brut
+  netSalary: number; // Salaire net
+  baseSalary?: number; // Salaire de base (hors primes)
+  
+  // Cotisations sociales
+  socialContributions?: {
+    employee: number; // Cotisations salariales totales
+    employer: number; // Cotisations patronales totales
+    breakdown?: { // Détail des cotisations (optionnel)
+      name: string; // Ex: "Sécurité sociale", "Retraite", etc.
+      employeeAmount: number;
+      employerAmount?: number;
+      rate?: number; // Taux en %
+    }[];
+  };
+  
+  // Primes et compléments
+  bonuses?: number; // Primes (optionnel)
+  overtime?: number; // Heures sup (optionnel)
+  overtimeHours?: number; // Nombre d'heures sup (optionnel)
+  
+  // Détails supplémentaires
+  hoursWorked?: number; // Nombre d'heures travaillées
+  hourlyRate?: number; // Taux horaire
+  paidDays?: number; // Nombre de jours payés
+  
+  // Informations fiscales
+  taxableIncome?: number; // Revenu imposable
+  incomeTaxWithheld?: number; // Prélevement à la source (optionnel)
+  
+  // Métadonnées
+  paymentDate?: string; // Date de paiement (ISO format)
+  periodStart?: string; // Début de période (ISO format)
+  periodEnd?: string; // Fin de période (ISO format)
+  filePath?: string; // Chemin vers le fichier PDF/image original (optionnel)
+  
+  // Notes
+  note?: string; // Note optionnelle
+  verified: boolean; // Si les données ont été vérifiées par l'utilisateur
+  extractedAutomatically: boolean; // Si les données ont été extraites automatiquement
 }
 

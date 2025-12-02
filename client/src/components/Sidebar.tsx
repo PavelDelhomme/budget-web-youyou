@@ -39,15 +39,24 @@ export function Sidebar({
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
   
-  // Fonction pour fermer le drawer (force la fermeture au lieu de toggle)
+  // Fonction pour fermer le drawer
   const handleClose = () => {
     if (onToggle) {
-      // Si contrôlé depuis App, vérifier si ouvert avant de fermer
-      if (isOpen) {
-        onToggle();
+      // Si contrôlé depuis App, fermer seulement si ouvert
+      if (controlledIsOpen) {
+        onToggle(); // Toggle fermera car isOpen est true
       }
     } else {
       setInternalIsOpen(false);
+    }
+  };
+  
+  // Fonction pour toggle
+  const handleToggle = () => {
+    if (onToggle) {
+      onToggle();
+    } else {
+      setInternalIsOpen(!internalIsOpen);
     }
   };
 
