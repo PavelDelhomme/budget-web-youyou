@@ -93,19 +93,21 @@ export function Sidebar({
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
-        setIsOpen();
+        handleClose();
       }
     };
-    window.addEventListener('keydown', handleEscape);
+    if (isOpen) {
+      window.addEventListener('keydown', handleEscape);
+    }
     return () => window.removeEventListener('keydown', handleEscape);
-  }, [isOpen, setIsOpen]);
+  }, [isOpen, handleClose]);
   
   return (
     <>
       {/* Overlay - visible quand drawer ouvert sur mobile */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 transition-opacity lg:hidden"
+          className="fixed inset-0 bg-black/60 dark:bg-black/70 transition-opacity duration-300 lg:hidden"
           onClick={handleClose}
           aria-hidden="true"
           style={{ zIndex: 55 }}
@@ -129,7 +131,7 @@ export function Sidebar({
           {/* Bouton fermer - Visible sur tous les écrans */}
           <button
             onClick={handleClose}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 transition-colors"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 transition-colors lg:hidden"
             aria-label="Fermer le menu"
           >
             <svg

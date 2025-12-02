@@ -269,7 +269,7 @@ export function Dashboard({
 
       {/* Key Metrics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 min-w-0 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 border border-gray-200 dark:border-gray-700 min-w-0 overflow-hidden w-full">
           <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1 truncate">Actifs totaux</div>
           <div className="text-lg sm:text-xl md:text-2xl font-bold text-green-600 dark:text-green-400 truncate">{currency(totalAssets)}</div>
           <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
@@ -278,7 +278,7 @@ export function Dashboard({
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 min-w-0 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 border border-gray-200 dark:border-gray-700 min-w-0 overflow-hidden w-full">
           <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1 truncate">
             Revenus annuels {currentYear}
           </div>
@@ -291,7 +291,7 @@ export function Dashboard({
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 min-w-0 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 border border-gray-200 dark:border-gray-700 min-w-0 overflow-hidden w-full">
           <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1 truncate">
             Dépenses annuelles {currentYear}
           </div>
@@ -301,7 +301,7 @@ export function Dashboard({
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 min-w-0 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 border border-gray-200 dark:border-gray-700 min-w-0 overflow-hidden w-full">
           <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1 truncate">Épargne projetée</div>
           <div className={`text-lg sm:text-xl md:text-2xl font-bold truncate ${projectedSavings >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
             {currency(projectedSavings)}

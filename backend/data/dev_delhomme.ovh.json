@@ -252,6 +252,50 @@
       "additionalMonthlyIncomes": [],
       "currentSavings": 0,
       "savingsTransactions": []
+    },
+    "2028": {
+      "categories": [
+        {
+          "id": "achats",
+          "name": "Achats & Loisirs",
+          "target": 2400
+        },
+        {
+          "id": "alimentation",
+          "name": "Alimentation",
+          "target": 2400
+        }
+      ],
+      "expenses": [],
+      "subs": [],
+      "annualFixedExpenses": [],
+      "monthlySalary": 0,
+      "variableMonthlyIncomes": null,
+      "additionalMonthlyIncomes": [],
+      "currentSavings": 0,
+      "savingsTransactions": []
+    },
+    "2026": {
+      "categories": [
+        {
+          "id": "achats",
+          "name": "Achats & Loisirs",
+          "target": 2400
+        },
+        {
+          "id": "alimentation",
+          "name": "Alimentation",
+          "target": 2400
+        }
+      ],
+      "expenses": [],
+      "subs": [],
+      "annualFixedExpenses": [],
+      "monthlySalary": 0,
+      "variableMonthlyIncomes": null,
+      "additionalMonthlyIncomes": [],
+      "currentSavings": 0,
+      "savingsTransactions": []
     }
   },
   "globalData": {
