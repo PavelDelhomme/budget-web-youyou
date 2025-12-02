@@ -43,9 +43,13 @@ export function Sidebar({
   // Fermer le drawer quand on sélectionne une année sur mobile
   const handleYearSelect = (year: number | 'dashboard') => {
     onYearSelect(year);
-    // Fermer sur mobile après sélection
-    if (window.innerWidth < 1024 && onToggle === undefined) {
-      setInternalIsOpen(false);
+    // Fermer le drawer après sélection sur mobile
+    if (window.innerWidth < 1024) {
+      if (onToggle) {
+        onToggle(); // Fermer si contrôlé depuis App
+      } else {
+        setInternalIsOpen(false);
+      }
     }
   };
 
