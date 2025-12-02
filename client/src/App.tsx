@@ -1125,6 +1125,10 @@ function App() {
           } else {
             setYear(y);
           }
+          // Fermer le drawer après sélection sur mobile
+          if (window.innerWidth < 1024) {
+            setIsSidebarOpen(false);
+          }
         }}
         onAddYear={onAddYear}
         onLogout={onLogout}
