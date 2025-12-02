@@ -67,7 +67,10 @@ def load_user(email: str) -> dict:
 
 
 def save_user(email: str, data: dict) -> None:
-    """Save user data to JSON file"""
+    """
+    Save user data to JSON file
+    Note: Backup automatique peut être ajouté ici si nécessaire
+    """
     file_path = get_user_file_path(email)
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)

@@ -325,12 +325,18 @@ from api import views
 from api.ml_service import register_ml_routes
 from api.government_service import register_government_routes
 from api.statistical_service import register_statistical_routes
+from api.backup_service_routes import register_backup_routes
+from api.health_routes import register_health_routes
+from api.swagger_docs import register_swagger_routes
 
 # Register all routes
 views.register_routes(app)
 register_ml_routes(app)
 register_government_routes(app)
 register_statistical_routes(app)
+register_backup_routes(app)
+register_health_routes(app)
+register_swagger_routes(app)
 
 
 if __name__ == '__main__':

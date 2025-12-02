@@ -9,3 +9,5 @@ tensorflow==2.15.0
 keras==2.15.0
 scipy==1.11.4
 cryptography==41.0.7
+psutil==5.9.6
+flask-swagger-ui==4.11.1
