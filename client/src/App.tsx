@@ -68,8 +68,29 @@ function App() {
   const [isMLTrainingOpen, setIsMLTrainingOpen] = useState(false);
   const [isTaxManagerOpen, setIsTaxManagerOpen] = useState(false);
   const [isAdvancedFiscalManagerOpen, setIsAdvancedFiscalManagerOpen] = useState(false);
-  // Drawer fermé par défaut partout - contrôlable avec hamburger
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  // Drawer : ouvert par défaut sur desktop, fermé sur mobile
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth >= 1024; // Desktop = ouvert, mobile = fermé
+    }
+    return true; // Par défaut ouvert si on ne peut pas détecter
+  });
+
+  // Gérer le redimensionnement de la fenêtre
+  useEffect(() => {
+    const handleResize = () => {
+      const isDesktop = window.innerWidth >= 1024;
+      // Sur desktop, garder ouvert si c'était ouvert, sur mobile fermer
+      if (isDesktop && !isSidebarOpen) {
+        setIsSidebarOpen(true);
+      } else if (!isDesktop && isSidebarOpen) {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isSidebarOpen]);
 
   // Debounce timer for saving
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
