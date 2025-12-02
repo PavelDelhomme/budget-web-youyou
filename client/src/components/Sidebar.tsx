@@ -38,7 +38,18 @@ export function Sidebar({
 }: SidebarProps) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
-  const setIsOpen = onToggle || (() => setInternalIsOpen(prev => !prev));
+  
+  // Fonction pour fermer le drawer (force la fermeture au lieu de toggle)
+  const handleClose = () => {
+    if (onToggle) {
+      // Si contrôlé depuis App, vérifier si ouvert avant de fermer
+      if (isOpen) {
+        onToggle();
+      }
+    } else {
+      setInternalIsOpen(false);
+    }
+  };
 
   // Fermer le drawer quand on sélectionne une année sur mobile
   const handleYearSelect = (year: number | 'dashboard') => {
@@ -95,7 +106,7 @@ export function Sidebar({
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/50 transition-opacity lg:hidden"
-          onClick={setIsOpen}
+          onClick={handleClose}
           aria-hidden="true"
           style={{ zIndex: 55 }}
         />
@@ -117,7 +128,7 @@ export function Sidebar({
           </div>
           {/* Bouton fermer - Visible sur tous les écrans */}
           <button
-            onClick={setIsOpen}
+            onClick={handleClose}
             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 transition-colors"
             aria-label="Fermer le menu"
           >
