@@ -17,6 +17,7 @@ interface SidebarProps {
   onOpenAdvancedFiscal?: () => void;
   isOpen?: boolean;
   onToggle?: () => void;
+  onClose?: () => void;
 }
 
 export function Sidebar({
@@ -35,15 +36,17 @@ export function Sidebar({
   onOpenAdvancedFiscal,
   isOpen: controlledIsOpen,
   onToggle,
+  onClose,
 }: SidebarProps) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
   
   // Fonction pour fermer le drawer (force la fermeture)
   const handleClose = () => {
-    if (onToggle && isOpen) {
-      // Si contrôlé depuis App, fermer si ouvert
-      onToggle(); // Toggle va fermer car isOpen est true
+    if (onClose) {
+      onClose(); // Utiliser onClose si fourni (fermeture directe)
+    } else if (onToggle && isOpen) {
+      onToggle(); // Sinon utiliser toggle si ouvert
     } else if (!onToggle) {
       setInternalIsOpen(false);
     }
@@ -63,8 +66,10 @@ export function Sidebar({
     onYearSelect(year);
     // Fermer le drawer après sélection sur mobile
     if (window.innerWidth < 1024) {
-      if (onToggle) {
-        onToggle(); // Fermer si contrôlé depuis App
+      if (onClose) {
+        onClose(); // Utiliser onClose si fourni
+      } else if (onToggle) {
+        onToggle(); // Sinon utiliser toggle
       } else {
         setInternalIsOpen(false);
       }

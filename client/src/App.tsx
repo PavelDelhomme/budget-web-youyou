@@ -1160,6 +1160,7 @@ function App() {
         onOpenAdvancedFiscal={() => setIsAdvancedFiscalManagerOpen(true)}
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        onClose={() => setIsSidebarOpen(false)}
       />
 
       {/* Main content */}
