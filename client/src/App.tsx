@@ -1184,7 +1184,7 @@ function App() {
       />
 
       {/* Main content */}
-      <main className={`flex-1 p-4 md:p-8 dark:text-gray-100 transition-all duration-300 ${isSidebarOpen ? 'lg:ml-64' : ''}`}>
+      <main className={`flex-1 p-3 sm:p-4 md:p-8 dark:text-gray-100 transition-all duration-300 ${isSidebarOpen ? 'lg:ml-64' : ''} min-h-screen bg-gray-50 dark:bg-gray-900`}>
         <div className="max-w-6xl mx-auto space-y-6">
           {/* Dashboard View */}
           {year === 'dashboard' && (

@@ -260,7 +260,7 @@ export function Dashboard({
   const maxMonthlyExpense = Math.max(...monthlyExpenses.map(m => m.total), 1);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 w-full">
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg shadow-lg p-4 sm:p-6 text-white overflow-hidden">
         <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2 truncate">📊 Dashboard Budget</h1>
