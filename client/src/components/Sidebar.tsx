@@ -91,7 +91,7 @@ export function Sidebar({
   
   return (
     <>
-      {/* Overlay */}
+      {/* Overlay - visible quand drawer ouvert */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/50 transition-opacity"
@@ -104,7 +104,7 @@ export function Sidebar({
       {/* Drawer */}
       <aside
         className={`fixed left-0 top-0 h-full w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col shadow-xl transform transition-transform duration-300 ease-in-out ${
-          isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         aria-label="Navigation principale"
         style={{ zIndex: 56 }}
