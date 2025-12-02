@@ -1145,7 +1145,7 @@ function App() {
 
   // UI when logged in
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-gray-900">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-gray-900 w-full overflow-x-hidden">
       {/* Hamburger Menu Button */}
       <HamburgerMenu isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
       
@@ -1179,8 +1179,8 @@ function App() {
       />
 
       {/* Main content */}
-      <main className={`flex-1 p-3 sm:p-4 md:p-8 dark:text-gray-100 transition-all duration-300 lg:ml-64 min-h-screen bg-gray-50 dark:bg-gray-900`}>
-        <div className="max-w-6xl mx-auto space-y-6">
+      <main className={`flex-1 w-full overflow-x-hidden p-4 sm:p-4 md:p-6 lg:p-8 dark:text-gray-100 transition-all duration-300 lg:ml-64 min-h-screen bg-gray-50 dark:bg-gray-900`}>
+        <div className="w-full max-w-7xl mx-auto space-y-4 sm:space-y-6 px-2 sm:px-4">
           {/* Dashboard View */}
           {year === 'dashboard' && (
             <>
