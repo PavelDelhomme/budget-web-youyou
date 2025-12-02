@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Subscription, BankAccount } from '../types';
+import { Subscription, BankAccount, ExpenseShare } from '../types';
 import { parseAmount, currency } from '../utils';
+import { ExpenseShareInput } from './ExpenseShareInput';
 
 interface SubscriptionsSectionProps {
   subs: Subscription[];
@@ -24,17 +25,22 @@ export function SubscriptionsSection({
   monthsOverlapInYear,
 }: SubscriptionsSectionProps) {
   const [name, setName] = useState('');
-  const [monthly, setMonthly] = useState('');
+  const [monthly, setMonthly] = useState(''); // Montant total mensuel
   const [startMonth, setStartMonth] = useState(1);
   const [endMonth, setEndMonth] = useState(12);
   const [ongoing, setOngoing] = useState(false);
   const [accountId, setAccountId] = useState<string>('');
   const [editingSubId, setEditingSubId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [share, setShare] = useState<ExpenseShare | undefined>(undefined);
 
   const handleAdd = () => {
-    const m = parseAmount(monthly);
-    if (!m) return;
+    const totalMonthly = parseAmount(monthly);
+    if (!totalMonthly) return;
+    
+    // Calculer le montant réellement payé (avec partage si applicable)
+    const actualMonthly = share?.yourAmount || totalMonthly;
+    
     const sm = Number(startMonth) || 1;
     const em = ongoing ? 12 : Number(endMonth) || 12;
     
@@ -42,22 +48,24 @@ export function SubscriptionsSection({
       // Modification d'un abonnement existant
       onUpdateSub(editingSubId, {
         name: name || 'Abonnement',
-        monthly: m,
+        monthly: actualMonthly, // Montant réellement payé par mois
         startMonth: sm,
         endMonth: em,
         ongoing,
         accountId: accountId || undefined,
+        share: share,
       });
       setEditingSubId(null);
     } else {
       // Ajout d'un nouvel abonnement
       onAddSub({
         name: name || 'Abonnement',
-        monthly: m,
+        monthly: actualMonthly, // Montant réellement payé par mois
         startMonth: sm,
         endMonth: em,
         ongoing,
         accountId: accountId || undefined,
+        share: share,
       });
     }
     
@@ -67,18 +75,22 @@ export function SubscriptionsSection({
     setEndMonth(12);
     setOngoing(false);
     setAccountId(bankAccounts.length > 0 ? bankAccounts[0].id : '');
+    setShare(undefined);
     setIsAdding(false);
   };
 
   const handleEdit = (sub: Subscription) => {
     setEditingSubId(sub.id);
     setName(sub.name);
-    setMonthly(sub.monthly.toString().replace('.', ','));
+    // Si l'abonnement est partagé, utiliser le montant total, sinon le montant payé
+    const totalMonthly = sub.share?.totalAmount || sub.monthly;
+    setMonthly(totalMonthly.toString().replace('.', ','));
     setStartMonth(sub.startMonth);
     setEndMonth(sub.endMonth);
     setOngoing(sub.ongoing);
     // Si pas de compte, utiliser le premier disponible, sinon utiliser celui de l'abonnement
     setAccountId(sub.accountId || (bankAccounts.length > 0 ? bankAccounts[0].id : ''));
+    setShare(sub.share);
     setIsAdding(false);
     // Scroll vers le formulaire
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -92,6 +104,7 @@ export function SubscriptionsSection({
     setEndMonth(12);
     setOngoing(false);
     setAccountId(bankAccounts.length > 0 ? bankAccounts[0].id : '');
+    setShare(undefined);
     setIsAdding(false);
   };
 
@@ -130,7 +143,14 @@ export function SubscriptionsSection({
               />
             </div>
             <div>
-              <label className="text-sm text-slate-600 dark:text-gray-400">Mensuel (€)</label>
+              <label className="text-sm text-slate-600 dark:text-gray-400">
+                Mensuel total (€)
+                {share && share.yourAmount !== parseAmount(monthly) && (
+                  <span className="ml-2 text-xs text-blue-600 dark:text-blue-400">
+                    (Vous payez: {currency(share.yourAmount)})
+                  </span>
+                )}
+              </label>
               <input
                 type="text"
                 className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
@@ -192,6 +212,13 @@ export function SubscriptionsSection({
               </label>
             </div>
           </div>
+          <div className="mt-3">
+            <ExpenseShareInput
+              totalAmount={parseAmount(monthly) || 0}
+              onShareChange={(share) => setShare(share)}
+              initialShare={share}
+            />
+          </div>
           <div className="flex justify-end gap-2 mt-3">
             <button
               className="px-4 py-2 bg-green-600 dark:bg-green-500 text-white rounded hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
@@ -229,7 +256,14 @@ export function SubscriptionsSection({
                 return (
                   <tr key={s.id} className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td className="py-2 pr-4 text-gray-900 dark:text-white">{s.name}</td>
-                    <td className="py-2 pr-4 text-gray-900 dark:text-white">{currency(s.monthly)}</td>
+                    <td className="py-2 pr-4 text-gray-900 dark:text-white">
+                      {currency(s.monthly)}
+                      {s.share && s.share.totalAmount !== s.monthly && (
+                        <span className="block text-xs text-gray-500 dark:text-gray-400 font-normal">
+                          (Total: {currency(s.share.totalAmount)}, {s.share.yourParts}/{s.share.totalParts} part{s.share.yourParts > 1 ? 's' : ''})
+                        </span>
+                      )}
+                    </td>
                     <td className="py-2 pr-4 text-gray-600 dark:text-gray-400 text-sm">
                       {account ? account.name : '—'}
                     </td>

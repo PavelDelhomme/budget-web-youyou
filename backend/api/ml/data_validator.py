@@ -26,23 +26,37 @@ class DataValidator:
                 'errors': List[str],
                 'warnings': List[str],
                 'completeness_score': float (0-1),
-                'recommendations': List[str]
+                'recommendations': List[str],
+                'statistics': Dict with detailed stats,
+                'missing_fields': List[str],
+                'field_completeness': Dict showing completeness per field
             }
         """
         errors = []
         warnings = []
         recommendations = []
+        missing_fields = []
+        field_completeness = {}
         
         # Check required fields
         categories = data.get('categories', [])
         expenses = data.get('expenses', [])
         subs = data.get('subs', [])
         monthly_salary = data.get('monthlySalary', 0)
+        annual_fixed = data.get('annualFixedExpenses', [])
+        additional_incomes = data.get('additionalMonthlyIncomes', [])
+        current_savings = data.get('currentSavings', 0)
         
         # Validate categories
+        categories_total = sum(cat.get('target', 0) for cat in categories)
+        categories_with_budget = sum(1 for cat in categories if cat.get('target', 0) > 0)
+        
         if not categories or len(categories) == 0:
             errors.append('Aucune catégorie de dépenses définie')
+            missing_fields.append('categories')
+            field_completeness['categories'] = 0
         else:
+            field_completeness['categories'] = 1
             for i, cat in enumerate(categories):
                 if not cat.get('id'):
                     errors.append(f'Catégorie #{i+1} : ID manquant')
@@ -50,6 +64,15 @@ class DataValidator:
                     errors.append(f'Catégorie #{i+1} : Nom manquant')
                 if cat.get('target', 0) < 0:
                     errors.append(f'Catégorie "{cat.get("name", "?")}" : Budget négatif')
+        
+        # Calculate expense statistics
+        valid_expenses = [e for e in expenses if e.get('amount', 0) > 0]
+        expenses_total = sum(e.get('amount', 0) for e in valid_expenses)
+        expenses_by_category = {}
+        for exp in valid_expenses:
+            cat_id = exp.get('categoryId')
+            if cat_id:
+                expenses_by_category[cat_id] = expenses_by_category.get(cat_id, 0) + exp.get('amount', 0)
         
         # Validate expenses
         invalid_expenses = []
@@ -66,19 +89,56 @@ class DataValidator:
         if invalid_expenses:
             warnings.extend(invalid_expenses)
         
+        field_completeness['expenses'] = len(valid_expenses) / max(len(expenses), 1) if expenses else 0
+        
         # Validate subscriptions
+        subs_total = sum(sub.get('monthly', 0) for sub in subs) * 12
         for i, sub in enumerate(subs):
             if not sub.get('name'):
                 warnings.append(f'Abonnement #{i+1} : Nom manquant')
             if sub.get('monthly', 0) <= 0:
                 warnings.append(f'Abonnement "{sub.get("name", "?")}" : Montant mensuel invalide')
         
+        field_completeness['subscriptions'] = 1 if subs else 0
+        if not subs:
+            missing_fields.append('subscriptions')
+        
         # Validate salary
         if monthly_salary <= 0:
             warnings.append('Salaire mensuel non défini ou nul')
+            missing_fields.append('monthlySalary')
+            field_completeness['monthlySalary'] = 0
+        else:
+            field_completeness['monthlySalary'] = 1
+        
+        # Validate fixed expenses
+        fixed_total = sum(f.get('amount', 0) for f in annual_fixed)
+        field_completeness['annualFixedExpenses'] = 1 if annual_fixed else 0
         
         # Calculate completeness score
         completeness = self._calculate_completeness(data)
+        
+        # Calculate statistics
+        annual_salary = monthly_salary * 12 if monthly_salary > 0 else 0
+        total_expenses_estimated = categories_total + subs_total + fixed_total
+        
+        statistics = {
+            'num_categories': len(categories),
+            'categories_with_budget': categories_with_budget,
+            'categories_total_budget': categories_total,
+            'num_expenses': len(valid_expenses),
+            'expenses_total': expenses_total,
+            'expenses_by_category': expenses_by_category,
+            'num_subscriptions': len(subs),
+            'subscriptions_annual': subs_total,
+            'monthly_salary': monthly_salary,
+            'annual_salary': annual_salary,
+            'num_fixed_expenses': len(annual_fixed),
+            'fixed_expenses_total': fixed_total,
+            'current_savings': current_savings,
+            'total_expenses_estimated': total_expenses_estimated,
+            'estimated_savings': annual_salary - total_expenses_estimated if annual_salary > 0 else 0,
+        }
         
         # Generate recommendations
         if completeness < 0.5:
@@ -92,13 +152,19 @@ class DataValidator:
         if monthly_salary <= 0:
             recommendations.append('Définissez votre salaire mensuel pour des prédictions précises.')
         
+        if categories_with_budget < len(categories):
+            recommendations.append(f'{len(categories) - categories_with_budget} catégorie(s) sans budget défini.')
+        
         return {
             'is_valid': len(errors) == 0,
             'errors': errors,
             'warnings': warnings,
             'completeness_score': completeness,
             'recommendations': recommendations,
-            'year': year
+            'year': year,
+            'statistics': statistics,
+            'missing_fields': missing_fields,
+            'field_completeness': field_completeness
         }
     
     def validate_all_historical_data(self, historical_data: List[Dict[str, Any]]) -> Dict[str, Any]:

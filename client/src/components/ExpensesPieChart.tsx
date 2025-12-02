@@ -23,6 +23,28 @@ const COLORS = [
 ];
 
 export function ExpensesPieChart({ categories, expenses, size = 300, isPrediction = false }: ExpensesPieChartProps) {
+  // ⚠️ IMPORTANT: Tous les hooks doivent être appelés AVANT tout early return
+  
+  // Responsive size calculation - hooks en premier
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+  
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const handleResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setWindowWidth(window.innerWidth);
+      }, 150); // Debounce resize events
+    };
+    window.addEventListener('resize', handleResize);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
   const data = useMemo(() => {
     const categoryTotals = new Map<string, number>();
     
@@ -79,38 +101,7 @@ export function ExpensesPieChart({ categories, expenses, size = 300, isPredictio
     });
 
     return { slices, total };
-  }, [categories, expenses]);
-
-  if (data.slices.length === 0) {
-    return (
-      <div className="flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-lg p-8 border border-gray-200 dark:border-gray-700">
-        <p className="text-gray-500 dark:text-gray-400">
-          {isPrediction ? 'Aucun budget à afficher' : 'Aucune dépense à afficher'}
-        </p>
-      </div>
-    );
-  }
-
-
-  // Responsive size calculation
-  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
-  
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    let timeoutId: ReturnType<typeof setTimeout>;
-    const handleResize = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        setWindowWidth(window.innerWidth);
-      }, 150); // Debounce resize events
-    };
-    window.addEventListener('resize', handleResize);
-    return () => {
-      clearTimeout(timeoutId);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
+  }, [categories, expenses, isPrediction]);
   
   const responsiveSize = useMemo(() => {
     if (windowWidth < 640) {
@@ -138,6 +129,17 @@ export function ExpensesPieChart({ categories, expenses, size = 300, isPredictio
     
     return `M ${chartCenterX} ${chartCenterY} L ${x1} ${y1} A ${chartRadius} ${chartRadius} 0 ${largeArc} 1 ${x2} ${y2} Z`;
   }, [chartCenterX, chartCenterY, chartRadius]);
+
+  // Maintenant on peut faire l'early return APRÈS tous les hooks
+  if (data.slices.length === 0) {
+    return (
+      <div className="flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-lg p-8 border border-gray-200 dark:border-gray-700">
+        <p className="text-gray-500 dark:text-gray-400">
+          {isPrediction ? 'Aucun budget à afficher' : 'Aucune dépense à afficher'}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-3 sm:p-4 md:p-6 border border-gray-200 dark:border-gray-700">

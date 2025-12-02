@@ -120,14 +120,14 @@ def require_csrf(f):
 
 
 def prevent_session_fixation(f):
-    """Prevent session fixation attacks by regenerating session ID after login"""
+    """Prevent session fixation attacks by clearing and recreating session after login"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         result = f(*args, **kwargs)
         # Regenerate session ID after successful authentication
-        if hasattr(session, 'permanent') and session.permanent:
-            session.permanent = False
-            session.regenerate()
+        # Flask doesn't have session.regenerate(), so we clear and recreate
+        if hasattr(session, 'permanent'):
+            session.clear()
             session.permanent = True
         return result
     return decorated_function

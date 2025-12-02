@@ -1,4 +1,4 @@
-.PHONY: help install dev start restart stop down build clean docker-build docker-up docker-down docker-logs docker-ps status ports logs logs-backend logs-frontend reset reset-and-restart test test-syntax test-backend test-frontend test-api test-containers test-integration check-errors test-all test-behavior test-files test-ui-components test-endpoints test-data-structure test-features
+.PHONY: help install dev start restart stop down build clean docker-build docker-up docker-down docker-logs docker-ps status ports logs logs-backend logs-frontend reset reset-and-restart test test-syntax test-backend test-frontend test-api test-containers test-integration check-errors test-all test-behavior test-files test-ui-components test-endpoints test-data-structure test-features test-e2e test-e2e-install test-e2e-ui test-e2e-report
 
 # Variables
 BACKEND_PORT ?= 6060
@@ -773,4 +773,76 @@ test-features: ## Vérifie que toutes les fonctionnalités principales sont pré
 	@echo "💡 Pour tester ces fonctionnalités, lancez l'application et naviguez dans l'interface"
 	@echo ""
 
-test-all: test check-errors test-behavior test-files test-ui-components test-endpoints test-data-structure test-features ## Lance tous les tests et vérifie les erreurs (complet)
+test-all: test check-errors test-behavior test-files test-ui-components test-endpoints test-data-structure test-features test-e2e ## Lance tous les tests et vérifie les erreurs (complet)
+
+test-e2e-install: ## Installe Playwright et les navigateurs pour les tests E2E
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🎭 INSTALLATION PLAYWRIGHT"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@if command -v npm >/dev/null 2>&1; then \
+		echo "📦 Installation des dépendances Playwright..."; \
+		npm install --save-dev @playwright/test@^1.40.0 @types/node@^20.10.0 typescript@^5.3.3 || \
+		echo "⚠️  Installation npm échouée - utilisez 'npm install' manuellement"; \
+		echo ""; \
+		echo "🌐 Installation des navigateurs..."; \
+		npx playwright install --with-deps chromium firefox webkit || \
+		echo "⚠️  Installation des navigateurs échouée - utilisez 'npx playwright install' manuellement"; \
+		echo ""; \
+		echo "✅ Playwright installé !"; \
+	else \
+		echo "❌ npm n'est pas installé. Installez Node.js et npm d'abord."; \
+	fi
+	@echo ""
+
+test-e2e: ## Lance tous les tests E2E avec Playwright (nécessite que l'app soit démarrée)
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🎭 TESTS E2E AVEC PLAYWRIGHT"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@if [ ! -f "node_modules/.bin/playwright" ] && [ ! -f "node_modules/@playwright/test/index.js" ]; then \
+		echo "⚠️  Playwright n'est pas installé. Lancez 'make test-e2e-install' d'abord."; \
+		exit 1; \
+	fi
+	@echo "🧪 Lancement des tests E2E..."
+	@echo "⚠️  Assurez-vous que l'application est démarrée (make dev ou make start)"
+	@echo ""
+	@if command -v npx >/dev/null 2>&1; then \
+		npx playwright test || echo "⚠️  Certains tests ont échoué. Consultez le rapport avec 'make test-e2e-report'"; \
+	else \
+		echo "❌ npx n'est pas disponible. Installez Node.js."; \
+		exit 1; \
+	fi
+	@echo ""
+
+test-e2e-ui: ## Lance les tests E2E avec l'interface UI de Playwright
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🎭 TESTS E2E AVEC INTERFACE UI"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@echo "⚠️  Assurez-vous que l'application est démarrée (make dev ou make start)"
+	@echo ""
+	@if command -v npx >/dev/null 2>&1; then \
+		npx playwright test --ui; \
+	else \
+		echo "❌ npx n'est pas disponible. Installez Node.js."; \
+		exit 1; \
+	fi
+	@echo ""
+
+test-e2e-report: ## Affiche le rapport HTML des tests E2E
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "📊 RAPPORT DES TESTS E2E"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@if command -v npx >/dev/null 2>&1; then \
+		npx playwright show-report || echo "⚠️  Aucun rapport disponible. Lancez les tests d'abord avec 'make test-e2e'"; \
+	else \
+		echo "❌ npx n'est pas disponible. Installez Node.js."; \
+		exit 1; \
+	fi
+	@echo ""

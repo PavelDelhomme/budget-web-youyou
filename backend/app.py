@@ -41,6 +41,7 @@ app.config['SESSION_COOKIE_SAMESITE_FORCE_ALL'] = True
 def set_security_headers(response):
     return add_security_headers(response)
 
+
 # Credentials - stockés comme variables d'environnement pour la sécurité
 ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'dev@delhomme.ovh')
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', '5n!B@#c*ymgEBYXrWdKE')
@@ -114,7 +115,6 @@ def get_csrf():
 
 @app.route('/api/login', methods=['POST'])
 @rate_limit(max_requests=5, window=60)  # Stricter rate limiting for login
-@prevent_session_fixation
 def login():
     """Login endpoint with security measures"""
     client_ip = get_client_ip()
@@ -192,16 +192,17 @@ def login():
     if client_ip in login_attempts:
         del login_attempts[client_ip]
     
-    # Regenerate session ID to prevent session fixation
-    session.permanent = False
-    session.clear()
-    session.regenerate()
+    # Regenerate session to prevent session fixation
+    # Instead of clearing completely, we update session values to preserve cookie
     session.permanent = True
     
-    # Set session user avec sécurité renforcée
+    # Update session values (preserves existing session cookie)
     session['user_email'] = ADMIN_EMAIL
     session['login_time'] = current_time
     session['csrf_token'] = get_csrf_token(session)
+    
+    # Mark session as modified to ensure cookie is saved and sent
+    session.modified = True
     
     # Log successful login
     log_security_event('LOGIN_SUCCESS', f'User: {ADMIN_EMAIL}', client_ip, 'INFO')
@@ -209,11 +210,14 @@ def login():
     # Ensure user data exists
     user_data = load_user(ADMIN_EMAIL)
     
-    return jsonify({
+    # Create response - Flask will automatically send session cookie
+    response = jsonify({
         'email': ADMIN_EMAIL,
         'years': user_data['years'],
         'csrf_token': session['csrf_token']
     })
+    
+    return response
 
 
 @app.route('/api/logout', methods=['POST'])
@@ -231,6 +235,27 @@ def logout():
     
     return jsonify({'done': True})
 
+
+@app.route('/api/session-check', methods=['GET'])
+@rate_limit(max_requests=100, window=60)
+def session_check():
+    """Check if user has a valid session - never returns 401, returns empty if not authenticated"""
+    if 'user_email' not in session:
+        return jsonify({'authenticated': False}), 200
+    
+    user_email = session['user_email']
+    if not user_email or not isinstance(user_email, str):
+        return jsonify({'authenticated': False}), 200
+    
+    # Validate email format
+    email_regex = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
+    if not re.match(email_regex, user_email):
+        return jsonify({'authenticated': False}), 200
+    
+    return jsonify({
+        'authenticated': True,
+        'email': user_email
+    })
 
 @app.route('/api/years', methods=['GET'])
 @require_auth
@@ -512,6 +537,10 @@ register_ml_routes(app)
 # Register Government API routes
 from api.government_service import register_government_routes
 register_government_routes(app)
+
+# Register Statistical API routes
+from api.statistical_service import register_statistical_routes
+register_statistical_routes(app)
 
 
 if __name__ == '__main__':

@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Modal } from './Modal';
-import { BankAccount, Investment, InvestmentTransaction, SavingsGoal, SavingsProject, SalaryHistory, UserGlobalData } from '../types';
+import { BankAccount, Investment, InvestmentTransaction, SavingsGoal, SavingsProject, SalaryHistory, UserGlobalData, UserProfile, GeographicLocation } from '../types';
 import { currency, parseAmount, toISODate, today } from '../utils';
+import { GeographicSelector } from './GeographicSelector';
 
 interface GlobalDataManagerProps {
   isOpen: boolean;
@@ -17,7 +18,7 @@ interface GlobalDataManagerProps {
 }
 
 export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years = [], predictedYears = [], onResetYear, onDeletePredictedYear, onResetAll }: GlobalDataManagerProps) {
-  const [activeTab, setActiveTab] = useState<'accounts' | 'investments' | 'goals' | 'projects' | 'salaryHistory' | 'years'>('accounts');
+  const [activeTab, setActiveTab] = useState<'accounts' | 'investments' | 'goals' | 'projects' | 'salaryHistory' | 'years' | 'profile'>('accounts');
   const [resettingYear, setResettingYear] = useState<number | null>(null);
   const [lockingYear, setLockingYear] = useState<number | null>(null);
   const [currentSystemYear] = useState(() => new Date().getFullYear());
@@ -104,6 +105,21 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
     note: '',
   });
   const [currentSalaryHistoryAmountInput, setCurrentSalaryHistoryAmountInput] = useState('');
+
+  // User Profile state
+  const [userProfile, setUserProfile] = useState<Partial<UserProfile>>(globalData.userProfile || {});
+  const [geographicLocation, setGeographicLocation] = useState<GeographicLocation | null>(
+    globalData.userProfile?.geographic_location || null
+  );
+
+  useEffect(() => {
+    setUserProfile(globalData.userProfile || {});
+    setGeographicLocation(globalData.userProfile?.geographic_location || null);
+  }, [globalData.userProfile]);
+
+  const updateProfileField = (key: keyof UserProfile, value: any) => {
+    setUserProfile(prev => ({ ...prev, [key]: value }));
+  };
 
   // Update local state when globalData changes
   useEffect(() => {
@@ -523,6 +539,10 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
       savingsGoals: savingsGoals,
       savingsProjects: savingsProjects,
       salaryHistory: salaryHistory,
+      userProfile: {
+        ...userProfile,
+        geographic_location: geographicLocation || undefined,
+      } as UserProfile,
     });
     onClose();
   }
@@ -596,6 +616,16 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
             }`}
           >
             📅 Années ({years.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('profile')}
+            className={`px-4 py-2 font-medium text-sm ${
+              activeTab === 'profile'
+                ? 'border-b-2 border-blue-600 dark:border-blue-500 text-blue-600 dark:text-blue-400'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+            }`}
+          >
+            👤 Profil
           </button>
         </div>
 
@@ -1702,6 +1732,137 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
                   )}
                 </>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Profile Tab */}
+        {activeTab === 'profile' && (
+          <div className="space-y-6">
+            <div className="border border-gray-200 dark:border-gray-700 p-4 rounded-lg bg-gray-50 dark:bg-gray-700/30">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Modifier mon profil</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                Modifiez les informations de votre profil utilisateur. Ces données sont utilisées pour améliorer les recommandations de budget.
+              </p>
+
+              <div className="space-y-4">
+                {/* CSP */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                    Catégorie socio-professionnelle
+                  </label>
+                  <select
+                    value={userProfile.csp || ''}
+                    onChange={(e) => updateProfileField('csp', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  >
+                    <option value="">Sélectionnez une CSP</option>
+                    <option value="agriculteur">Agriculteur exploitant</option>
+                    <option value="artisan">Artisan</option>
+                    <option value="commercant">Commerçant</option>
+                    <option value="chef_entreprise">Chef d'entreprise</option>
+                    <option value="profession_liberale">Profession libérale</option>
+                    <option value="cadre_sup">Cadre supérieur</option>
+                    <option value="cadre">Cadre</option>
+                    <option value="prof_intermediaire">Profession intermédiaire</option>
+                    <option value="employe">Employé</option>
+                    <option value="ouvrier">Ouvrier</option>
+                    <option value="retraite">Retraité</option>
+                    <option value="chomeur">Chômeur</option>
+                    <option value="etudiant">Étudiant</option>
+                    <option value="autre">Autre</option>
+                  </select>
+                </div>
+
+                {/* Situation familiale */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                    Situation familiale
+                  </label>
+                  <select
+                    value={userProfile.situation_familiale || 'celibataire'}
+                    onChange={(e) => updateProfileField('situation_familiale', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  >
+                    <option value="celibataire">Célibataire</option>
+                    <option value="couple">En couple</option>
+                    <option value="marie">Marié(e)</option>
+                    <option value="pacs">Pacsé(e)</option>
+                    <option value="parent_solo">Parent solo</option>
+                    <option value="divorce">Divorcé(e)</option>
+                    <option value="veuf">Veuf(ve)</option>
+                  </select>
+                </div>
+
+                {/* Nombre d'enfants */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                    Nombre d'enfants
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="10"
+                    value={userProfile.nombre_enfants || 0}
+                    onChange={(e) => updateProfileField('nombre_enfants', parseInt(e.target.value) || 0)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  />
+                </div>
+
+                {/* Zone géographique */}
+                <GeographicSelector
+                  value={geographicLocation || null}
+                  onChange={(loc) => {
+                    setGeographicLocation(loc);
+                    updateProfileField('geographic_location', loc);
+                  }}
+                  label="Zone géographique"
+                  required={false}
+                />
+
+                {/* Âge */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                    Âge (optionnel)
+                  </label>
+                  <input
+                    type="number"
+                    min="16"
+                    max="100"
+                    value={userProfile.age || ''}
+                    onChange={(e) => updateProfileField('age', e.target.value ? parseInt(e.target.value) : undefined)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  />
+                </div>
+
+                {/* Profession */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                    Profession (optionnel)
+                  </label>
+                  <input
+                    type="text"
+                    value={userProfile.profession || ''}
+                    onChange={(e) => updateProfileField('profession', e.target.value)}
+                    placeholder="Ex: Développeur, Enseignant..."
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  />
+                </div>
+
+                {/* Secteur d'activité */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                    Secteur d'activité (optionnel)
+                  </label>
+                  <input
+                    type="text"
+                    value={userProfile.secteur_activite || ''}
+                    onChange={(e) => updateProfileField('secteur_activite', e.target.value)}
+                    placeholder="Ex: Informatique, Éducation, Commerce..."
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         )}

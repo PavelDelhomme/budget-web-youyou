@@ -10,10 +10,12 @@ export type ExpenseShareType = 'full' | 'shared' | 'partial';
 
 export interface ExpenseShare {
   type: ExpenseShareType;
-  yourAmount: number; // Montant que vous payez
+  yourAmount: number; // Montant que vous payez (calculé automatiquement si parts utilisées)
   totalAmount: number; // Montant total de la dépense
   sharedWith?: string; // Nom de la personne avec qui c'est partagé
   yourPercentage?: number; // Pourcentage que vous payez (0-100)
+  totalParts?: number; // Nombre total de parts (ex: 2 pour un loyer partagé en 2)
+  yourParts?: number; // Nombre de parts que vous payez (ex: 1 pour "1/2 du loyer")
 }
 
 export interface Expense {
@@ -30,11 +32,12 @@ export interface Expense {
 export interface Subscription {
   id: string;
   name: string;
-  monthly: number;
+  monthly: number; // Montant réellement payé par mois (avec partage si applicable)
   startMonth: number;
   endMonth: number;
   ongoing: boolean;
   accountId?: string; // ID du compte bancaire depuis lequel l'abonnement est payé
+  share?: ExpenseShare; // Information sur le partage (optionnel) - ex: 1/2 de l'abonnement
 }
 
 export interface SavingsTransaction {
@@ -139,6 +142,17 @@ export interface TemporaryIncome {
   note?: string;
 }
 
+// Sources de revenus mensuels multiples (pour intérim, plusieurs emplois, etc.)
+export interface MonthlyIncomeSource {
+  id: string;
+  name: string; // Ex: "Salaire principal", "Intérim chez X", "Allocations CAF"
+  amount: number; // Montant mensuel
+  startDate: string; // Date de début (ISO format)
+  endDate?: string; // Date de fin (optionnel, undefined = permanent)
+  type: 'salary' | 'interim' | 'allocation' | 'freelance' | 'other'; // Type de revenu
+  note?: string; // Note optionnelle
+}
+
 // Transactions avec d'autres personnes (remboursements, versements)
 export interface PersonTransaction {
   id: string;
@@ -159,6 +173,37 @@ export interface SharedExpensePerson {
 }
 
 // Données utilisateur globales (pas liées à une année spécifique)
+// Location géographique
+export interface GeographicLocation {
+  region?: string; // Région du monde (ex: europe, north_america, etc.)
+  country?: string; // Code pays ISO (ex: FR, US, etc.)
+  countryName?: string; // Nom du pays
+  city?: string; // Ville
+  department?: string; // Département/État/Province
+  postalCode?: string; // Code postal (optionnel)
+}
+
+// Profil utilisateur
+export interface UserProfile {
+  csp: string; // Catégorie socio-professionnelle
+  profession?: string;
+  secteur_activite?: string;
+  statut_professionnel?: string;
+  situation_familiale: string;
+  nombre_enfants: number;
+  geographic_location?: GeographicLocation;
+  age?: number;
+  monthly_income?: number;
+  type_revenu?: string;
+  annees_experience?: number;
+  niveau_etude?: string;
+  situation_actuelle?: string;
+  type_logement?: string;
+  loyer_mensuel?: number;
+  objectifs_budget?: string[];
+  preferences?: string[];
+}
+
 export interface UserGlobalData {
   bankAccounts: BankAccount[];
   investments: Investment[];
@@ -174,6 +219,7 @@ export interface UserGlobalData {
   lockedYears?: number[]; // Années verrouillées (ne peuvent pas être modifiées)
   excludedPredictedYears?: number[]; // Années prédites à exclure de la génération
   maxPredictedYears?: number; // Nombre maximum d'années à prédire par l'IA (défaut: 3)
+  userProfile?: UserProfile; // Profil utilisateur (CSP, situation, etc.) pour génération de budget statistique
 }
 
 // Revenus variables supplémentaires par mois (primes, cadeaux, etc.)
@@ -190,9 +236,10 @@ export interface YearData {
   expenses: Expense[];
   subs: Subscription[];
   annualFixedExpenses?: AnnualFixedExpense[];
-  monthlySalary?: number; // Salaire de base mensuel pour l'année
+  monthlySalary?: number; // Salaire de base mensuel pour l'année (pour compatibilité)
   variableMonthlyIncomes?: number[]; // Revenus variables par mois [janvier, février, ..., décembre] (12 valeurs). Si vide, utilise monthlySalary. Si défini, remplace monthlySalary pour ce mois
   additionalMonthlyIncomes?: MonthlyAdditionalIncome[]; // Revenus supplémentaires par mois (primes, cadeaux, etc.) qui s'ajoutent au revenu de base
+  monthlyIncomeSources?: MonthlyIncomeSource[]; // Sources de revenus mensuels multiples (intérim, plusieurs emplois, etc.)
   currentSavings?: number;
   savingsTransactions?: SavingsTransaction[];
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Expense, Category, BankAccount, SavingsProject } from '../types';
+import { Expense, Category, BankAccount, SavingsProject, ExpenseShare } from '../types';
 import { toISODate, parseAmount, currency, today } from '../utils';
+import { ExpenseShareInput } from './ExpenseShareInput';
 
 interface ExpensesSectionProps {
   expenses: Expense[];
@@ -22,7 +23,7 @@ export function ExpensesSection({
   onUpdateExpense,
 }: ExpensesSectionProps) {
   const [date, setDate] = useState(toISODate(today));
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState(''); // Montant total
   const [categoryId, setCategoryId] = useState(
     categories[0]?.id || ''
   );
@@ -30,31 +31,37 @@ export function ExpensesSection({
   const [accountId, setAccountId] = useState<string>('');
   const [projectId, setProjectId] = useState<string>('');
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
+  const [share, setShare] = useState<ExpenseShare | undefined>(undefined);
 
   const handleAdd = () => {
-    const amt = parseAmount(amount);
-    if (!amt) return;
+    const totalAmount = parseAmount(amount);
+    if (!totalAmount) return;
+    
+    // Calculer le montant réellement payé (avec partage si applicable)
+    const actualAmount = share?.yourAmount || totalAmount;
     
     if (editingExpenseId) {
       // Modification d'une dépense existante
       onUpdateExpense(editingExpenseId, {
         date: date || toISODate(today),
-        amount: amt,
+        amount: actualAmount, // Montant réellement payé
         categoryId,
         note,
         accountId: accountId || undefined,
         projectId: projectId || undefined,
+        share: share,
       });
       setEditingExpenseId(null);
     } else {
       // Ajout d'une nouvelle dépense
       onAddExpense({
         date: date || toISODate(today),
-        amount: amt,
+        amount: actualAmount, // Montant réellement payé
         categoryId,
         note,
         accountId: accountId || undefined,
         projectId: projectId || undefined,
+        share: share,
       });
     }
     
@@ -64,16 +71,20 @@ export function ExpensesSection({
     setCategoryId(categories[0]?.id || '');
     setAccountId('');
     setProjectId('');
+    setShare(undefined);
   };
 
   const handleEdit = (expense: Expense) => {
     setEditingExpenseId(expense.id);
     setDate(expense.date);
-    setAmount(expense.amount.toString().replace('.', ','));
+    // Si la dépense est partagée, utiliser le montant total, sinon le montant payé
+    const totalAmount = expense.share?.totalAmount || expense.amount;
+    setAmount(totalAmount.toString().replace('.', ','));
     setCategoryId(expense.categoryId);
     setNote(expense.note);
     setAccountId(expense.accountId || '');
     setProjectId(expense.projectId || '');
+    setShare(expense.share);
     // Scroll vers le formulaire
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -86,6 +97,7 @@ export function ExpensesSection({
     setCategoryId(categories[0]?.id || '');
     setAccountId('');
     setProjectId('');
+    setShare(undefined);
   };
 
   return (
@@ -104,7 +116,14 @@ export function ExpensesSection({
           />
         </div>
         <div>
-          <label className="text-sm text-slate-600 dark:text-gray-400">Montant (€)</label>
+          <label className="text-sm text-slate-600 dark:text-gray-400">
+            Montant total (€)
+            {share && share.yourAmount !== parseAmount(amount) && (
+              <span className="ml-2 text-xs text-blue-600 dark:text-blue-400">
+                (Vous payez: {currency(share.yourAmount)})
+              </span>
+            )}
+          </label>
           <input
             type="text"
             className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
@@ -167,6 +186,13 @@ export function ExpensesSection({
           />
         </div>
       </div>
+      <div className="mt-3">
+        <ExpenseShareInput
+          totalAmount={parseAmount(amount) || 0}
+          onShareChange={(share) => setShare(share)}
+          initialShare={share}
+        />
+      </div>
       <div className="flex justify-end gap-2">
         {editingExpenseId && (
           <button
@@ -216,7 +242,14 @@ export function ExpensesSection({
                   <td className="py-2 pr-4 max-w-[200px] truncate text-gray-900 dark:text-white" title={e.note}>
                     {e.note}
                   </td>
-                  <td className="py-2 pr-4 text-gray-900 dark:text-white font-medium">{currency(e.amount)}</td>
+                  <td className="py-2 pr-4 text-gray-900 dark:text-white font-medium">
+                    {currency(e.amount)}
+                    {e.share && e.share.totalAmount !== e.amount && (
+                      <span className="block text-xs text-gray-500 dark:text-gray-400 font-normal">
+                        (Total: {currency(e.share.totalAmount)}, {e.share.yourParts}/{e.share.totalParts} part{e.share.yourParts > 1 ? 's' : ''})
+                      </span>
+                    )}
+                  </td>
                   <td className="py-2 pr-2 text-right">
                     <button
                       className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors mr-2"

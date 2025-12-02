@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { currency, parseAmount } from '../utils';
-import { SavingsTransaction, SavingsProject, TemporaryIncome, MonthlyAdditionalIncome } from '../types';
+import { SavingsTransaction, SavingsProject, TemporaryIncome, MonthlyAdditionalIncome, MonthlyIncomeSource } from '../types';
 import { VariableMonthlyIncomes } from './VariableMonthlyIncomes';
 import { AdditionalMonthlyIncomes } from './AdditionalMonthlyIncomes';
+import { MultipleMonthlyIncomes } from './MultipleMonthlyIncomes';
 
 interface IncomeAndSavingsSectionProps {
   monthlySalary: number;
@@ -21,6 +22,8 @@ interface IncomeAndSavingsSectionProps {
   onVariableMonthlyIncomesChange?: (incomes: number[] | undefined) => void;
   additionalMonthlyIncomes?: MonthlyAdditionalIncome[]; // Revenus supplémentaires par mois (primes, cadeaux, etc.)
   onAdditionalMonthlyIncomesChange?: (incomes: MonthlyAdditionalIncome[]) => void;
+  monthlyIncomeSources?: MonthlyIncomeSource[]; // Sources de revenus mensuels multiples (intérim, plusieurs emplois)
+  onMonthlyIncomeSourcesChange?: (sources: MonthlyIncomeSource[]) => void;
   currentYear?: number; // Pour calculer les revenus actifs
   onOpenTaxManager?: () => void; // Ouvrir le gestionnaire fiscal
 }
@@ -42,6 +45,8 @@ export function IncomeAndSavingsSection({
   onVariableMonthlyIncomesChange,
   additionalMonthlyIncomes = [],
   onAdditionalMonthlyIncomesChange,
+  monthlyIncomeSources = [],
+  onMonthlyIncomeSourcesChange,
   currentYear,
   onOpenTaxManager,
 }: IncomeAndSavingsSectionProps) {
@@ -261,6 +266,15 @@ export function IncomeAndSavingsSection({
           <AdditionalMonthlyIncomes
             additionalMonthlyIncomes={additionalMonthlyIncomes}
             onUpdate={onAdditionalMonthlyIncomesChange}
+          />
+        )}
+
+        {/* Sources de revenus multiples (intérim, plusieurs emplois) */}
+        {onMonthlyIncomeSourcesChange && currentYear && (
+          <MultipleMonthlyIncomes
+            incomeSources={monthlyIncomeSources}
+            onUpdate={onMonthlyIncomeSourcesChange}
+            currentYear={currentYear}
           />
         )}
 

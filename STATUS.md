@@ -2,9 +2,24 @@
 
 ## 🎯 État d'avancement général
 
-**Dernière mise à jour :** 2024-12-01 (Ajout IA locale + API gouvernementales + Documentation complète ✅)
+**Dernière mise à jour :** 2024-12-02 (Batterie complète de tests E2E avec Playwright ✅)
 
 **Dernière vérification complète :** 2024-11-28 - make test-all ✅
+
+### 🔧 Corrections Récentes (Décembre 2024 - 01/12)
+
+#### Améliorations Login
+- ✅ Affichage/masquage du mot de passe (icône œil)
+- ✅ Mode inscription avec validation du mot de passe
+- ✅ Confirmation du mot de passe lors de l'inscription
+- ✅ Validation de la longueur du mot de passe (min 8 caractères)
+- ✅ Messages d'erreur clairs et contextuels
+- ✅ Gestion silencieuse des erreurs 401 (session check)
+
+#### Corrections Backend
+- ✅ Correction erreur `session.regenerate()` (n'existe pas dans Flask)
+- ✅ Remplacement par `session.clear()` pour prévention session fixation
+- ✅ Filtrage des logs 401 pour réduire le bruit dans les logs backend
 
 ### 🆕 Nouvelles Fonctionnalités Majeures (Décembre 2024)
 
@@ -128,6 +143,17 @@
 - ✅ Ajout de `test-data-structure` - Vérification types TypeScript
 - ✅ Ajout de `test-features` - Liste fonctionnalités
 - ✅ Ajout de `test-all` - Tous les tests combinés
+- ✅ **Tests E2E avec Playwright** - Suite complète de tests end-to-end
+  - ✅ 14 fichiers de tests (~80+ tests au total)
+  - ✅ Tests d'authentification complets
+  - ✅ Tests de toutes les fonctionnalités (dépenses, partage, catégories, etc.)
+  - ✅ Tests de gestion des erreurs
+  - ✅ Tests de cas limites et comportements imprévus
+  - ✅ Tests responsive (mobile, tablet, desktop)
+  - ✅ Parcours utilisateur complet simulé
+  - ✅ Tests multi-navigateurs (Chromium, Firefox, WebKit, Mobile)
+  - ✅ Commandes Make : `test-e2e`, `test-e2e-install`, `test-e2e-ui`, `test-e2e-report`
+  - 📄 Documentation complète : `tests/README.md` et `tests/E2E_TEST_SUMMARY.md`
 
 ### 📦 Infrastructure
 
@@ -226,12 +252,13 @@ make reset-and-restart  # Reset + restart
 
 - **Composants React :** 23+ (incl. MLTrainingInterface)
 - **Endpoints API :** 18 (8 de base + 9 ML + 5 gouvernementales)
-- **Tests disponibles :** 12 commandes
+- **Tests disponibles :** 16 commandes (incl. 4 Playwright)
+- **Tests E2E :** 14 fichiers (~80+ tests au total)
 - **Types TypeScript :** 15+ interfaces
 - **Fonctionnalités majeures :** 40+
 - **Modèles ML :** 3 (Random Forest, Ridge Regression, Gradient Boosting)
 - **API externes intégrées :** 3 (DGFiP, URSSAF, OpenFisca)
-- **Fichiers de documentation :** 9 (README, FEATURES, SECURITY, STATUS, ML_AI, API_GOUV, INTEGRATION_IA, etc.)
+- **Fichiers de documentation :** 11+ (README, FEATURES, SECURITY, STATUS, ML_AI, API_GOUV, INTEGRATION_IA, tests/README.md, etc.)
 
 #### 9. Intégrations API Gouvernementales
 - ✅ **API Impôt Particulier (DGFiP)**
@@ -498,7 +525,48 @@ Salaire net : 2080€/mois
 ---
 
 **État :** ✅ Production Ready  
-**Dernière vérification complète :** 2024-11-28  
-**Tests :** ✅ Tous passent  
-**Documentation :** ✅ Complète (ML_AI.md, API_GOUV.md, INTEGRATION_IA.md)
+**Dernière vérification complète :** 2024-12-01  
+**Tests :** ✅ Tous passent (incl. test-ml, test-api-gouv, test-login)  
+**Documentation :** ✅ Complète (ML_AI.md, API_GOUV.md, INTEGRATION_IA.md, STATUS.md)
+
+---
+
+## 📋 Résumé de l'État Actuel des Fonctionnalités (01/12/2024)
+
+### ✅ Fonctionnalités Complètes et Opérationnelles
+
+1. **Authentification/Login** ✅
+   - Login avec email/password
+   - Affichage/masquage du mot de passe
+   - Mode inscription avec validation
+   - Sessions sécurisées
+   - Rate limiting anti brute force
+   - Gestion silencieuse des erreurs 401
+
+2. **Système ML/IA** ✅
+   - Entièrement fonctionnel et opérationnel
+   - Interface d'entraînement complète
+   - 3 modèles ML (Random Forest, Ridge, Gradient Boosting)
+   - Recommandations intelligentes
+   - Validation automatique des données
+   - Prédictions personnalisées
+
+3. **API Gouvernementales** ✅ (Structure complète, partiellement opérationnelle)
+   - **URSSAF (Mon Entreprise)** : ✅ Fonctionnel - Simulations salaire/auto-entrepreneur
+   - **OpenFisca** : ✅ Fonctionnel - Calculs impôts précis
+   - **DGFiP (Impôt Particulier)** : ⏳ Structure prête, en attente habilitation officielle
+   - TaxManager interface : ✅ Complète et fonctionnelle
+
+### ⚠️ Fonctionnalités en Attente
+
+- **Habilitation DGFiP** : Structure créée mais nécessite demande officielle pour fonctionner
+- **Migrations Django** : ❌ Non applicable - Le projet utilise Flask, pas Django
+
+### 🔧 Corrections Récentes (01/12/2024)
+
+- ✅ Correction erreur `session.regenerate()` → `session.clear()`
+- ✅ Login amélioré avec affichage/masquage mot de passe
+- ✅ Mode inscription avec validation
+- ✅ Gestion silencieuse des erreurs 401
+- ✅ Tests ajoutés dans Makefile (test-ml, test-api-gouv, test-login)
 

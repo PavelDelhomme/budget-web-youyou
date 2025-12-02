@@ -10,6 +10,7 @@ import { IncomeAndSavingsSection } from './components/IncomeAndSavingsSection';
 import { AnnualFixedExpenses } from './components/AnnualFixedExpenses';
 import { AddYearModal } from './components/AddYearModal';
 import { InitializationModal } from './components/InitializationModal';
+import { AdvancedSignupForm, UserProfile } from './components/AdvancedSignupForm';
 import { Dashboard } from './components/Dashboard';
 import { GlobalDataManager } from './components/GlobalDataManager';
 import { RevenusManager } from './components/RevenusManager';
@@ -18,7 +19,7 @@ import { TaxManager } from './components/TaxManager';
 import { ExpensesPieChart } from './components/ExpensesPieChart';
 import { MonthlyExpensesIncomeChart } from './components/MonthlyExpensesIncomeChart';
 import { useBudgetCalculations } from './hooks/useBudgetData';
-import { Category, Expense, Subscription, SavingsTransaction, YearData, UserGlobalData, AnnualFixedExpense, MonthlyAdditionalIncome } from './types';
+import { Category, Expense, Subscription, SavingsTransaction, YearData, UserGlobalData, AnnualFixedExpense, MonthlyAdditionalIncome, MonthlyIncomeSource } from './types';
 import { generatePredictions, getFutureYears, getHistoricalYears, PredictedYearData } from './utils/budgetPredictor';
 import { calculateProjectsContributionsForYear } from './utils/savingsProjects';
 import {
@@ -45,6 +46,7 @@ function App() {
   const [monthlySalary, setMonthlySalary] = useState<number>(0);
   const [variableMonthlyIncomes, setVariableMonthlyIncomes] = useState<number[] | undefined>(undefined);
   const [additionalMonthlyIncomes, setAdditionalMonthlyIncomes] = useState<MonthlyAdditionalIncome[]>([]);
+  const [monthlyIncomeSources, setMonthlyIncomeSources] = useState<MonthlyIncomeSource[]>([]);
   const [currentSavings, setCurrentSavings] = useState<number>(0);
   const [savingsTransactions, setSavingsTransactions] = useState<SavingsTransaction[]>([]);
   
@@ -56,6 +58,9 @@ function App() {
   // Global data and initialization
   const [globalData, setGlobalData] = useState<UserGlobalData | null>(null);
   const [isInitializationModalOpen, setIsInitializationModalOpen] = useState(false);
+  const [isAdvancedSignupOpen, setIsAdvancedSignupOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [generatedBudget, setGeneratedBudget] = useState<any>(null);
   const [isGlobalDataManagerOpen, setIsGlobalDataManagerOpen] = useState(false);
   const [isRevenusManagerOpen, setIsRevenusManagerOpen] = useState(false);
   const [isMLTrainingOpen, setIsMLTrainingOpen] = useState(false);
@@ -68,69 +73,84 @@ function App() {
   useEffect(() => {
     async function checkSession() {
       try {
-        // Try to get years - if successful, user is still logged in
-        const y = await Api.getYears();
-        if (y.email) {
-          setSessionEmail(y.email);
+        // First check if user is authenticated without generating 401 errors
+        const sessionInfo = await Api.checkSession();
+        
+        if (sessionInfo.authenticated && sessionInfo.email) {
+          setSessionEmail(sessionInfo.email);
           
-          // Load global data
+          // User is authenticated, now load their data
           try {
-            const global = await Api.getGlobalData();
-            setGlobalData(global);
-            
-            // Check if initialization is complete
-            // Only show modal if initializationComplete is explicitly false (not undefined/null)
-            if (global.initializationComplete === false) {
-              setIsInitializationModalOpen(true);
-            } else {
-              // If initializationComplete is not set but user has data, assume it's initialized
-              setIsInitializationModalOpen(false);
-            }
-          } catch (err: any) {
-            console.error('Could not load global data:', err);
-            // Only show modal if it's a 404 (no data exists), not other errors
-            if (err.status === 404 || err.message?.includes('404')) {
-              setIsInitializationModalOpen(true);
-            } else {
-              // For other errors, assume initialized to avoid blocking access
-              setIsInitializationModalOpen(false);
-            }
-          }
-          
-          const currentYear = today.getFullYear();
-          
-          if (Array.isArray(y.years) && y.years.length > 0) {
-            let updatedYears = [...y.years];
-            
-            // Ensure current year is always in the list
-            if (!updatedYears.includes(currentYear)) {
+            const y = await Api.getYears();
+            if (y.email) {
+              // Load global data
               try {
-                // Add current year automatically
-                const result = await Api.addYear(currentYear);
-                updatedYears = result.years;
-              } catch (err) {
-                // If adding fails, just use existing years
-                console.warn('Could not add current year:', err);
+                const global = await Api.getGlobalData();
+                setGlobalData(global);
+                
+                // Check if initialization is complete
+                if (global.initializationComplete === false) {
+                  // Check if user profile exists (has completed advanced signup)
+                  if (!global.userProfile) {
+                    // Show advanced signup form first
+                    setIsAdvancedSignupOpen(true);
+                  } else {
+                    // Show initialization modal with existing profile
+                    setUserProfile(global.userProfile);
+                    setIsInitializationModalOpen(true);
+                  }
+                } else {
+                  setIsInitializationModalOpen(false);
+                  setIsAdvancedSignupOpen(false);
+                }
+              } catch (err: any) {
+                console.error('Could not load global data:', err);
+                if (err.status === 404 || err.message?.includes('404')) {
+                  // New user - show advanced signup form
+                  setIsAdvancedSignupOpen(true);
+                } else {
+                  setIsInitializationModalOpen(false);
+                  setIsAdvancedSignupOpen(false);
+                }
+              }
+              
+              const currentYear = today.getFullYear();
+              
+              if (Array.isArray(y.years) && y.years.length > 0) {
+                let updatedYears = [...y.years];
+                
+                // Ensure current year is always in the list
+                if (!updatedYears.includes(currentYear)) {
+                  try {
+                    const result = await Api.addYear(currentYear);
+                    updatedYears = result.years;
+                  } catch (err) {
+                    console.warn('Could not add current year:', err);
+                  }
+                }
+                
+                setYears(updatedYears);
+                setYear('dashboard');
+              } else {
+                // No years exist, create current year
+                try {
+                  const result = await Api.addYear(currentYear);
+                  setYears(result.years);
+                  setYear('dashboard');
+                } catch (err) {
+                  console.error('Could not create current year:', err);
+                }
               }
             }
-            
-            setYears(updatedYears);
-            // Always select dashboard by default
-            setYear('dashboard');
-          } else {
-            // No years exist, create current year
-            try {
-              const result = await Api.addYear(currentYear);
-              setYears(result.years);
-              setYear('dashboard');
-            } catch (err) {
-              console.error('Could not create current year:', err);
-            }
+          } catch (err: any) {
+            // Error loading years data
+            console.error('Could not load years:', err);
           }
         }
+        // If not authenticated, silently return - user will see login form
       } catch (err: any) {
-        // Silently ignore - user is not logged in or session expired
-        // This is normal behavior, no need to log or show errors
+        // Silent fail - user is not logged in, this is normal
+        // No need to log anything
       }
     }
     checkSession();
@@ -152,8 +172,11 @@ function App() {
         try {
           const data = await Api.getYearData(y);
           historicalDataMap.set(y, data);
-        } catch (err) {
-          // Skip years with errors
+        } catch (err: any) {
+          // Skip years with errors (especially 401 - session not ready)
+          if (err?.status !== 401) {
+            console.debug('Error loading year data:', err);
+          }
         }
       }
       
@@ -162,8 +185,11 @@ function App() {
         try {
           const data = await Api.getYearData(currentYearNum);
           historicalDataMap.set(currentYearNum, data);
-        } catch (err) {
-          // Skip if error
+        } catch (err: any) {
+          // Skip if error (especially 401 - session not ready)
+          if (err?.status !== 401) {
+            console.debug('Error loading current year data:', err);
+          }
         }
       }
       
@@ -185,8 +211,11 @@ function App() {
             futureRealYearsDataMap.set(y, data);
             historicalDataMap.set(y, data); // Include in historical data for dashboard
           }
-        } catch (err) {
-          // Skip years with errors
+        } catch (err: any) {
+          // Skip years with errors (especially 401 - session not ready)
+          if (err?.status !== 401) {
+            console.debug('Error loading future year data:', err);
+          }
         }
       }
       
@@ -246,8 +275,12 @@ function App() {
           try {
             const data = await Api.getYearData(y);
             historicalDataMap.set(y, data);
-          } catch (err) {
-            // Skip years with errors
+          } catch (err: any) {
+            // Skip years with errors (especially 401 - session not ready)
+            if (err?.status !== 401) {
+              // Only log non-401 errors
+              console.debug('Error loading year data:', err);
+            }
           }
         }
         
@@ -256,8 +289,11 @@ function App() {
           try {
             const data = await Api.getYearData(currentYearNum);
             historicalDataMap.set(currentYearNum, data);
-          } catch (err) {
-            // Skip if error
+          } catch (err: any) {
+            // Skip if error (especially 401 - session not ready)
+            if (err?.status !== 401) {
+              console.debug('Error loading current year data:', err);
+            }
           }
         }
         
@@ -274,8 +310,11 @@ function App() {
             if (hasRealData) {
               historicalDataMap.set(y, data);
             }
-          } catch (err) {
-            // Skip years with errors
+          } catch (err: any) {
+            // Skip years with errors (especially 401 - session not ready)
+            if (err?.status !== 401) {
+              console.debug('Error loading future year data:', err);
+            }
           }
         }
         
@@ -345,6 +384,7 @@ function App() {
         setMonthlySalary(ds.monthlySalary || globalData?.monthlySalary || 0);
         setVariableMonthlyIncomes(Array.isArray(ds.variableMonthlyIncomes) && ds.variableMonthlyIncomes.length === 12 ? ds.variableMonthlyIncomes : undefined);
         setAdditionalMonthlyIncomes(Array.isArray(ds.additionalMonthlyIncomes) ? ds.additionalMonthlyIncomes : []);
+        setMonthlyIncomeSources(Array.isArray(ds.monthlyIncomeSources) ? ds.monthlyIncomeSources : []);
         setCurrentSavings(ds.currentSavings || 0);
         setSavingsTransactions(Array.isArray(ds.savingsTransactions) ? ds.savingsTransactions : []);
       } catch (err) {
@@ -378,6 +418,7 @@ function App() {
           monthlySalary,
           variableMonthlyIncomes,
           additionalMonthlyIncomes,
+          monthlyIncomeSources,
           currentSavings,
           savingsTransactions,
         });
@@ -404,11 +445,14 @@ function App() {
             });
           }
         }
-      } catch (err) {
-        console.error('save error', err);
+      } catch (err: any) {
+        // Only log errors that are not CSRF-related (they are auto-retried)
+        if (err?.message && !err.message.includes('CSRF') && err?.status !== 403) {
+          console.error('save error', err);
+        }
       }
     }, 500);
-  }, [categories, expenses, subs, annualFixedExpenses, monthlySalary, variableMonthlyIncomes, additionalMonthlyIncomes, currentSavings, savingsTransactions, sessionEmail, year, isViewingPrediction, globalData?.lockedYears, globalData, years]);
+  }, [categories, expenses, subs, annualFixedExpenses, monthlySalary, variableMonthlyIncomes, additionalMonthlyIncomes, monthlyIncomeSources, currentSavings, savingsTransactions, sessionEmail, year, isViewingPrediction, globalData?.lockedYears, globalData, years]);
 
   // Use budget calculations hook (only for numeric years, not dashboard)
   const calculations = useBudgetCalculations(
@@ -513,32 +557,72 @@ function App() {
     setCategories((prev) => prev.filter((c) => c.id !== id));
   }
 
-  async function onLogin(email: string, password: string) {
+  async function onLogin(email: string, password: string, isSignup?: boolean, confirmPassword?: string) {
     try {
+      // For now, signup is handled the same way as login - backend creates data on first connection
       const out = await Api.login(email, password);
       setSessionEmail(out.email);
+      
       const currentYear = today.getFullYear();
       
-          // Load global data after login
+          // Load global data after login (with retry if session not ready)
           try {
-            const global = await Api.getGlobalData();
-            setGlobalData(global);
+            // Wait a bit for session cookie to be available
+            await new Promise(resolve => setTimeout(resolve, 200));
             
-            // Check if initialization is complete
-            // Only show modal if initializationComplete is explicitly false (not undefined/null)
-            if (global.initializationComplete === false) {
-              setIsInitializationModalOpen(true);
+            let global = null;
+            for (let i = 0; i < 3; i++) {
+              try {
+                global = await Api.getGlobalData();
+                break;
+              } catch (err: any) {
+                if (err?.status === 401 && i < 2) {
+                  // Wait a bit and retry if session not ready yet
+                  await new Promise(resolve => setTimeout(resolve, 200));
+                  continue;
+                }
+                // If still 401 after retries, don't throw - just skip loading global data
+                if (err?.status === 401) {
+                  break;
+                }
+                throw err;
+              }
+            }
+            
+            if (global) {
+              setGlobalData(global);
+              
+                // Check if initialization is complete
+                if (global.initializationComplete === false) {
+                  // Check if user profile exists (has completed advanced signup)
+                  if (!global.userProfile) {
+                    // Show advanced signup form first
+                    setIsAdvancedSignupOpen(true);
+                  } else {
+                    // Show initialization modal with existing profile
+                    setUserProfile(global.userProfile);
+                    setIsInitializationModalOpen(true);
+                  }
+                } else {
+                  setIsInitializationModalOpen(false);
+                  setIsAdvancedSignupOpen(false);
+                }
             } else {
+              // Session not ready yet - will be loaded by checkSession useEffect
               setIsInitializationModalOpen(false);
             }
           } catch (err: any) {
-            console.error('Could not load global data:', err);
-            // Only show modal if it's a 404 (no data exists), not other errors
-            if (err.status === 404 || err.message?.includes('404')) {
-              setIsInitializationModalOpen(true);
+            // Silently handle errors - session will be established later
+            if (err?.status !== 401) {
+              console.error('Could not load global data:', err);
+            }
+            // Only show modal if it's a 404 (no data exists)
+            if (err?.status === 404 || err.message?.includes('404')) {
+              // New user - show advanced signup form
+              setIsAdvancedSignupOpen(true);
             } else {
-              // For other errors, assume initialized to avoid blocking access
               setIsInitializationModalOpen(false);
+              setIsAdvancedSignupOpen(false);
             }
           }
       
@@ -559,6 +643,87 @@ function App() {
       setYear('dashboard');
     } catch (err: any) {
       alert(err.message || 'Login error');
+    }
+  }
+
+  async function handleAdvancedSignupComplete(profile: UserProfile, budget?: any) {
+    try {
+      // Save user profile to global data
+      const currentGlobal = globalData || {
+        bankAccounts: [],
+        investments: [],
+        savingsGoals: [],
+        savingsProjects: [],
+        temporaryIncomes: [],
+        sharedExpensePersons: [],
+        personTransactions: [],
+        initializationComplete: false,
+        monthlySalary: 0,
+      };
+      
+      const globalDataToSave: UserGlobalData = {
+        ...currentGlobal,
+        userProfile: profile,
+      };
+      
+      await Api.putGlobalData(globalDataToSave);
+      setGlobalData(globalDataToSave);
+      setUserProfile(profile);
+      setGeneratedBudget(budget);
+      
+      // If budget was generated, pre-fill current year
+      if (budget) {
+        const currentYearNum = today.getFullYear();
+        try {
+          // Ensure current year exists
+          let currentYearData;
+          try {
+            currentYearData = await Api.getYearData(currentYearNum);
+          } catch (err: any) {
+            if (err.status === 404 || err.message?.includes('404')) {
+              await Api.addYear(currentYearNum);
+              currentYearData = { 
+                categories: defaultCategories, 
+                expenses: [], 
+                subs: [], 
+                annualFixedExpenses: [], 
+                monthlySalary: 0, 
+                currentSavings: 0, 
+                savingsTransactions: [] 
+              };
+            } else {
+              throw err;
+            }
+          }
+          
+          // Pre-fill with generated budget
+          await Api.putYearData(currentYearNum, {
+            categories: budget.categories || currentYearData.categories,
+            expenses: budget.expenses || currentYearData.expenses,
+            subs: budget.subs || currentYearData.subs,
+            annualFixedExpenses: budget.annualFixedExpenses || currentYearData.annualFixedExpenses,
+            monthlySalary: budget.monthlySalary || currentYearData.monthlySalary,
+            currentSavings: currentYearData.currentSavings,
+            savingsTransactions: currentYearData.savingsTransactions,
+          });
+          
+          // Update local state
+          setCategories(budget.categories || defaultCategories);
+          setExpenses(budget.expenses || []);
+          setSubs(budget.subs || []);
+          setAnnualFixedExpenses(budget.annualFixedExpenses || []);
+          setMonthlySalary(budget.monthlySalary || 0);
+        } catch (err) {
+          console.error('Error pre-filling year data:', err);
+        }
+      }
+      
+      // Close advanced signup and show initialization modal
+      setIsAdvancedSignupOpen(false);
+      setIsInitializationModalOpen(true);
+    } catch (err: any) {
+      console.error('Error saving user profile:', err);
+      alert('Erreur lors de la sauvegarde du profil');
     }
   }
 
@@ -655,6 +820,7 @@ function App() {
       monthlySalary: 0,
       variableMonthlyIncomes: undefined,
       additionalMonthlyIncomes: [],
+      monthlyIncomeSources: [],
       currentSavings: 0,
       savingsTransactions: []
     };
@@ -671,6 +837,7 @@ function App() {
       setMonthlySalary(data.monthlySalary || 0);
       setVariableMonthlyIncomes(data.variableMonthlyIncomes);
       setAdditionalMonthlyIncomes(data.additionalMonthlyIncomes || []);
+      setMonthlyIncomeSources(data.monthlyIncomeSources || []);
       setCurrentSavings(data.currentSavings || 0);
       setSavingsTransactions(data.savingsTransactions || []);
     }
@@ -777,6 +944,7 @@ function App() {
     setMonthlySalary(0);
     setVariableMonthlyIncomes(undefined);
     setAdditionalMonthlyIncomes([]);
+    setMonthlyIncomeSources([]);
     setCurrentSavings(0);
     setSavingsTransactions([]);
   }
@@ -1086,6 +1254,8 @@ function App() {
           onVariableMonthlyIncomesChange={typeof year === 'number' ? setVariableMonthlyIncomes : undefined}
           additionalMonthlyIncomes={additionalMonthlyIncomes}
           onAdditionalMonthlyIncomesChange={typeof year === 'number' ? setAdditionalMonthlyIncomes : undefined}
+          monthlyIncomeSources={monthlyIncomeSources}
+          onMonthlyIncomeSourcesChange={typeof year === 'number' ? setMonthlyIncomeSources : undefined}
           currentYear={typeof year === 'number' ? year : undefined}
           onOpenTaxManager={() => setIsTaxManagerOpen(true)}
         />
@@ -1175,12 +1345,29 @@ function App() {
         onConfirm={handleConfirmAddYear}
       />
       
+      {/* Advanced Signup Form (for new users) */}
+      {isAdvancedSignupOpen && (
+        <AdvancedSignupForm
+          isOpen={true}
+          onComplete={handleAdvancedSignupComplete}
+          onSkip={() => {
+            setIsAdvancedSignupOpen(false);
+            setIsInitializationModalOpen(true);
+          }}
+        />
+      )}
+
       {/* Initialization Modal (can be reopened from settings later) */}
       {isInitializationModalOpen && (
         <InitializationModal
           isOpen={true}
           onComplete={handleInitializationComplete}
           canSkip={false}
+          initialData={{
+            monthlySalary: generatedBudget?.monthlySalary || globalData?.monthlySalary,
+            monthlySalaryStartDate: globalData?.monthlySalaryStartDate,
+            temporaryIncomes: globalData?.temporaryIncomes,
+          }}
         />
       )}
 

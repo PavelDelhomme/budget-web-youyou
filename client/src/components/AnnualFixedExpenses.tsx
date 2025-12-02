@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { AnnualFixedExpense, BankAccount } from '../types';
+import { AnnualFixedExpense, BankAccount, ExpenseShare } from '../types';
 import { currency, parseAmount } from '../utils';
+import { ExpenseShareInput } from './ExpenseShareInput';
 
 interface AnnualFixedExpensesProps {
   expenses: AnnualFixedExpense[];
@@ -21,10 +22,11 @@ export function AnnualFixedExpenses({
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [newExpense, setNewExpense] = useState({
     name: '',
-    amount: 0,
+    amount: 0, // Montant total de la charge
     month: 1,
     note: '',
     accountId: '' as string | undefined,
+    share: undefined as ExpenseShare | undefined,
   });
 
   const months = [
@@ -35,33 +37,47 @@ export function AnnualFixedExpenses({
   function handleAdd() {
     if (!newExpense.name || newExpense.amount <= 0) return;
     
+    // Calculer le montant réellement payé (avec partage si applicable)
+    const actualAmount = newExpense.share?.yourAmount || newExpense.amount;
+    
     if (editingExpenseId) {
       // Modification d'une dépense existante
       onUpdate(editingExpenseId, {
-        ...newExpense,
+        name: newExpense.name,
+        amount: actualAmount, // Montant réellement payé
+        month: newExpense.month,
+        note: newExpense.note,
         accountId: newExpense.accountId || undefined,
+        share: newExpense.share,
       });
       setEditingExpenseId(null);
     } else {
       // Ajout d'une nouvelle dépense
       onAdd({
-        ...newExpense,
+        name: newExpense.name,
+        amount: actualAmount, // Montant réellement payé
+        month: newExpense.month,
+        note: newExpense.note,
         accountId: newExpense.accountId || undefined,
+        share: newExpense.share,
       });
     }
     
-    setNewExpense({ name: '', amount: 0, month: 1, note: '', accountId: '' });
+    setNewExpense({ name: '', amount: 0, month: 1, note: '', accountId: '', share: undefined });
     setIsAdding(false);
   }
 
   function handleEdit(expense: AnnualFixedExpense) {
     setEditingExpenseId(expense.id);
+    // Si la dépense est partagée, utiliser le montant total, sinon le montant payé
+    const totalAmount = expense.share?.totalAmount || expense.amount;
     setNewExpense({
       name: expense.name,
-      amount: expense.amount,
+      amount: totalAmount,
       month: expense.month,
       note: expense.note || '',
       accountId: expense.accountId || '',
+      share: expense.share,
     });
     setIsAdding(true);
     // Scroll vers le formulaire
@@ -70,7 +86,7 @@ export function AnnualFixedExpenses({
 
   function handleCancelEdit() {
     setEditingExpenseId(null);
-    setNewExpense({ name: '', amount: 0, month: 1, note: '', accountId: '' });
+    setNewExpense({ name: '', amount: 0, month: 1, note: '', accountId: '', share: undefined });
     setIsAdding(false);
   }
 
@@ -110,7 +126,14 @@ export function AnnualFixedExpenses({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Montant (€)</label>
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">
+                Montant total (€)
+                {newExpense.share && newExpense.share.yourAmount !== newExpense.amount && (
+                  <span className="ml-2 text-xs text-blue-600 dark:text-blue-400">
+                    (Vous payez: {currency(newExpense.share.yourAmount)})
+                  </span>
+                )}
+              </label>
               <input
                 type="text"
                 value={newExpense.amount === 0 ? '' : newExpense.amount.toString().replace('.', ',')}
@@ -120,6 +143,9 @@ export function AnnualFixedExpenses({
                 placeholder="Ex: 1200,00 ou 1200.00"
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {newExpense.share ? 'Montant total de la charge partagée' : 'Montant total de la charge'}
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Mois</label>
@@ -150,6 +176,13 @@ export function AnnualFixedExpenses({
                 ))}
               </select>
             </div>
+          </div>
+          <div className="mt-3">
+            <ExpenseShareInput
+              totalAmount={newExpense.amount || 0}
+              onShareChange={(share) => setNewExpense({ ...newExpense, share })}
+              initialShare={newExpense.share}
+            />
           </div>
           <div className="mt-3">
             <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Note (optionnel)</label>
@@ -202,6 +235,11 @@ export function AnnualFixedExpenses({
                       </td>
                       <td className="py-2 px-3 text-right font-semibold text-gray-900 dark:text-white">
                         {currency(exp.amount)}
+                        {exp.share && exp.share.totalAmount !== exp.amount && (
+                          <span className="block text-xs text-gray-500 dark:text-gray-400 font-normal">
+                            (Total: {currency(exp.share.totalAmount)}, {exp.share.yourParts}/{exp.share.totalParts} part{exp.share.yourParts > 1 ? 's' : ''})
+                          </span>
+                        )}
                       </td>
                       <td className="py-2 px-3 text-sm text-gray-600 dark:text-gray-400">{exp.note || '-'}</td>
                       <td className="py-2 px-3 text-right">
