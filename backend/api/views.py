@@ -1,11 +1,8 @@
 """
-API Views
+API Views - Flask routes
 """
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
-from rest_framework import status
-from django.views.decorators.csrf import csrf_exempt
+from flask import request, jsonify, session
+from functools import wraps
 import re
 
 from .utils import load_user, save_user, get_default_year_data
@@ -15,175 +12,179 @@ from .security import (
 )
 
 
-def require_session_user(request):
-    """Check if user email is in session and validate it"""
-    if 'user_email' not in request.session:
-        return None
-    user_email = request.session['user_email']
-    # Validate email format for security
-    if not validate_email(user_email):
-        request.session.flush()
-        return None
-    return user_email
+def require_auth(f):
+    """Decorator to require authentication"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_email' not in session:
+            return jsonify({'error': 'Not authenticated'}), 401
+        return f(*args, **kwargs)
+    return decorated_function
 
 
-@api_view(['POST'])
-@permission_classes([AllowAny])
-@csrf_exempt
-def login(request):
-    """Login endpoint with security validation"""
-    email_input = request.data.get('email', '')
+def register_routes(app):
+    """Register all API routes"""
     
-    # Sanitize and validate email
-    email = sanitize_email(email_input)
-    if not email:
-        return Response({'error': 'Email invalide'}, status=status.HTTP_400_BAD_REQUEST)
+    from api.middleware import require_csrf, get_client_ip
     
-    # Note: Password verification not implemented (same as original)
-    # In production, implement proper password hashing
-    
-    # Set session user with validated email
-    request.session['user_email'] = email
-    
-    # Ensure user data exists
-    data = load_user(email)
-    
-    return Response({
-        'email': email,
-        'years': data['years']
-    })
-
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-@csrf_exempt
-def logout(request):
-    """Logout endpoint"""
-    request.session.flush()
-    return Response({'done': True})
-
-
-@api_view(['GET', 'POST', 'DELETE'])
-@csrf_exempt
-def years_view(request):
-    """Handle years operations: GET, POST, DELETE"""
-    user_email = require_session_user(request)
-    if not user_email:
-        return Response({'error': 'Not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
-    
-    if request.method == 'GET':
-        # Get all years for authenticated user
+    @app.route('/api/years', methods=['GET'])
+    @require_auth
+    def get_years():
+        """Get all years for authenticated user"""
+        user_email = session['user_email']
         data = load_user(user_email)
-        return Response({
+        return jsonify({
             'email': user_email,
             'years': data['years']
         })
     
-    elif request.method == 'POST':
-        # Add a new year with validation
-        year = request.data.get('year')
+    @app.route('/api/years', methods=['POST'])
+    @require_auth
+    @require_csrf
+    def add_year():
+        """Add a new year"""
+        user_email = session['user_email']
+        data = request.get_json() or {}
+        year = data.get('year')
+        
         year_num = validate_year(year)
         if year_num is None:
-            return Response({'error': 'Année invalide'}, status=status.HTTP_400_BAD_REQUEST)
+            return jsonify({'error': 'Année invalide'}), 400
         
-        data = load_user(user_email)
-        if year_num not in data['years']:
-            data['years'].append(year_num)
-            data['years'].sort()
+        user_data = load_user(user_email)
+        if year_num not in user_data['years']:
+            user_data['years'].append(year_num)
+            user_data['years'].sort()
+            save_user(user_email, user_data)
         
-        save_user(user_email, data)
-        return Response({'years': data['years']})
+        return jsonify({'years': user_data['years']})
     
-    elif request.method == 'DELETE':
-        # Delete a year with validation
-        year_str = request.GET.get('year')
+    @app.route('/api/years', methods=['DELETE'])
+    @require_auth
+    @require_csrf
+    def delete_year():
+        """Delete a year"""
+        user_email = session['user_email']
+        year_str = request.args.get('year')
+        
         if not year_str:
-            return Response({'error': 'Année requise'}, status=status.HTTP_400_BAD_REQUEST)
+            return jsonify({'error': 'Année requise'}), 400
         
         year_num = validate_year(year_str)
         if year_num is None:
-            return Response({'error': 'Année invalide'}, status=status.HTTP_400_BAD_REQUEST)
+            return jsonify({'error': 'Année invalide'}), 400
         
-        data = load_user(user_email)
+        user_data = load_user(user_email)
         
         # Remove from years array
-        data['years'] = [y for y in data['years'] if y != year_num]
+        user_data['years'] = [y for y in user_data['years'] if y != year_num]
         
         # Remove dataset if exists
         year_key = str(year_num)
-        if year_key in data['datasets']:
-            del data['datasets'][year_key]
+        if year_key in user_data['datasets']:
+            del user_data['datasets'][year_key]
         
-        save_user(user_email, data)
-        return Response({'years': data['years']})
+        save_user(user_email, user_data)
+        return jsonify({'years': user_data['years']})
     
-    return Response({'error': 'Method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-
-@api_view(['GET'])
-@csrf_exempt
-def get_year_data(request):
-    """Get data for a specific year"""
-    user_email = require_session_user(request)
-    if not user_email:
-        return Response({'error': 'Not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
-    
-    year_str = request.GET.get('year')
-    if not year_str:
-        return Response({'error': 'Année requise'}, status=status.HTTP_400_BAD_REQUEST)
-    
-    year_num = validate_year(year_str)
-    if year_num is None:
-        return Response({'error': 'Année invalide'}, status=status.HTTP_400_BAD_REQUEST)
-    
-    data = load_user(user_email)
-    year_key = str(year_num)
-    dataset = data['datasets'].get(year_key)
-    
-    if not dataset:
-        # Return default dataset
+    @app.route('/api/get', methods=['GET'])
+    @require_auth
+    def get_year_data():
+        """Get data for a specific year"""
+        user_email = session['user_email']
+        year_str = request.args.get('year')
+        
+        if not year_str:
+            return jsonify({'error': 'Année requise'}), 400
+        
+        year_num = validate_year(year_str)
+        if year_num is None:
+            return jsonify({'error': 'Année invalide'}), 400
+        
+        user_data = load_user(user_email)
+        year_key = str(year_num)
+        dataset = user_data['datasets'].get(year_key)
+        
+        if not dataset:
+            # Return default dataset with all required fields
+            default_data = get_default_year_data()
+            return jsonify(default_data)
+        
+        # Ensure all default fields are present for backward compatibility
         default_data = get_default_year_data()
-        return Response(default_data)
+        for key, default_value in default_data.items():
+            if key not in dataset:
+                dataset[key] = default_value
+        
+        return jsonify(dataset)
     
-    return Response(dataset)
-
-
-@api_view(['PUT'])
-@csrf_exempt
-def put_year_data(request):
-    """Update data for a specific year"""
-    user_email = require_session_user(request)
-    if not user_email:
-        return Response({'error': 'Not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+    @app.route('/api/put', methods=['PUT'])
+    @require_auth
+    @require_csrf
+    def put_year_data():
+        """Update data for a specific year"""
+        user_email = session['user_email']
+        year_str = request.args.get('year')
+        
+        if not year_str:
+            return jsonify({'error': 'Année requise'}), 400
+        
+        year_num = validate_year(year_str)
+        if year_num is None:
+            return jsonify({'error': 'Année invalide'}), 400
+        
+        payload = request.get_json()
+        if not isinstance(payload, dict):
+            return jsonify({'error': 'Payload invalide'}), 400
+        
+        # Validate and sanitize all data before saving
+        validated_data = validate_year_data(payload)
+        if validated_data is None:
+            return jsonify({'error': 'Données invalides'}), 400
+        
+        user_data = load_user(user_email)
+        year_key = str(year_num)
+        
+        # Merge with existing data
+        existing_data = user_data['datasets'].get(year_key, {})
+        existing_data.update(validated_data)
+        user_data['datasets'][year_key] = existing_data
+        
+        # Ensure year is in years array
+        if year_num not in user_data['years']:
+            user_data['years'].append(year_num)
+            user_data['years'].sort()
+        
+        save_user(user_email, user_data)
+        return jsonify({'ok': True})
     
-    year_str = request.GET.get('year')
-    if not year_str:
-        return Response({'error': 'Année requise'}, status=status.HTTP_400_BAD_REQUEST)
+    @app.route('/api/global', methods=['GET'])
+    @require_auth
+    def get_global_data():
+        """Get global user data"""
+        user_email = session['user_email']
+        user_data = load_user(user_email)
+        return jsonify(user_data.get('globalData', {}))
     
-    year_num = validate_year(year_str)
-    if year_num is None:
-        return Response({'error': 'Année invalide'}, status=status.HTTP_400_BAD_REQUEST)
-    
-    payload = request.data
-    if not isinstance(payload, dict):
-        return Response({'error': 'Payload invalide'}, status=status.HTTP_400_BAD_REQUEST)
-    
-    # Validate and sanitize all data before saving
-    validated_data = validate_year_data(payload)
-    if validated_data is None:
-        return Response({'error': 'Données invalides'}, status=status.HTTP_400_BAD_REQUEST)
-    
-    data = load_user(user_email)
-    year_key = str(year_num)
-    
-    # Replace with validated data (security: only validated data is saved)
-    data['datasets'][year_key] = validated_data
-    
-    # Ensure year is in years array
-    if year_num not in data['years']:
-        data['years'].append(year_num)
-        data['years'].sort()
-    
-    save_user(user_email, data)
-    return Response({'ok': True})
-
+    @app.route('/api/global', methods=['PUT'])
+    @require_auth
+    @require_csrf
+    def put_global_data():
+        """Update global user data"""
+        user_email = session['user_email']
+        payload = request.get_json()
+        
+        if not isinstance(payload, dict):
+            return jsonify({'error': 'Payload invalide'}), 400
+        
+        # Validate global data
+        from .security import validate_global_data
+        validated_data = validate_global_data(payload)
+        if validated_data is None:
+            return jsonify({'error': 'Données invalides'}), 400
+        
+        user_data = load_user(user_email)
+        user_data['globalData'] = validated_data
+        save_user(user_email, user_data)
+        
+        return jsonify({'ok': True})

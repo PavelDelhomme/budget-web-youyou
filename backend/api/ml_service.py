@@ -1,5 +1,6 @@
 """
 ML Service API endpoints for training and predictions
+Supports both Neural Network (TensorFlow/Keras) and Traditional ML (scikit-learn)
 """
 from flask import request, jsonify, session
 from functools import wraps
@@ -7,6 +8,7 @@ import os
 
 from api.utils import load_user
 from api.ml.model import create_predictor
+from api.ml.neural_network import create_neural_predictor
 from api.ml.recommendations import AIRecommendationEngine
 from api.ml.data_validator import DataValidator
 
@@ -51,8 +53,10 @@ def register_ml_routes(app):
     def train_model():
         """
         Train the ML model on user's historical data
+        Supports both neural network and traditional ML models
         """
         user_email = session['user_email']
+        data = request.get_json() or {}
         
         try:
             # Get historical data
@@ -64,9 +68,33 @@ def register_ml_routes(app):
                     'years_available': len(historical_data)
                 }), 400
             
-            # Create and train predictor
-            predictor = create_predictor(user_email)
-            scores = predictor.train(historical_data)
+            # Try neural network first, fallback to traditional ML
+            use_neural = data.get('use_neural_network', True)  # Default to neural network
+            model_type = 'neural_network'
+            
+            if use_neural:
+                try:
+                    predictor = create_neural_predictor(user_email)
+                    if predictor:
+                        # Get epochs from request or use default
+                        epochs = data.get('epochs', 100)
+                        scores = predictor.train(historical_data, epochs=epochs)
+                    else:
+                        # Fallback to traditional ML if neural network not available
+                        model_type = 'traditional_ml'
+                        predictor = create_predictor(user_email)
+                        scores = predictor.train(historical_data)
+                except Exception as e:
+                    # Fallback to traditional ML on error
+                    print(f"⚠️  Neural network not available, using traditional ML: {e}")
+                    model_type = 'traditional_ml'
+                    predictor = create_predictor(user_email)
+                    scores = predictor.train(historical_data)
+            else:
+                # Use traditional ML
+                model_type = 'traditional_ml'
+                predictor = create_predictor(user_email)
+                scores = predictor.train(historical_data)
             
             if 'error' in scores:
                 return jsonify(scores), 400
@@ -79,7 +107,8 @@ def register_ml_routes(app):
                 'message': 'Modèle entraîné avec succès',
                 'training_scores': scores,
                 'years_used': len(historical_data),
-                'model_info': info
+                'model_info': info,
+                'model_type': model_type
             })
             
         except Exception as e:
@@ -92,6 +121,7 @@ def register_ml_routes(app):
     def predict_budget():
         """
         Generate predictions using trained ML model
+        Automatically uses neural network if available, otherwise traditional ML
         """
         user_email = session['user_email']
         data = request.get_json() or {}
@@ -114,8 +144,10 @@ def register_ml_routes(app):
             # Get last year data
             last_year_data = historical_data[-1]
             
-            # Create predictor and load model
-            predictor = create_predictor(user_email)
+            # Try neural network first, fallback to traditional ML
+            predictor = create_neural_predictor(user_email)
+            if not predictor or not predictor.is_trained:
+                predictor = create_predictor(user_email)
             
             if not predictor.is_trained:
                 return jsonify({
@@ -128,7 +160,8 @@ def register_ml_routes(app):
             
             return jsonify({
                 'success': True,
-                'predictions': predictions
+                'predictions': predictions,
+                'model_type': predictor.get_training_info().get('model_type', 'traditional_ml')
             })
             
         except Exception as e:
@@ -145,7 +178,11 @@ def register_ml_routes(app):
         user_email = session['user_email']
         
         try:
-            predictor = create_predictor(user_email)
+            # Try neural network first
+            predictor = create_neural_predictor(user_email)
+            if not predictor or not predictor.is_trained:
+                predictor = create_predictor(user_email)
+            
             info = predictor.get_training_info()
             
             historical_data = get_historical_data_for_ml(user_email)
@@ -153,7 +190,8 @@ def register_ml_routes(app):
             return jsonify({
                 'model_info': info,
                 'historical_years_available': len(historical_data),
-                'years': [d['year'] for d in historical_data]
+                'years': [d['year'] for d in historical_data],
+                'model_type': info.get('model_type', 'traditional_ml')
             })
             
         except Exception as e:
@@ -168,6 +206,7 @@ def register_ml_routes(app):
         Retrain the model with latest data
         """
         user_email = session['user_email']
+        data = request.get_json() or {}
         
         try:
             # Get all historical data
@@ -179,9 +218,28 @@ def register_ml_routes(app):
                     'years_available': len(historical_data)
                 }), 400
             
-            # Create new predictor and train
-            predictor = create_predictor(user_email)
-            scores = predictor.train(historical_data)
+            # Use neural network if available
+            use_neural = data.get('use_neural_network', True)
+            model_type = 'neural_network'
+            
+            if use_neural:
+                try:
+                    predictor = create_neural_predictor(user_email)
+                    if predictor:
+                        epochs = data.get('epochs', 100)
+                        scores = predictor.train(historical_data, epochs=epochs)
+                    else:
+                        model_type = 'traditional_ml'
+                        predictor = create_predictor(user_email)
+                        scores = predictor.train(historical_data)
+                except Exception:
+                    model_type = 'traditional_ml'
+                    predictor = create_predictor(user_email)
+                    scores = predictor.train(historical_data)
+            else:
+                model_type = 'traditional_ml'
+                predictor = create_predictor(user_email)
+                scores = predictor.train(historical_data)
             
             if 'error' in scores:
                 return jsonify(scores), 400
@@ -190,7 +248,8 @@ def register_ml_routes(app):
                 'success': True,
                 'message': 'Modèle réentraîné avec succès',
                 'training_scores': scores,
-                'years_used': len(historical_data)
+                'years_used': len(historical_data),
+                'model_type': model_type
             })
             
         except Exception as e:
@@ -349,4 +408,3 @@ def register_ml_routes(app):
             return jsonify({
                 'error': f'Erreur lors de l\'analyse: {str(e)}'
             }), 500
-

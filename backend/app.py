@@ -1,5 +1,6 @@
 """
 Flask application for Budget Annuel API
+Enhanced with advanced security features
 """
 from flask import Flask, request, jsonify, session
 from flask_cors import CORS
@@ -8,12 +9,16 @@ import re
 import os
 import time
 from datetime import datetime, timedelta
+from pathlib import Path
 
 from api.utils import load_user, save_user, get_default_year_data
 from api.middleware import (
     add_security_headers, get_client_ip, rate_limit,
     require_csrf, prevent_session_fixation, log_security_event,
     get_csrf_token
+)
+from api.security_advanced import (
+    AnomalyDetector, SecurityLogger, DataEncryption
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -35,6 +40,15 @@ app.config['SESSION_COOKIE_PATH'] = '/'  # Restreindre le chemin
 app.config['SESSION_COOKIE_DOMAIN'] = None  # Ne pas partager entre sous-domaines
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
 app.config['SESSION_COOKIE_SAMESITE_FORCE_ALL'] = True
+
+# Initialize advanced security features
+BASE_DIR = Path(__file__).resolve().parent
+DATA_DIR = BASE_DIR / 'data'
+DATA_DIR.mkdir(exist_ok=True)
+
+anomaly_detector = AnomalyDetector()
+security_logger = SecurityLogger(DATA_DIR)
+data_encryption = DataEncryption()
 
 # Add security headers to all responses
 @app.after_request
@@ -100,6 +114,18 @@ def require_auth(f):
             session.clear()
             return jsonify({'error': 'Session invalide'}), 401
         
+        # Détection d'anomalies sur les requêtes authentifiées
+        client_ip = get_client_ip()
+        rate_abuse = anomaly_detector.detect_rate_limit_abuse(client_ip)
+        
+        if rate_abuse.get('suspicious'):
+            security_logger.log_security_event(
+                'RATE_LIMIT_ABUSE',
+                client_ip,
+                {'details': rate_abuse.get('reason')},
+                'WARNING'
+            )
+        
         return f(*args, **kwargs)
     return decorated_function
 
@@ -116,9 +142,20 @@ def get_csrf():
 @app.route('/api/login', methods=['POST'])
 @rate_limit(max_requests=5, window=60)  # Stricter rate limiting for login
 def login():
-    """Login endpoint with security measures"""
+    """Login endpoint with advanced security measures"""
     client_ip = get_client_ip()
     current_time = time.time()
+    
+    # Détection d'anomalies de connexion
+    suspicious_check = anomaly_detector.detect_suspicious_login(client_ip, False)
+    
+    if suspicious_check.get('suspicious'):
+        security_logger.log_security_event(
+            'SUSPICIOUS_LOGIN_ATTEMPT',
+            client_ip,
+            {'reason': suspicious_check.get('reason')},
+            'HIGH'
+        )
     
     # Vérifier si l'IP est bloquée
     if client_ip in login_attempts:
@@ -178,22 +215,39 @@ def login():
         # Bloquer l'IP après trop de tentatives
         if login_attempts[client_ip]['count'] >= MAX_LOGIN_ATTEMPTS:
             login_attempts[client_ip]['locked_until'] = current_time + LOCKOUT_DURATION
+            security_logger.log_security_event(
+                'LOGIN_BLOCKED',
+                client_ip,
+                {'attempts': login_attempts[client_ip]['count']},
+                'CRITICAL'
+            )
             return jsonify({
                 'error': f'Trop de tentatives échouées. Veuillez réessayer dans {LOCKOUT_DURATION // 60} minute(s).'
             }), 429
         
-        # Log failed login attempt
-        log_security_event('LOGIN_FAILED', f'Failed attempt #{login_attempts[client_ip]["count"]}', client_ip, 'WARNING')
+        # Log failed login attempt with anomaly detection
+        anomaly_result = anomaly_detector.detect_suspicious_login(client_ip, False)
+        security_logger.log_security_event(
+            'LOGIN_FAILED',
+            client_ip,
+            {
+                'attempt': login_attempts[client_ip]['count'],
+                'suspicious': anomaly_result.get('suspicious', False)
+            },
+            'WARNING'
+        )
         
         # Message générique pour ne pas révéler lequel est incorrect
         return jsonify({'error': 'Email ou mot de passe incorrect'}), 401
     
-    # Authentification réussie - réinitialiser le compteur
+    # Authentification réussie
+    anomaly_detector.detect_suspicious_login(client_ip, True)  # Clear failed attempts
+    
+    # Réinitialiser le compteur
     if client_ip in login_attempts:
         del login_attempts[client_ip]
     
     # Regenerate session to prevent session fixation
-    # Instead of clearing completely, we update session values to preserve cookie
     session.permanent = True
     
     # Update session values (preserves existing session cookie)
@@ -205,7 +259,12 @@ def login():
     session.modified = True
     
     # Log successful login
-    log_security_event('LOGIN_SUCCESS', f'User: {ADMIN_EMAIL}', client_ip, 'INFO')
+    security_logger.log_security_event(
+        'LOGIN_SUCCESS',
+        client_ip,
+        {'user': ADMIN_EMAIL},
+        'INFO'
+    )
     
     # Ensure user data exists
     user_data = load_user(ADMIN_EMAIL)
@@ -227,23 +286,26 @@ def logout():
     user_email = session.get('user_email', 'unknown')
     client_ip = get_client_ip()
     
-    # Log logout
-    log_security_event('LOGOUT', f'User: {user_email}', client_ip, 'INFO')
+    security_logger.log_security_event(
+        'LOGOUT',
+        client_ip,
+        {'user': user_email},
+        'INFO'
+    )
     
-    # Clear session completely
     session.clear()
-    
-    return jsonify({'done': True})
+    return jsonify({'success': True})
 
 
 @app.route('/api/session-check', methods=['GET'])
-@rate_limit(max_requests=100, window=60)
 def session_check():
-    """Check if user has a valid session - never returns 401, returns empty if not authenticated"""
+    """
+    Check if user is authenticated (never returns 401 to prevent console errors)
+    """
     if 'user_email' not in session:
         return jsonify({'authenticated': False}), 200
     
-    user_email = session['user_email']
+    user_email = session.get('user_email')
     if not user_email or not isinstance(user_email, str):
         return jsonify({'authenticated': False}), 200
     
@@ -255,296 +317,21 @@ def session_check():
     return jsonify({
         'authenticated': True,
         'email': user_email
-    })
-
-@app.route('/api/years', methods=['GET'])
-@require_auth
-@rate_limit(max_requests=100, window=60)
-def get_years():
-    """Get all years for authenticated user"""
-    from datetime import datetime
-    
-    user_email = session['user_email']
-    user_data = load_user(user_email)
-    current_year = datetime.now().year
-    
-    # Ensure current year is always in the list
-    if current_year not in user_data['years']:
-        user_data['years'].append(current_year)
-        user_data['years'].sort()
-        save_user(user_email, user_data)
-    
-    return jsonify({
-        'email': user_email,
-        'years': user_data['years']
-    })
+    }), 200
 
 
-@app.route('/api/years', methods=['POST'])
-@require_auth
-@require_csrf
-@rate_limit(max_requests=20, window=60)
-def add_year():
-    """Add a new year"""
-    user_email = session['user_email']
-    data = request.get_json()
-    year = data.get('year') if data else None
-    
-    try:
-        year_num = int(year) if year else None
-        if not year_num or year_num < 1900 or year_num > 2100:
-            return jsonify({'error': 'Année invalide'}), 400
-    except (ValueError, TypeError):
-        return jsonify({'error': 'Année invalide'}), 400
-    
-    user_data = load_user(user_email)
-    if year_num not in user_data['years']:
-        user_data['years'].append(year_num)
-        user_data['years'].sort()
-    
-    save_user(user_email, user_data)
-    return jsonify({'years': user_data['years']})
-
-
-@app.route('/api/years', methods=['DELETE'])
-@require_auth
-@require_csrf
-@rate_limit(max_requests=20, window=60)
-def delete_year():
-    """Delete a year"""
-    user_email = session['user_email']
-    year_str = request.args.get('year')
-    
-    if not year_str:
-        return jsonify({'error': 'Année requise'}), 400
-    
-    try:
-        year_num = int(year_str)
-    except ValueError:
-        return jsonify({'error': 'Année invalide'}), 400
-    
-    user_data = load_user(user_email)
-    
-    # Remove from years array
-    user_data['years'] = [y for y in user_data['years'] if y != year_num]
-    
-    # Remove dataset if exists
-    year_key = str(year_num)
-    if year_key in user_data['datasets']:
-        del user_data['datasets'][year_key]
-    
-    save_user(user_email, user_data)
-    return jsonify({'years': user_data['years']})
-
-
-@app.route('/api/get', methods=['GET'])
-@require_auth
-def get_year_data():
-    """Get data for a specific year"""
-    user_email = session['user_email']
-    year_str = request.args.get('year')
-    
-    if not year_str:
-        return jsonify({'error': 'Année requise'}), 400
-    
-    try:
-        year_num = int(year_str)
-        if year_num < 1900 or year_num > 2100:
-            return jsonify({'error': 'Année invalide'}), 400
-    except ValueError:
-        return jsonify({'error': 'Année invalide'}), 400
-    
-    user_data = load_user(user_email)
-    year_key = str(year_num)
-    dataset = user_data['datasets'].get(year_key)
-    
-    # Ensure default structure exists
-    default_data = get_default_year_data()
-    result = {}
-    for key, default_value in default_data.items():
-        result[key] = dataset.get(key, default_value) if dataset else default_value
-    
-    # Ensure annualFixedExpenses exists (backward compatibility)
-    if 'annualFixedExpenses' not in result:
-        result['annualFixedExpenses'] = []
-    
-    # Ensure variableMonthlyIncomes exists (backward compatibility)
-    if 'variableMonthlyIncomes' not in result:
-        result['variableMonthlyIncomes'] = None
-    
-    # Ensure additionalMonthlyIncomes exists (backward compatibility)
-    if 'additionalMonthlyIncomes' not in result:
-        result['additionalMonthlyIncomes'] = []
-    
-    return jsonify(result)
-
-
-@app.route('/api/put', methods=['PUT'])
-@require_auth
-@require_csrf
-@rate_limit(max_requests=50, window=60)
-def put_year_data():
-    """Update data for a specific year with input validation"""
-    user_email = session['user_email']
-    year_str = request.args.get('year')
-    
-    if not year_str:
-        return jsonify({'error': 'Année requise'}), 400
-    
-    # Validation stricte de l'année
-    try:
-        year_num = int(year_str)
-        if year_num < 1900 or year_num > 2100:
-            return jsonify({'error': 'Année invalide'}), 400
-    except (ValueError, TypeError):
-        return jsonify({'error': 'Année invalide'}), 400
-    
-    # Validation du payload
-    payload = request.get_json()
-    if not isinstance(payload, dict):
-        return jsonify({'error': 'Payload invalide'}), 400
-    
-    # Limiter la taille du payload (protection contre les payloads trop volumineux)
-    payload_str = str(payload)
-    if len(payload_str) > 1000000:  # 1MB max
-        return jsonify({'error': 'Payload trop volumineux'}), 400
-    
-    user_data = load_user(user_email)
-    year_key = str(year_num)
-    
-    # Récupérer les données existantes de l'année (si elles existent)
-    existing_data = user_data['datasets'].get(year_key, {})
-    
-    # Fusionner les données existantes avec les nouvelles données du payload
-    # Cela permet de préserver les champs qui ne sont pas dans le payload
-    user_data['datasets'][year_key] = {
-        'categories': payload.get('categories', existing_data.get('categories', [])),
-        'expenses': payload.get('expenses', existing_data.get('expenses', [])),
-        'subs': payload.get('subs', existing_data.get('subs', [])),
-        'annualFixedExpenses': payload.get('annualFixedExpenses', existing_data.get('annualFixedExpenses', [])),
-        'monthlySalary': payload.get('monthlySalary', existing_data.get('monthlySalary', 0)),
-        'variableMonthlyIncomes': payload.get('variableMonthlyIncomes') if 'variableMonthlyIncomes' in payload else existing_data.get('variableMonthlyIncomes'),  # Array of 12 values or None
-        'additionalMonthlyIncomes': payload.get('additionalMonthlyIncomes', existing_data.get('additionalMonthlyIncomes', [])),  # Array of MonthlyAdditionalIncome
-        'currentSavings': payload.get('currentSavings', existing_data.get('currentSavings', 0)),
-        'savingsTransactions': payload.get('savingsTransactions', existing_data.get('savingsTransactions', []))
-    }
-    
-    # Ensure year is in years array
-    if year_num not in user_data['years']:
-        user_data['years'].append(year_num)
-        user_data['years'].sort()
-    
-    save_user(user_email, user_data)
-    return jsonify({'ok': True})
-
-
-@app.route('/api/global', methods=['GET'])
-@require_auth
-def get_global_data():
-    """Get global user data (not year-specific)"""
-    try:
-        user_email = session.get('user_email')
-        if not user_email:
-            return jsonify({'error': 'Not authenticated'}), 401
-        
-        user_data = load_user(user_email)
-        global_data = user_data.get('globalData') or {}
-        
-        # If globalData doesn't exist or is empty, check if user has years data
-        # If they have years data, consider them initialized
-        if not global_data:
-            has_years_data = bool(user_data.get('years') and len(user_data.get('years', [])) > 0)
-            return jsonify({
-                'bankAccounts': [],
-                'investments': [],
-                'savingsGoals': [],
-                'savingsProjects': [],
-                'temporaryIncomes': [],
-                'sharedExpensePersons': [],
-                'personTransactions': [],
-                'salaryHistory': [],
-                'initializationComplete': has_years_data,  # If user has years, they're initialized
-                'monthlySalary': 0,
-                'monthlySalaryStartDate': None
-            })
-        
-        # Ensure all fields exist in existing globalData
-        if 'initializationComplete' not in global_data:
-            # If user has years data, assume they're initialized
-            has_years_data = bool(user_data.get('years') and len(user_data.get('years', [])) > 0)
-            global_data['initializationComplete'] = has_years_data
-        
-        # Ensure all required fields exist
-        defaults = {
-            'bankAccounts': [],
-            'investments': [],
-            'savingsGoals': [],
-            'savingsProjects': [],
-            'temporaryIncomes': [],
-            'sharedExpensePersons': [],
-            'personTransactions': [],
-            'salaryHistory': [],
-            'monthlySalary': 0,
-            'monthlySalaryStartDate': None
-        }
-        
-        for key, default_value in defaults.items():
-            if key not in global_data:
-                global_data[key] = default_value
-        
-        return jsonify(global_data)
-    except Exception as e:
-        import traceback
-        print(f"Error in get_global_data: {e}")
-        traceback.print_exc()
-        return jsonify({'error': 'Internal Server Error', 'message': str(e)}), 500
-
-
-@app.route('/api/global', methods=['PUT'])
-@require_auth
-@require_csrf
-@rate_limit(max_requests=50, window=60)
-def put_global_data():
-    """Update global user data with input validation"""
-    user_email = session['user_email']
-    payload = request.get_json()
-    
-    if not isinstance(payload, dict):
-        return jsonify({'error': 'Payload invalide'}), 400
-    
-    # Limiter la taille du payload
-    payload_str = str(payload)
-    if len(payload_str) > 500000:  # 500KB max pour les données globales
-        return jsonify({'error': 'Payload trop volumineux'}), 400
-    
-    user_data = load_user(user_email)
-    user_data['globalData'] = payload
-    save_user(user_email, user_data)
-    return jsonify({'ok': True})
-
-
-@app.route('/api/health', methods=['GET'])
-@app.route('/health', methods=['GET'])
-def health():
-    """Health check endpoint"""
-    return jsonify({'status': 'ok'})
-
-
-# Register ML routes
+# Import and register routes
+from api import views
 from api.ml_service import register_ml_routes
-register_ml_routes(app)
-
-# Register Government API routes
 from api.government_service import register_government_routes
-register_government_routes(app)
-
-# Register Statistical API routes
 from api.statistical_service import register_statistical_routes
+
+# Register all routes
+views.register_routes(app)
+register_ml_routes(app)
+register_government_routes(app)
 register_statistical_routes(app)
 
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 6060))
-    debug = os.environ.get('DEBUG', 'False').lower() == 'true'
-    app.run(host='0.0.0.0', port=port, debug=debug)
-
+    app.run(host='0.0.0.0', port=6060, debug=True)
