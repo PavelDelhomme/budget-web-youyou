@@ -76,21 +76,36 @@ function App() {
     return true; // Par défaut ouvert si on ne peut pas détecter
   });
 
-  // Gérer le redimensionnement de la fenêtre
+  // Gérer le redimensionnement de la fenêtre (avec debounce pour éviter les boucles)
   useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    
     const handleResize = () => {
-      const isDesktop = window.innerWidth >= 1024;
-      // Sur desktop, garder ouvert si c'était ouvert, sur mobile fermer
-      if (isDesktop && !isSidebarOpen) {
-        setIsSidebarOpen(true);
-      } else if (!isDesktop && isSidebarOpen) {
-        setIsSidebarOpen(false);
-      }
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        const isDesktop = window.innerWidth >= 1024;
+        // Ne forcer que lors du changement de taille significatif
+        setIsSidebarOpen((prev) => {
+          // Si on passe de mobile à desktop, ouvrir
+          if (isDesktop && !prev) {
+            return true;
+          }
+          // Si on passe de desktop à mobile, fermer
+          if (!isDesktop && prev) {
+            return false;
+          }
+          // Sinon, garder l'état actuel
+          return prev;
+        });
+      }, 150); // Debounce 150ms
     };
 
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [isSidebarOpen]);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []); // Pas de dépendance pour éviter les re-renders
 
   // Debounce timer for saving
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);

@@ -115,10 +115,10 @@ export function Sidebar({
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">Budget Annuel</h1>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">{sessionEmail}</p>
           </div>
-          {/* Bouton fermer - Visible seulement sur mobile */}
+          {/* Bouton fermer - Visible sur tous les écrans */}
           <button
             onClick={setIsOpen}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 transition-colors lg:hidden"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 transition-colors"
             aria-label="Fermer le menu"
           >
             <svg
