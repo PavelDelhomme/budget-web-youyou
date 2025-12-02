@@ -141,9 +141,13 @@ export function AdvancedFiscalManager({ isOpen, onClose, annualIncome = 0 }: Adv
       if (response.ok) {
         const data = await response.json();
         setDeclarations(data.declarations || []);
+      } else if (response.status === 404) {
+        // Endpoint non disponible, utiliser données vides
+        setDeclarations([]);
       }
     } catch (err: any) {
-      console.error('Erreur chargement déclarations:', err);
+      // Erreur silencieuse si endpoint non disponible
+      setDeclarations([]);
     }
   };
 
@@ -157,9 +161,15 @@ export function AdvancedFiscalManager({ isOpen, onClose, annualIncome = 0 }: Adv
         const data = await response.json();
         setCalendar(data.important_dates || []);
         setNextDeadline(data.next_deadline || null);
+      } else if (response.status === 404) {
+        // Endpoint non disponible, utiliser données vides
+        setCalendar([]);
+        setNextDeadline(null);
       }
     } catch (err: any) {
-      console.error('Erreur chargement calendrier:', err);
+      // Erreur silencieuse si endpoint non disponible
+      setCalendar([]);
+      setNextDeadline(null);
     }
   };
 
@@ -172,9 +182,13 @@ export function AdvancedFiscalManager({ isOpen, onClose, annualIncome = 0 }: Adv
       if (response.ok) {
         const data = await response.json();
         setRegulations(data.regulations || []);
+      } else if (response.status === 404) {
+        // Endpoint non disponible, utiliser données vides
+        setRegulations([]);
       }
     } catch (err: any) {
-      console.error('Erreur chargement réglementations:', err);
+      // Erreur silencieuse si endpoint non disponible
+      setRegulations([]);
     }
   };
 
@@ -187,9 +201,13 @@ export function AdvancedFiscalManager({ isOpen, onClose, annualIncome = 0 }: Adv
       if (response.ok) {
         const data = await response.json();
         setAvailableDeductions(data.deductions || []);
+      } else if (response.status === 404) {
+        // Endpoint non disponible, utiliser données vides
+        setAvailableDeductions([]);
       }
     } catch (err: any) {
-      console.error('Erreur chargement déductions:', err);
+      // Erreur silencieuse si endpoint non disponible
+      setAvailableDeductions([]);
     }
   };
 

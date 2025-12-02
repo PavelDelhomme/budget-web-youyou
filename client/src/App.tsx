@@ -79,24 +79,26 @@ function App() {
   // Gérer le redimensionnement de la fenêtre (avec debounce pour éviter les boucles)
   useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout>;
+    let lastWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
     
     const handleResize = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
-        const isDesktop = window.innerWidth >= 1024;
-        // Ne forcer que lors du changement de taille significatif
-        setIsSidebarOpen((prev) => {
-          // Si on passe de mobile à desktop, ouvrir
-          if (isDesktop && !prev) {
-            return true;
-          }
-          // Si on passe de desktop à mobile, fermer
-          if (!isDesktop && prev) {
-            return false;
-          }
-          // Sinon, garder l'état actuel
-          return prev;
-        });
+        const currentWidth = window.innerWidth;
+        const wasMobile = lastWidth < 1024;
+        const isDesktop = currentWidth >= 1024;
+        
+        // Seulement réagir aux changements significatifs (mobile <-> desktop)
+        if (wasMobile && isDesktop) {
+          // Passant de mobile à desktop, ouvrir le drawer
+          setIsSidebarOpen(true);
+        } else if (!wasMobile && !isDesktop) {
+          // Passant de desktop à mobile, fermer le drawer
+          setIsSidebarOpen(false);
+        }
+        // Si on reste sur le même type d'écran, ne rien faire (respecter choix utilisateur)
+        
+        lastWidth = currentWidth;
       }, 150); // Debounce 150ms
     };
 
