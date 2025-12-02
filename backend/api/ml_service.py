@@ -408,3 +408,28 @@ def register_ml_routes(app):
             return jsonify({
                 'error': f'Erreur lors de l\'analyse: {str(e)}'
             }), 500
+    
+    @app.route('/api/ml/benchmark', methods=['POST'])
+    @require_auth
+    def run_benchmark():
+        """
+        Run performance benchmark comparing neural network vs traditional ML
+        """
+        user_email = session['user_email']
+        data = request.get_json() or {}
+        use_synthetic_data = data.get('use_synthetic_data', False)
+        
+        try:
+            from api.ml.performance_tests import run_benchmark
+            
+            results = run_benchmark(user_email, use_synthetic_data=use_synthetic_data)
+            
+            return jsonify({
+                'success': True,
+                'benchmark': results
+            })
+            
+        except Exception as e:
+            return jsonify({
+                'error': f'Erreur lors du benchmark: {str(e)}'
+            }), 500

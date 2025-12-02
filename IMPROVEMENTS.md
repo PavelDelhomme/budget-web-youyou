@@ -408,6 +408,6 @@ POST /api/ml/train
 
 1. ✅ Réseau neuronal implémenté
 2. ✅ Sécurité avancée implémentée
-3. ⏳ Tests de performance comparatifs
-4. ⏳ Interface utilisateur pour choisir le modèle
-5. ⏳ Chiffrement optionnel des données sensibles
+3. ✅ Tests de performance comparatifs (voir `backend/api/ml/performance_tests.py` et endpoint `/api/ml/benchmark`)
+4. ✅ Interface utilisateur pour choisir le modèle (dans `MLTrainingInterface.tsx`)
+5. ✅ Chiffrement optionnel des données sensibles (préparé dans `DataEncryption`, prêt à être activé)

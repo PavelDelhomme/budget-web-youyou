@@ -61,6 +61,9 @@ export function MLTrainingInterface({ isOpen, onClose }: MLTrainingInterfaceProp
   const [error, setError] = useState<string | null>(null);
   const [expandedYears, setExpandedYears] = useState<Set<number>>(new Set());
   const [manualValidations, setManualValidations] = useState<Record<number, boolean>>({});
+  const [selectedModelType, setSelectedModelType] = useState<'auto' | 'neural' | 'traditional'>('auto');
+  const [isBenchmarking, setIsBenchmarking] = useState(false);
+  const [benchmarkResults, setBenchmarkResults] = useState<any>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -182,8 +185,18 @@ export function MLTrainingInterface({ isOpen, onClose }: MLTrainingInterfaceProp
     setError(null);
     
     try {
+      const useNeuralNetwork = selectedModelType === 'neural' || (selectedModelType === 'auto' && true);
+      
       const response = await fetch('/api/ml/train', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          use_neural_network: useNeuralNetwork,
+          epochs: selectedModelType === 'neural' ? 100 : undefined,
+        }),
       });
       
       const data = await response.json();
@@ -199,6 +212,37 @@ export function MLTrainingInterface({ isOpen, onClose }: MLTrainingInterfaceProp
       setError(err.message || 'Erreur lors de l\'entraînement');
     } finally {
       setIsTraining(false);
+    }
+  };
+
+  const handleBenchmark = async () => {
+    setIsBenchmarking(true);
+    setError(null);
+    setBenchmarkResults(null);
+    
+    try {
+      const response = await fetch('/api/ml/benchmark', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          use_synthetic_data: false,
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.error) {
+        setError(data.error);
+      } else {
+        setBenchmarkResults(data.benchmark);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Erreur lors du benchmark');
+    } finally {
+      setIsBenchmarking(false);
     }
   };
 
@@ -607,6 +651,34 @@ export function MLTrainingInterface({ isOpen, onClose }: MLTrainingInterfaceProp
             </div>
           )}
 
+          {/* Model Selection */}
+          <div className="mb-6 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              🔧 Sélection du Modèle
+            </h3>
+            
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-gray-900 dark:text-white">
+                Type de modèle à utiliser :
+              </label>
+              <select
+                value={selectedModelType}
+                onChange={(e) => setSelectedModelType(e.target.value as 'auto' | 'neural' | 'traditional')}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value="auto">🤖 Auto (Réseau neuronal si disponible)</option>
+                <option value="neural">🧠 Réseau neuronal (TensorFlow/Keras)</option>
+                <option value="traditional">📊 Modèle traditionnel (scikit-learn)</option>
+              </select>
+              
+              <div className="text-xs text-gray-600 dark:text-gray-400 mt-2">
+                {selectedModelType === 'auto' && 'Le système choisira automatiquement le meilleur modèle disponible.'}
+                {selectedModelType === 'neural' && 'Utilise un réseau neuronal profond pour une meilleure précision (plus lent).'}
+                {selectedModelType === 'traditional' && 'Utilise des algorithmes classiques plus rapides.'}
+              </div>
+            </div>
+          </div>
+
           {/* Model Info */}
           {modelInfo && (
             <div className="mb-6 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
@@ -623,6 +695,13 @@ export function MLTrainingInterface({ isOpen, onClose }: MLTrainingInterfaceProp
                       : 'text-gray-600 dark:text-gray-400'
                   }`}>
                     {modelInfo.model_info?.is_trained ? '✅ Entraîné' : '❌ Non entraîné'}
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Type de modèle actuel</div>
+                  <div className="font-semibold text-gray-900 dark:text-white">
+                    {modelInfo.model_type === 'neural_network' ? '🧠 Réseau neuronal' : '📊 Traditionnel'}
                   </div>
                 </div>
                 
