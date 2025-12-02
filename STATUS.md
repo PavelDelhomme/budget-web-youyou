@@ -36,17 +36,21 @@
 #### Interface Responsive - Navigation/Drawer (PRIORITÉ 1)
 - 🔄 **Statut** : En cours
 - 📄 **Fichiers concernés** :
-  - `client/src/components/Sidebar.tsx` ✅ (z-index optimisés)
-  - `client/src/components/HamburgerMenu.tsx`
-  - `client/src/App.tsx`
-- 🔗 **Dernier commit** : Optimisation z-index drawer
+  - `client/src/components/Sidebar.tsx` ✅ (z-index optimisés, lg:translate-x-0)
+  - `client/src/components/HamburgerMenu.tsx` ✅ (lg:hidden sur mobile uniquement)
+  - `client/src/App.tsx` ✅ (initialisation selon taille d'écran)
+- 🔗 **Derniers commits** : 
+  - `ef1b205` - Optimisation z-index drawer
+  - `81dc6ae` - Affichage par défaut sur desktop
+  - `76a458d` - Toujours visible sur desktop
 - 🎯 **Objectifs** :
   - [x] Z-index optimisés (overlay: 55, drawer: 56, hamburger: 60)
-  - [ ] Drawer visible et fonctionnel sur mobile (test nécessaire)
-  - [ ] Bouton hamburger toujours visible
-  - [ ] Fermeture automatique après sélection
-  - [ ] Test sur mobile réel
-- 📝 **Notes** : Z-index corrigés. À tester sur mobile réel pour valider le fonctionnement complet
+  - [x] Initialisation selon taille d'écran (ouvert desktop, fermé mobile)
+  - [x] Drawer toujours visible sur desktop (lg:translate-x-0)
+  - [x] Marge fixe sur desktop (lg:ml-64)
+  - [x] Bouton hamburger visible uniquement sur mobile (lg:hidden)
+  - [ ] Test sur mobile réel pour valider
+- 📝 **Notes** : Drawer maintenant visible sur desktop. À tester sur mobile réel.
 
 ---
 
