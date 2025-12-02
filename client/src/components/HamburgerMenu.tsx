@@ -13,11 +13,11 @@ export function HamburgerMenu({ isOpen, onToggle }: HamburgerMenuProps) {
       style={{ zIndex: 60 }}
     >
       <svg
-        className="w-6 h-6 text-gray-700 dark:text-gray-300"
+        className="w-6 h-6 text-white"
         fill="none"
         strokeLinecap="round"
         strokeLinejoin="round"
-        strokeWidth="2"
+        strokeWidth="2.5"
         viewBox="0 0 24 24"
         stroke="currentColor"
       >
