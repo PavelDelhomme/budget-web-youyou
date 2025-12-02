@@ -14,6 +14,7 @@ interface SidebarProps {
   onOpenRevenus?: () => void;
   onOpenMLTraining?: () => void;
   onOpenTaxManager?: () => void;
+  onOpenAdvancedFiscal?: () => void;
 }
 
 export function Sidebar({
@@ -29,6 +30,7 @@ export function Sidebar({
   onOpenRevenus,
   onOpenMLTraining,
   onOpenTaxManager,
+  onOpenAdvancedFiscal,
 }: SidebarProps) {
   const isPredicted = (y: number) => predictedYears.includes(y);
   
@@ -323,7 +325,16 @@ export function Sidebar({
             className="w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors flex items-center gap-2"
           >
             <span>💰</span>
-            Gestion fiscale
+            Calcul impôts
+          </button>
+        )}
+        {onOpenAdvancedFiscal && (
+          <button
+            onClick={onOpenAdvancedFiscal}
+            className="w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors flex items-center gap-2"
+          >
+            <span>🏛️</span>
+            Déclarations fiscales
           </button>
         )}
         <button

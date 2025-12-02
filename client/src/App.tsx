@@ -16,6 +16,7 @@ import { GlobalDataManager } from './components/GlobalDataManager';
 import { RevenusManager } from './components/RevenusManager';
 import { MLTrainingInterface } from './components/MLTrainingInterface';
 import { TaxManager } from './components/TaxManager';
+import { AdvancedFiscalManager } from './components/AdvancedFiscalManager';
 import { ExpensesPieChart } from './components/ExpensesPieChart';
 import { MonthlyExpensesIncomeChart } from './components/MonthlyExpensesIncomeChart';
 import { useBudgetCalculations } from './hooks/useBudgetData';
@@ -65,6 +66,7 @@ function App() {
   const [isRevenusManagerOpen, setIsRevenusManagerOpen] = useState(false);
   const [isMLTrainingOpen, setIsMLTrainingOpen] = useState(false);
   const [isTaxManagerOpen, setIsTaxManagerOpen] = useState(false);
+  const [isAdvancedFiscalManagerOpen, setIsAdvancedFiscalManagerOpen] = useState(false);
 
   // Debounce timer for saving
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1128,6 +1130,7 @@ function App() {
         onOpenRevenus={() => setIsRevenusManagerOpen(true)}
         onOpenMLTraining={() => setIsMLTrainingOpen(true)}
         onOpenTaxManager={() => setIsTaxManagerOpen(true)}
+        onOpenAdvancedFiscal={() => setIsAdvancedFiscalManagerOpen(true)}
       />
 
       {/* Main content */}
@@ -1258,6 +1261,7 @@ function App() {
           onMonthlyIncomeSourcesChange={typeof year === 'number' ? setMonthlyIncomeSources : undefined}
           currentYear={typeof year === 'number' ? year : undefined}
           onOpenTaxManager={() => setIsTaxManagerOpen(true)}
+        onOpenAdvancedFiscal={() => setIsAdvancedFiscalManagerOpen(true)}
         />
 
         {/* Categories */}
@@ -1433,6 +1437,11 @@ function App() {
       <TaxManager
         isOpen={isTaxManagerOpen}
         onClose={() => setIsTaxManagerOpen(false)}
+        annualIncome={annualIncome}
+      />
+      <AdvancedFiscalManager
+        isOpen={isAdvancedFiscalManagerOpen}
+        onClose={() => setIsAdvancedFiscalManagerOpen(false)}
         annualIncome={annualIncome}
       />
     </div>

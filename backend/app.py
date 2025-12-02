@@ -331,6 +331,7 @@ from api.backup_service_routes import register_backup_routes
 from api.health_routes import register_health_routes
 from api.swagger_docs import register_swagger_routes
 from api.export_routes import register_export_routes
+from api.fiscal_service import register_fiscal_routes
 from api.compression_middleware import enable_compression
 from api.structured_logging import create_structured_logger
 
@@ -353,6 +354,7 @@ register_backup_routes(app)
 register_health_routes(app)
 register_swagger_routes(app)
 register_export_routes(app)
+register_fiscal_routes(app)
 
 
 if __name__ == '__main__':
