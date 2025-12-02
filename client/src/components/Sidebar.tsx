@@ -94,18 +94,20 @@ export function Sidebar({
       {/* Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 transition-opacity"
+          className="fixed inset-0 bg-black/50 transition-opacity"
           onClick={setIsOpen}
           aria-hidden="true"
+          style={{ zIndex: 55 }}
         />
       )}
 
       {/* Drawer */}
       <aside
-        className={`fixed left-0 top-0 h-full w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col shadow-lg z-50 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed left-0 top-0 h-full w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col shadow-xl transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         aria-label="Navigation principale"
+        style={{ zIndex: 56 }}
       >
         {/* Header avec bouton fermer */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
