@@ -68,7 +68,13 @@ function App() {
   const [isMLTrainingOpen, setIsMLTrainingOpen] = useState(false);
   const [isTaxManagerOpen, setIsTaxManagerOpen] = useState(false);
   const [isAdvancedFiscalManagerOpen, setIsAdvancedFiscalManagerOpen] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  // Initialiser le drawer : ouvert sur desktop, fermé sur mobile
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth >= 1024; // Ouvert sur desktop, fermé sur mobile
+    }
+    return false; // Par défaut fermé si on ne peut pas détecter
+  });
 
   // Debounce timer for saving
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
