@@ -621,9 +621,9 @@ export function Dashboard({
             </div>
           </div>
           
-          <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Total 6 mois</div>
-            <div className="text-lg font-bold text-green-600 dark:text-green-400">
+          <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg min-w-0 overflow-hidden">
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 truncate">Total 6 mois</div>
+            <div className="text-base sm:text-lg font-bold text-green-600 dark:text-green-400 truncate">
               {currency(monthlyExpenses.reduce((sum, m) => sum + m.total, 0))}
             </div>
           </div>
