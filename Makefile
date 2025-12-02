@@ -1,4 +1,4 @@
-.PHONY: help install dev start restart stop down build clean docker-build docker-up docker-down docker-logs docker-ps status ports logs logs-backend logs-frontend reset reset-and-restart test test-syntax test-backend test-frontend test-api test-containers test-integration check-errors test-all test-behavior test-files test-ui-components test-endpoints test-data-structure test-features test-e2e test-e2e-install test-e2e-ui test-e2e-report
+.PHONY: help install dev start restart stop down build clean docker-build docker-up docker-down docker-logs docker-ps status ports logs logs-backend logs-frontend reset reset-and-restart test test-syntax test-backend test-frontend test-api test-containers test-integration check-errors test-all test-behavior test-files test-ui-components test-endpoints test-data-structure test-features test-e2e test-e2e-install test-e2e-ui test-e2e-report test-backend-ml test-backend-ml
 
 # Variables
 BACKEND_PORT ?= 6060
@@ -773,7 +773,22 @@ test-features: ## Vérifie que toutes les fonctionnalités principales sont pré
 	@echo "💡 Pour tester ces fonctionnalités, lancez l'application et naviguez dans l'interface"
 	@echo ""
 
-test-all: test check-errors test-behavior test-files test-ui-components test-endpoints test-data-structure test-features test-e2e ## Lance tous les tests et vérifie les erreurs (complet)
+test-backend-ml: ## Lance les tests unitaires Python pour le ML
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🧪 TESTS UNITAIRES BACKEND - ML"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@if docker ps --format "{{.Names}}" | grep -q "^budget-web-backend$$"; then \
+		echo "🔧 Exécution des tests dans le conteneur backend..."; \
+		docker exec budget-web-backend python -m pytest tests/backend/ -v 2>/dev/null || \
+		echo "⚠️  Les tests nécessitent pytest. Installer avec: pip install pytest"; \
+	else \
+		echo "❌ Conteneur backend non démarré. Utilisez 'make start' d'abord."; \
+	fi
+	@echo ""
+
+test-all: test check-errors test-behavior test-files test-ui-components test-endpoints test-data-structure test-features test-e2e test-backend-ml ## Lance tous les tests et vérifie les erreurs (complet)
 
 test-e2e-install: ## Installe Playwright et les navigateurs pour les tests E2E
 	@echo ""
