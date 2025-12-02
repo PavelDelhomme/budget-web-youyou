@@ -34,23 +34,23 @@
 ### 🟡 **EN COURS**
 
 #### Interface Responsive - Navigation/Drawer (PRIORITÉ 1)
-- 🔄 **Statut** : En cours
+- 🔄 **Statut** : En cours - Refonte complète
 - 📄 **Fichiers concernés** :
-  - `client/src/components/Sidebar.tsx` ✅ (z-index optimisés, lg:translate-x-0)
-  - `client/src/components/HamburgerMenu.tsx` ✅ (lg:hidden sur mobile uniquement)
-  - `client/src/App.tsx` ✅ (initialisation selon taille d'écran)
+  - `client/src/components/Sidebar.tsx` ✅ (drawer classique)
+  - `client/src/components/HamburgerMenu.tsx` ✅ (toujours visible)
+  - `client/src/App.tsx` ✅ (contrôle drawer)
 - 🔗 **Derniers commits** : 
   - `ef1b205` - Optimisation z-index drawer
   - `81dc6ae` - Affichage par défaut sur desktop
   - `76a458d` - Toujours visible sur desktop
+  - `[dernier]` - Refonte complète drawer classique
 - 🎯 **Objectifs** :
-  - [x] Z-index optimisés (overlay: 55, drawer: 56, hamburger: 60)
-  - [x] Initialisation selon taille d'écran (ouvert desktop, fermé mobile)
-  - [x] Drawer toujours visible sur desktop (lg:translate-x-0)
-  - [x] Marge fixe sur desktop (lg:ml-64)
-  - [x] Bouton hamburger visible uniquement sur mobile (lg:hidden)
+  - [x] Drawer fermé par défaut partout
+  - [x] Bouton hamburger TOUJOURS visible et fonctionnel
+  - [x] Drawer contrôlable sur tous les écrans
+  - [x] Fermeture avec overlay, bouton X, ou hamburger
   - [ ] Test sur mobile réel pour valider
-- 📝 **Notes** : Drawer maintenant visible sur desktop. À tester sur mobile réel.
+- 📝 **Notes** : Drawer refait comme drawer classique moderne. Fonctionne identique mobile/desktop.
 
 ---
 
