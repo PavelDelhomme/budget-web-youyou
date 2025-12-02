@@ -123,26 +123,34 @@ export function MonthlyExpensesIncomeChart({
   const isMobile = windowWidth < 640;
   const isTablet = windowWidth >= 640 && windowWidth < 1024;
   
-  const barWidth = isMobile ? 14 : isTablet ? 16 : 20;
-  const spacing = isMobile ? 4 : isTablet ? 6 : 8;
-  const chartWidth = 12 * (barWidth * 2 + spacing);
+  // Barres plus larges pour meilleure lisibilité
+  const barWidth = isMobile ? 20 : isTablet ? 24 : 32;
+  const spacing = isMobile ? 6 : isTablet ? 8 : 12;
+  
+  // Calculer la largeur minimale du graphique (plus large)
+  const minChartWidth = isMobile ? windowWidth - 60 : isTablet ? 700 : 1200;
+  const chartWidth = Math.max(12 * (barWidth * 2 + spacing), minChartWidth);
   const chartHeight = (isMobile ? height - 80 : height - 60);
-  const padding = isMobile ? 30 : isTablet ? 35 : 40;
+  const padding = isMobile ? 35 : isTablet ? 40 : 50;
   const responsiveHeight = isMobile ? Math.max(height - 40, 250) : height;
+  
+  // Largeur totale du SVG (avec padding)
+  const svgWidth = chartWidth + padding * 2;
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-3 sm:p-4 md:p-6 border border-gray-200 dark:border-gray-700">
       <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 px-2 sm:px-0">
         {isPrediction ? `Dépenses et revenus prévus par mois (${year})` : `Dépenses et revenus par mois (${year})`}
       </h3>
-      <div className="overflow-x-auto -mx-3 sm:mx-0">
-        <div className="inline-block min-w-full px-3 sm:px-0">
+      {/* Container avec scroll horizontal */}
+      <div className="overflow-x-auto -mx-3 sm:-mx-4 md:-mx-6 px-3 sm:px-4 md:px-6">
+        <div className="inline-block" style={{ minWidth: '100%' }}>
           <svg 
-            width={Math.max(chartWidth + padding * 2, isMobile ? windowWidth - 40 : 800)} 
+            width={svgWidth}
             height={responsiveHeight}
-            viewBox={`0 0 ${Math.max(chartWidth + padding * 2, 800)} ${responsiveHeight}`}
-            className="w-full h-auto"
-            preserveAspectRatio="xMidYMid meet"
+            viewBox={`0 0 ${svgWidth} ${responsiveHeight}`}
+            className="block"
+            style={{ minWidth: svgWidth }}
           >
           {/* Axes */}
           <line
@@ -234,9 +242,9 @@ export function MonthlyExpensesIncomeChart({
                 {/* Month label */}
                 <text
                   x={x + barWidth}
-                  y={chartHeight + padding + (isMobile ? 15 : 20)}
+                  y={chartHeight + padding + (isMobile ? 16 : 22)}
                   textAnchor="middle"
-                  className={`${isMobile ? 'text-[9px]' : 'text-xs'} fill-gray-600 dark:fill-gray-400`}
+                  className={`${isMobile ? 'text-[10px]' : 'text-sm'} font-medium fill-gray-700 dark:fill-gray-300`}
                 >
                   {monthData.monthName}
                 </text>
@@ -258,6 +266,12 @@ export function MonthlyExpensesIncomeChart({
           </svg>
         </div>
       </div>
+      {/* Indicateur de scroll sur mobile/tablet */}
+      {(isMobile || isTablet) && (
+        <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
+          ← Faites glisser pour voir tous les mois →
+        </div>
+      )}
     </div>
   );
 }

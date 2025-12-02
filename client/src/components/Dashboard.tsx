@@ -313,15 +313,17 @@ export function Dashboard({
           size={400}
         />
 
-        {/* Dépenses et revenus par mois */}
-        <MonthlyExpensesIncomeChart
-          expenses={yearData.expenses || []}
-          monthlySalary={monthlySalary}
-          variableMonthlyIncomes={yearData.variableMonthlyIncomes}
-          additionalMonthlyIncomes={yearData.additionalMonthlyIncomes || []}
-          year={currentYear}
-          height={350}
-        />
+        {/* Dépenses et revenus par mois - Pleine largeur avec scroll horizontal */}
+        <div className="w-full">
+          <MonthlyExpensesIncomeChart
+            expenses={yearData.expenses || []}
+            monthlySalary={monthlySalary}
+            variableMonthlyIncomes={yearData.variableMonthlyIncomes}
+            additionalMonthlyIncomes={yearData.additionalMonthlyIncomes || []}
+            year={currentYear}
+            height={400}
+          />
+        </div>
       </div>
 
       {/* Trends and Analysis */}
