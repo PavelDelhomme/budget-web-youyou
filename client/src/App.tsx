@@ -47,6 +47,7 @@ import { useBudgetCalculations } from './hooks/useBudgetData';
 import { Category, Expense, Subscription, SavingsTransaction, YearData, UserGlobalData, AnnualFixedExpense, MonthlyAdditionalIncome, MonthlyIncomeSource } from './core/types';
 import { generatePredictions, getFutureYears, getHistoricalYears, PredictedYearData } from './lib/utils/budgetPredictor';
 import { calculateProjectsContributionsForYear } from './lib/utils/savingsProjects';
+import { getActiveSalaryForYear } from './lib/utils/salaryHistory';
 import {
   defaultCategories,
   INITIAL_YEARS,
@@ -490,14 +491,11 @@ function App() {
           calculatedMonthlySalary = yearSpecificSalaryValue;
         } else if (globalData?.monthlySalary && globalData.monthlySalary > 0) {
           calculatedMonthlySalary = globalData.monthlySalary;
-        } else {
+        } else if (globalData?.salaryHistory && typeof year === 'number') {
           // Utiliser le salaire actif de l'historique si disponible
-          if (globalData?.salaryHistory && typeof year === 'number') {
-            const { getActiveSalaryForYear } = await import('./lib/utils/salaryHistory');
-            const activeSalary = getActiveSalaryForYear(globalData.salaryHistory, year);
-            if (activeSalary !== null && activeSalary > 0) {
-              calculatedMonthlySalary = activeSalary;
-            }
+          const activeSalary = getActiveSalaryForYear(globalData.salaryHistory, year);
+          if (activeSalary !== null && activeSalary > 0) {
+            calculatedMonthlySalary = activeSalary;
           }
         }
         setMonthlySalary(calculatedMonthlySalary);
