@@ -478,12 +478,29 @@ function App() {
         setExpenses(Array.isArray(ds.expenses) ? ds.expenses : []);
         setSubs(Array.isArray(ds.subs) ? ds.subs : []);
         setAnnualFixedExpenses(Array.isArray(ds.annualFixedExpenses) ? ds.annualFixedExpenses : []);
-        // Prendre monthlySalary depuis yearData, sinon depuis globalData
+        // Prendre monthlySalary depuis yearData, sinon depuis globalData, sinon depuis salaryHistory
         // Si ds.monthlySalary est défini (même à 0), c'est un revenu spécifique à l'année
-        // Sinon, on utilise le revenu global
+        // Sinon, on utilise le revenu global, ou le salaire actif de l'historique
         const yearSpecificSalaryValue = ds.monthlySalary !== undefined && ds.monthlySalary !== null ? ds.monthlySalary : undefined;
         setHasYearSpecificSalary(yearSpecificSalaryValue !== undefined);
-        setMonthlySalary(yearSpecificSalaryValue !== undefined ? yearSpecificSalaryValue : (globalData?.monthlySalary || 0));
+        
+        // Calculer le revenu mensuel en priorité : année spécifique > global > historique actif
+        let calculatedMonthlySalary = 0;
+        if (yearSpecificSalaryValue !== undefined) {
+          calculatedMonthlySalary = yearSpecificSalaryValue;
+        } else if (globalData?.monthlySalary && globalData.monthlySalary > 0) {
+          calculatedMonthlySalary = globalData.monthlySalary;
+        } else {
+          // Utiliser le salaire actif de l'historique si disponible
+          if (globalData?.salaryHistory && typeof year === 'number') {
+            const { getActiveSalaryForYear } = await import('./lib/utils/salaryHistory');
+            const activeSalary = getActiveSalaryForYear(globalData.salaryHistory, year);
+            if (activeSalary !== null && activeSalary > 0) {
+              calculatedMonthlySalary = activeSalary;
+            }
+          }
+        }
+        setMonthlySalary(calculatedMonthlySalary);
         setVariableMonthlyIncomes(Array.isArray(ds.variableMonthlyIncomes) && ds.variableMonthlyIncomes.length === 12 ? ds.variableMonthlyIncomes : undefined);
         setAdditionalMonthlyIncomes(Array.isArray(ds.additionalMonthlyIncomes) ? ds.additionalMonthlyIncomes : []);
         setMonthlyIncomeSources(Array.isArray(ds.monthlyIncomeSources) ? ds.monthlyIncomeSources : []);

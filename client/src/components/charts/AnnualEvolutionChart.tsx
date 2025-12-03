@@ -1,19 +1,23 @@
 import { useMemo } from 'react';
 import { YearData } from '../../core/types';
 import { currency } from '../../lib/utils';
+import { calculateAnnualIncomeFromSalaryHistory } from '../../lib/utils/salaryHistory';
 
 interface AnnualEvolutionChartProps {
   historicalData: Array<{ year: number; data: YearData }>;
   globalData?: {
     monthlySalary?: number;
     temporaryIncomes?: Array<{ amount: number; startDate: string; endDate?: string; duration: string }>;
+    salaryHistory?: Array<{ id: string; amount: number; startDate: string; endDate?: string; type: string }>;
   };
 }
 
 export function AnnualEvolutionChart({ historicalData, globalData }: AnnualEvolutionChartProps) {
   // Calculate annual income and expenses for each year
   const annualData = useMemo(() => {
-    const sorted = [...historicalData].sort((a, b) => a.year - b.year);
+    // Filtrer les années invalides (< 2000 ou > 2100)
+    const validData = historicalData.filter(({ year }) => year >= 2000 && year <= 2100);
+    const sorted = [...validData].sort((a, b) => a.year - b.year);
     
     return sorted.map(({ year, data }) => {
       // Calculate annual income
@@ -57,6 +61,14 @@ export function AnnualEvolutionChart({ historicalData, globalData }: AnnualEvolu
           } else if (income.duration === 'once' && startDate >= yearStart && startDate <= yearEnd) {
             annualIncome += income.amount;
           }
+        }
+      }
+      
+      // Add salary from salaryHistory for this year if monthlySalary is 0 or not set
+      if (annualIncome === 0 || (!monthlySalary && globalData?.salaryHistory)) {
+        const salaryFromHistory = calculateAnnualIncomeFromSalaryHistory(globalData?.salaryHistory as any, year);
+        if (salaryFromHistory > 0) {
+          annualIncome = salaryFromHistory;
         }
       }
       
