@@ -56,9 +56,32 @@ def load_user(email: str) -> dict:
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
+            
+            # Nettoyer automatiquement les années invalides (< 2000 ou > 2100)
+            years = data.get('years', default_years)
+            valid_years = [y for y in years if 2000 <= y <= 2100]
+            invalid_years = [y for y in years if y < 2000 or y > 2100]
+            
+            # Supprimer les datasets des années invalides
+            datasets = data.get('datasets', {})
+            if invalid_years:
+                for invalid_year in invalid_years:
+                    year_key = str(invalid_year)
+                    if year_key in datasets:
+                        del datasets[year_key]
+                
+                # Si des années invalides ont été supprimées, sauvegarder les données nettoyées
+                if invalid_years:
+                    cleaned_data = {
+                        'years': valid_years,
+                        'datasets': datasets,
+                        'globalData': data.get('globalData', default_global)
+                    }
+                    save_user(email, cleaned_data)
+            
             return {
-                'years': data.get('years', default_years),
-                'datasets': data.get('datasets', {}),
+                'years': valid_years,
+                'datasets': datasets,
                 'globalData': data.get('globalData', default_global)
             }
     except (json.JSONDecodeError, IOError):
