@@ -3,7 +3,7 @@
  * Cache des assets statiques pour fonctionnement hors ligne
  */
 
-const CACHE_NAME = 'budget-app-v1';
+const CACHE_NAME = 'budget-app-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

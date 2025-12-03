@@ -19,7 +19,10 @@ if (typeof document !== 'undefined') {
         bottom: 24px !important;
         right: 24px !important;
         z-index: 999999 !important;
-        pointer-events: none !important;
+        pointer-events: auto !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        display: block !important;
       `;
       document.body.appendChild(container);
       console.log('✅ Container Portal créé dans main.tsx');

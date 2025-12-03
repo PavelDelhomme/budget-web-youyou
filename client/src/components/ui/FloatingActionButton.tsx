@@ -159,9 +159,20 @@ export function FloatingActionButton({ onAddExpense, onAddIncome }: FloatingActi
     };
   }, [containerReady]);
 
-  // Si le container n'est pas prêt, ne rien rendre
+  // Si le container n'est pas prêt, essayer de le créer immédiatement
   if (!containerReady || !containerRef.current) {
-    return null;
+    // Essayer une dernière fois de créer le container
+    if (document.body) {
+      const container = getOrCreatePortalContainer();
+      if (container) {
+        containerRef.current = container;
+        setContainerReady(true);
+      }
+    }
+    // Si toujours pas prêt, retourner null mais continuer à essayer
+    if (!containerReady || !containerRef.current) {
+      return null;
+    }
   }
 
   const buttonContent = (
