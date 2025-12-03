@@ -1376,6 +1376,7 @@ function App() {
                     temporaryIncomes: [],
                     sharedExpensePersons: [],
                     personTransactions: [],
+                    salaryHistory: [],
                     initializationComplete: true,
                     monthlySalary: 0,
                   }}
