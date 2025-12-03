@@ -207,12 +207,16 @@
 
 ## 📝 **Historique des Modifications**
 
-### 2024-12-03
-- ✅ Suite complète de tests backend créée (70 tests)
-- ✅ Préparation production (Docker, Gunicorn, Nginx)
+### 2024-12-03 (Tests et Production)
+- ✅ Suite complète de tests backend créée (70 tests, 78.6% réussite)
+- ✅ Préparation production complète (Docker, Gunicorn, Nginx)
 - ✅ Guides de déploiement et checklist production
-- ✅ Configuration pytest et fixtures
-- ✅ Amélioration validation années
+- ✅ Configuration pytest et fixtures avec reset automatique
+- ✅ Amélioration validation années avec limites raisonnables
+- ✅ Corrections multiples des tests (rate limiting, validation, erreurs)
+- ✅ Montage volumes Docker pour tests et code backend
+- ✅ Documentation complète des tests (README.md, TEST_RESULTS.md)
+- 🔄 Corrections en cours des 13 tests restants (rate limiting, validation)
 
 ### 2024-12-02
 - ✅ Réorganisation de STATUS.md avec groupement logique
