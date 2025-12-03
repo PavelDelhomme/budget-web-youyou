@@ -14,6 +14,8 @@ services:
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-5n!B@#c*ymgEBYXrWdKE}
     volumes:
       - ./backend/data:/app/data
+      - ./backend/api:/app/api
+      - ./backend/app.py:/app/app.py
       - ./tests:/app/tests
     restart: unless-stopped
     healthcheck:
