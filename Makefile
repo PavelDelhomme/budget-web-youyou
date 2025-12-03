@@ -13,7 +13,7 @@ help: ## Affiche l'aide
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 	@echo ""
 	@echo "🚀 DÉMARRAGE / ARRÊT :"
-	@grep -E '^(dev|start|stop|down|restart|docker-up|docker-down|docker-restart):.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^(dev|start|up|stop|down|restart|docker-up|docker-down|docker-restart):.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 	@echo "🏭 PRODUCTION :"
 	@grep -E '^(prod|prod-):.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}'
@@ -37,6 +37,7 @@ help: ## Affiche l'aide
 	@echo "💡 Commandes les plus utilisées :"
 	@echo "   make install    → Installer les dépendances"
 	@echo "   make dev        → Démarrer en mode développement (avec logs)"
+	@echo "   make up         → Démarrer en arrière-plan (alias de start)"
 	@echo "   make restart    → Redémarrer en arrière-plan (sans logs)"
 	@echo "   make logs       → Voir les logs en continu"
 	@echo "   make status     → Vérifier l'état des conteneurs"
@@ -74,6 +75,8 @@ start: ## Démarre les conteneurs en arrière-plan (sans afficher les logs)
 	@echo "🌐 Frontend React: http://localhost:$(FRONTEND_PORT)"
 	@echo ""
 	@echo "💡 Utilisez 'make logs' pour voir les logs"
+
+up: start ## Alias pour start - Démarre les conteneurs en arrière-plan
 
 stop: ## Arrête les serveurs backend et frontend (Docker)
 	@echo "🛑 Arrêt des conteneurs Docker..."
