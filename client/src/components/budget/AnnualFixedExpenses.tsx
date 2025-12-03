@@ -27,6 +27,7 @@ export function AnnualFixedExpenses({
     note: '',
     accountId: '' as string | undefined,
     share: undefined as ExpenseShare | undefined,
+    isRecurring: true as boolean, // true = récurrente chaque année, false = ponctuelle
   });
 
   const months = [
@@ -49,6 +50,7 @@ export function AnnualFixedExpenses({
         note: newExpense.note,
         accountId: newExpense.accountId || undefined,
         share: newExpense.share,
+        isRecurring: newExpense.isRecurring,
       });
       setEditingExpenseId(null);
     } else {
@@ -60,10 +62,11 @@ export function AnnualFixedExpenses({
         note: newExpense.note,
         accountId: newExpense.accountId || undefined,
         share: newExpense.share,
+        isRecurring: newExpense.isRecurring,
       });
     }
     
-    setNewExpense({ name: '', amount: 0, month: 1, note: '', accountId: '', share: undefined });
+    setNewExpense({ name: '', amount: 0, month: 1, note: '', accountId: '', share: undefined, isRecurring: true });
     setIsAdding(false);
   }
 
@@ -78,6 +81,7 @@ export function AnnualFixedExpenses({
       note: expense.note || '',
       accountId: expense.accountId || '',
       share: expense.share,
+      isRecurring: expense.isRecurring ?? true, // Défaut: récurrente
     });
     setIsAdding(true);
     // Scroll vers le formulaire
@@ -86,7 +90,7 @@ export function AnnualFixedExpenses({
 
   function handleCancelEdit() {
     setEditingExpenseId(null);
-    setNewExpense({ name: '', amount: 0, month: 1, note: '', accountId: '', share: undefined });
+    setNewExpense({ name: '', amount: 0, month: 1, note: '', accountId: '', share: undefined, isRecurring: true });
     setIsAdding(false);
   }
 
@@ -198,15 +202,35 @@ export function AnnualFixedExpenses({
               initialShare={newExpense.share}
             />
           </div>
-          <div className="mt-3">
-            <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Note (optionnel)</label>
-            <input
-              type="text"
-              value={newExpense.note}
-              onChange={(e) => setNewExpense({ ...newExpense, note: e.target.value })}
-              placeholder="Informations complémentaires"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-            />
+          <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Note (optionnel)</label>
+              <input
+                type="text"
+                value={newExpense.note}
+                onChange={(e) => setNewExpense({ ...newExpense, note: e.target.value })}
+                placeholder="Informations complémentaires"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              />
+            </div>
+            <div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={newExpense.isRecurring}
+                  onChange={(e) => setNewExpense({ ...newExpense, isRecurring: e.target.checked })}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                  Facture récurrente (se répète chaque année)
+                </span>
+              </label>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {newExpense.isRecurring
+                  ? 'Cette dépense sera automatiquement reportée chaque année'
+                  : 'Cette dépense est ponctuelle et ne sera pas reportée l\'année suivante'}
+              </p>
+            </div>
           </div>
           <button
             onClick={handleAdd}
@@ -231,6 +255,7 @@ export function AnnualFixedExpenses({
                   <th className="text-left py-2 px-3 text-gray-700 dark:text-gray-300">Mois</th>
                   <th className="text-left py-2 px-3 text-gray-700 dark:text-gray-300">Compte</th>
                   <th className="text-right py-2 px-3 text-gray-700 dark:text-gray-300">Montant</th>
+                  <th className="text-left py-2 px-3 text-gray-700 dark:text-gray-300">Type</th>
                   <th className="text-left py-2 px-3 text-gray-700 dark:text-gray-300">Note</th>
                   <th className="text-right py-2 px-3 text-gray-700 dark:text-gray-300">Actions</th>
                 </tr>
@@ -254,6 +279,15 @@ export function AnnualFixedExpenses({
                             (Total: {currency(exp.share.totalAmount)}, {exp.share.yourParts}/{exp.share.totalParts} part{exp.share.yourParts > 1 ? 's' : ''})
                           </span>
                         )}
+                      </td>
+                      <td className="py-2 px-3 text-sm">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          (exp.isRecurring ?? true)
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                            : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
+                        }`}>
+                          {(exp.isRecurring ?? true) ? '🔄 Récurrente' : '📌 Ponctuelle'}
+                        </span>
                       </td>
                       <td className="py-2 px-3 text-sm text-gray-600 dark:text-gray-400">{exp.note || '-'}</td>
                       <td className="py-2 px-3 text-right">
