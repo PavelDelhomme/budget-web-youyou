@@ -1429,7 +1429,7 @@ function App() {
           onOpenTaxManager={() => setIsTaxManagerOpen(true)}
           onOpenAdvancedFiscal={() => setIsAdvancedFiscalManagerOpen(true)}
           globalMonthlySalary={globalData?.monthlySalary}
-          yearSpecificSalary={typeof year === 'number' && historicalData.get(year)?.monthlySalary}
+          yearSpecificSalary={typeof year === 'number' ? (historicalData.get(year)?.monthlySalary !== undefined && historicalData.get(year)?.monthlySalary !== null ? historicalData.get(year)?.monthlySalary : undefined) : undefined}
         />
 
         {/* Categories */}
