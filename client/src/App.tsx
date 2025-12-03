@@ -488,6 +488,11 @@ function App() {
           }, 200);
         }
       } catch (err: any) {
+        // Si erreur 401, la session a peut-être expiré - rediriger vers login
+        if (err?.status === 401) {
+          setSessionEmail(null);
+          return;
+        }
         // Ne pas afficher les erreurs 401 (non authentifié) - c'est normal si l'utilisateur n'est pas connecté
         if (err?.status !== 401) {
           console.error('Erreur lors du chargement des données:', err);
