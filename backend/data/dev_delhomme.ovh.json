@@ -38,7 +38,14 @@
     "temporaryIncomes": [],
     "sharedExpensePersons": [],
     "personTransactions": [],
-    "salaryHistory": [],
+    "salaryHistory": [
+      {
+        "id": "a7a324b6-9f5e-41ac-a152-82b4e32d5f53",
+        "amount": 900,
+        "startDate": "2025-09-01",
+        "type": "unemployment"
+      }
+    ],
     "initializationComplete": true,
     "monthlySalary": 0,
     "monthlySalaryStartDate": null,

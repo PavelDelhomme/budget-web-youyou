@@ -1522,6 +1522,23 @@ function App() {
             await Api.putGlobalData(updatedGlobalData);
             setGlobalData(updatedGlobalData);
             
+            // Si on est sur le dashboard, mettre à jour aussi l'année courante dans historicalData
+            if (year === 'dashboard') {
+              const currentYearNum = today.getFullYear();
+              setHistoricalData((prev) => {
+                const newMap = new Map(prev);
+                const currentYearData = newMap.get(currentYearNum);
+                if (currentYearData) {
+                  // Mettre à jour le monthlySalary depuis globalData si nécessaire
+                  newMap.set(currentYearNum, {
+                    ...currentYearData,
+                    monthlySalary: updatedGlobalData.monthlySalary || currentYearData.monthlySalary,
+                  });
+                }
+                return newMap;
+              });
+            }
+            
             // Les données globales (comptes, investissements, etc.) influencent les prédictions
             // Régénérer les prédictions après chaque modification des données globales
             setTimeout(() => {
@@ -1550,6 +1567,23 @@ function App() {
             };
             await Api.putGlobalData(updatedGlobalData);
             setGlobalData(updatedGlobalData);
+            
+            // Si on est sur le dashboard, mettre à jour aussi l'année courante dans historicalData
+            if (year === 'dashboard') {
+              const currentYearNum = today.getFullYear();
+              setHistoricalData((prev) => {
+                const newMap = new Map(prev);
+                const currentYearData = newMap.get(currentYearNum);
+                if (currentYearData) {
+                  // Mettre à jour le monthlySalary depuis globalData si nécessaire
+                  newMap.set(currentYearNum, {
+                    ...currentYearData,
+                    monthlySalary: updatedGlobalData.monthlySalary || currentYearData.monthlySalary,
+                  });
+                }
+                return newMap;
+              });
+            }
             
             // Les revenus temporaires influencent aussi les prédictions
             // Régénérer les prédictions après modification

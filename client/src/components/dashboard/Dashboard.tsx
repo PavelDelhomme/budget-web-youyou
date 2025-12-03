@@ -54,11 +54,12 @@ export function Dashboard({
   const totalSavingsTarget = savingsGoals.reduce((sum, g) => sum + g.targetAmount, 0);
 
   // Calculate additional income from temporaryIncomes for the current year
-  const calculateAdditionalIncome = (year: number) => {
+  // Utiliser useMemo pour recalculer automatiquement quand globalData change
+  const calculateAdditionalIncome = useMemo(() => {
     if (!globalData?.temporaryIncomes) return 0;
     
-    const yearStart = new Date(year, 0, 1);
-    const yearEnd = new Date(year, 11, 31);
+    const yearStart = new Date(currentYear, 0, 1);
+    const yearEnd = new Date(currentYear, 11, 31);
     
     let total = 0;
     for (const income of globalData.temporaryIncomes) {
@@ -95,11 +96,16 @@ export function Dashboard({
     }
     
     return total;
-  };
+  }, [globalData?.temporaryIncomes, currentYear]);
 
-  const monthlySalary = yearData.monthlySalary || globalData?.monthlySalary || 0;
-  const additionalIncome = calculateAdditionalIncome(currentYear);
-  const annualIncome = (monthlySalary * 12) + additionalIncome;
+  const monthlySalary = useMemo(() => {
+    return yearData.monthlySalary || globalData?.monthlySalary || 0;
+  }, [yearData.monthlySalary, globalData?.monthlySalary]);
+  
+  const additionalIncome = calculateAdditionalIncome;
+  const annualIncome = useMemo(() => {
+    return (monthlySalary * 12) + additionalIncome;
+  }, [monthlySalary, additionalIncome]);
   
   // Calculer les dépenses annuelles en tenant compte des budgets mensuels si disponibles
   const variableTargets = yearData.categories.reduce((sum, cat) => {
