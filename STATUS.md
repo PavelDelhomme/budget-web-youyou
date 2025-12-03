@@ -166,9 +166,11 @@
   - Interface pour créer des exceptions mensuelles
 
 ### Factures Annuelles Ponctuelles/Récurrentes
-- 🔄 **Système de récurrence** : Permettre de marquer une dépense annuelle comme récurrente ou ponctuelle
-  - Récurrente : Répétée chaque année (ex: assurance habitation)
+- ✅ **Système de récurrence** : Champ `isRecurring` intégré dans l'interface AnnualFixedExpenses
+  - Récurrente : Répétée chaque année (ex: assurance habitation) - cochée par défaut
   - Ponctuelle : Une seule fois cette année (ex: réparation exceptionnelle)
+  - Indicateur visuel dans le tableau (🔄 Récurrente / 📌 Ponctuelle)
+  - Checkbox dans le formulaire pour définir le type
 
 ### Tests Complets avec IA
 - 🔄 **Tests automatisés IA** : Tests pour vérifier que les prédictions IA fonctionnent correctement
