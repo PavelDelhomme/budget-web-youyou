@@ -14,82 +14,126 @@ export function FloatingActionButton({ onAddExpense, onAddIncome }: FloatingActi
 
   // Créer le container directement dans le body avec Portal
   useEffect(() => {
-    setIsMounted(true);
+    console.log('🔧 FloatingActionButton useEffect - Montage...');
     
-    // Créer un container dédié dans le body si il n'existe pas
-    let container = document.getElementById('fab-portal-container');
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'fab-portal-container';
-      container.style.cssText = `
-        position: fixed !important;
-        bottom: 24px !important;
-        right: 24px !important;
-        z-index: 999999 !important;
-        pointer-events: none !important;
-      `;
-      document.body.appendChild(container);
+    // Nettoyer l'ancien container s'il existe (pour éviter les doublons)
+    const existingContainer = document.getElementById('fab-portal-container');
+    if (existingContainer) {
+      console.log('🧹 Nettoyage ancien container...');
+      existingContainer.remove();
     }
     
-    containerRef.current = container as HTMLDivElement;
+    // Créer un nouveau container
+    const container = document.createElement('div');
+    container.id = 'fab-portal-container';
+    container.style.cssText = `
+      position: fixed !important;
+      bottom: 24px !important;
+      right: 24px !important;
+      z-index: 999999 !important;
+      pointer-events: none !important;
+    `;
+    document.body.appendChild(container);
+    
+    containerRef.current = container;
+    setIsMounted(true);
     
     console.log('✅ FloatingActionButton Portal créé !', container);
     
     return () => {
-      // Ne pas supprimer le container, juste marquer comme non monté
+      console.log('🧹 FloatingActionButton démontage...');
       setIsMounted(false);
+      // Ne PAS supprimer le container ici, car React peut re-render rapidement
+      // On le nettoiera au prochain montage
     };
-  }, []);
+  }, []); // Dépendances vides = montage une seule fois
 
-  // Vérification périodique de visibilité
+  // Vérification périodique de visibilité et forcer le re-render si nécessaire
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isMounted) {
+      console.warn('⚠️ Composant non monté, tentative de remontage...');
+      // Forcer le remontage
+      const container = document.getElementById('fab-portal-container');
+      if (container && !containerRef.current) {
+        containerRef.current = container;
+        setIsMounted(true);
+      }
+      return;
+    }
     
     const checkVisibility = () => {
       const container = containerRef.current;
       const button = buttonRef.current;
       
-      if (container) {
-        const rect = container.getBoundingClientRect();
-        const styles = window.getComputedStyle(container);
-        
-        console.log('🔍 Vérification FAB:', {
-          inDOM: document.body.contains(container),
-          rect: { width: rect.width, height: rect.height, top: rect.top, right: rect.right },
+      if (!container) {
+        console.error('❌ Container manquant, recréation...');
+        // Recréer le container
+        const newContainer = document.createElement('div');
+        newContainer.id = 'fab-portal-container';
+        newContainer.style.cssText = `
+          position: fixed !important;
+          bottom: 24px !important;
+          right: 24px !important;
+          z-index: 999999 !important;
+          pointer-events: none !important;
+        `;
+        document.body.appendChild(newContainer);
+        containerRef.current = newContainer;
+        return;
+      }
+      
+      const rect = container.getBoundingClientRect();
+      const styles = window.getComputedStyle(container);
+      
+      // Vérifier si le container est visible
+      const isVisible = rect.width > 0 && rect.height > 0 && 
+                       styles.display !== 'none' && 
+                       styles.visibility !== 'hidden' &&
+                       parseFloat(styles.opacity) > 0.1;
+      
+      if (!isVisible) {
+        console.warn('⚠️ Container non visible, force la visibilité !', {
+          rect: { width: rect.width, height: rect.height },
           display: styles.display,
           visibility: styles.visibility,
-          opacity: styles.opacity,
-          zIndex: styles.zIndex,
-          pointerEvents: styles.pointerEvents
+          opacity: styles.opacity
         });
-        
-        // Forcer la visibilité
-        if (container.style.pointerEvents !== 'auto') {
-          container.style.pointerEvents = 'auto';
-        }
+        container.style.pointerEvents = 'auto';
+        container.style.display = 'block';
+        container.style.visibility = 'visible';
+        container.style.opacity = '1';
       }
       
       if (button) {
-        const rect = button.getBoundingClientRect();
-        const styles = window.getComputedStyle(button);
+        const buttonRect = button.getBoundingClientRect();
+        const buttonStyles = window.getComputedStyle(button);
         
-        if (rect.width === 0 || rect.height === 0) {
+        if (buttonRect.width === 0 || buttonRect.height === 0) {
           console.warn('⚠️ Bouton a une taille 0, force les dimensions !');
           button.style.width = '64px';
           button.style.height = '64px';
+          button.style.display = 'flex';
         }
+      } else {
+        console.warn('⚠️ Bouton non trouvé dans le DOM');
       }
     };
     
-    // Vérifications régulières
-    const interval = setInterval(checkVisibility, 1000);
-    setTimeout(checkVisibility, 100);
+    // Vérifications immédiates
+    setTimeout(checkVisibility, 50);
+    setTimeout(checkVisibility, 200);
     setTimeout(checkVisibility, 500);
+    setTimeout(checkVisibility, 1000);
+    
+    // Vérification périodique
+    const interval = setInterval(checkVisibility, 2000);
     
     return () => clearInterval(interval);
   }, [isMounted]);
 
+  // Si pas encore monté, ne rien rendre
   if (!isMounted || !containerRef.current) {
+    console.log('⏳ FloatingActionButton en attente de montage...');
     return null;
   }
 
