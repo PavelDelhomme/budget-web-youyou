@@ -69,6 +69,7 @@ function App() {
   const [subs, setSubs] = useState<Subscription[]>([]);
   const [annualFixedExpenses, setAnnualFixedExpenses] = useState<AnnualFixedExpense[]>([]);
   const [monthlySalary, setMonthlySalary] = useState<number>(0);
+  const [hasYearSpecificSalary, setHasYearSpecificSalary] = useState<boolean>(false); // True si le revenu est spécifique à l'année
   const [variableMonthlyIncomes, setVariableMonthlyIncomes] = useState<number[] | undefined>(undefined);
   const [additionalMonthlyIncomes, setAdditionalMonthlyIncomes] = useState<MonthlyAdditionalIncome[]>([]);
   const [monthlyIncomeSources, setMonthlyIncomeSources] = useState<MonthlyIncomeSource[]>([]);
@@ -478,7 +479,11 @@ function App() {
         setSubs(Array.isArray(ds.subs) ? ds.subs : []);
         setAnnualFixedExpenses(Array.isArray(ds.annualFixedExpenses) ? ds.annualFixedExpenses : []);
         // Prendre monthlySalary depuis yearData, sinon depuis globalData
-        setMonthlySalary(ds.monthlySalary || globalData?.monthlySalary || 0);
+        // Si ds.monthlySalary est défini (même à 0), c'est un revenu spécifique à l'année
+        // Sinon, on utilise le revenu global
+        const yearSpecificSalaryValue = ds.monthlySalary !== undefined && ds.monthlySalary !== null ? ds.monthlySalary : undefined;
+        setHasYearSpecificSalary(yearSpecificSalaryValue !== undefined);
+        setMonthlySalary(yearSpecificSalaryValue !== undefined ? yearSpecificSalaryValue : (globalData?.monthlySalary || 0));
         setVariableMonthlyIncomes(Array.isArray(ds.variableMonthlyIncomes) && ds.variableMonthlyIncomes.length === 12 ? ds.variableMonthlyIncomes : undefined);
         setAdditionalMonthlyIncomes(Array.isArray(ds.additionalMonthlyIncomes) ? ds.additionalMonthlyIncomes : []);
         setMonthlyIncomeSources(Array.isArray(ds.monthlyIncomeSources) ? ds.monthlyIncomeSources : []);
@@ -1429,7 +1434,7 @@ function App() {
           onOpenTaxManager={() => setIsTaxManagerOpen(true)}
           onOpenAdvancedFiscal={() => setIsAdvancedFiscalManagerOpen(true)}
           globalMonthlySalary={globalData?.monthlySalary}
-          yearSpecificSalary={typeof year === 'number' ? (historicalData.get(year)?.monthlySalary !== undefined && historicalData.get(year)?.monthlySalary !== null ? historicalData.get(year)?.monthlySalary : undefined) : undefined}
+          yearSpecificSalary={hasYearSpecificSalary && typeof year === 'number' ? monthlySalary : undefined}
         />
 
         {/* Categories */}
