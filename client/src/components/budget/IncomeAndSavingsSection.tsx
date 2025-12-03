@@ -26,6 +26,7 @@ interface IncomeAndSavingsSectionProps {
   onMonthlyIncomeSourcesChange?: (sources: MonthlyIncomeSource[]) => void;
   currentYear?: number; // Pour calculer les revenus actifs
   onOpenTaxManager?: () => void; // Ouvrir le gestionnaire fiscal
+  onOpenAdvancedFiscal?: () => void; // Ouvrir le gestionnaire fiscal avancé
   globalMonthlySalary?: number; // Revenu mensuel global pour indication de la source
   yearSpecificSalary?: number; // Revenu mensuel spécifique à l'année (undefined si utilise le global)
 }
