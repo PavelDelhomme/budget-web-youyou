@@ -20,6 +20,17 @@ const IGNORED_ERRORS = [
   'vite',
   'ws://',
   'websocket connection',
+  'websocket connection to',
+  'setupwebsocket',
+  'client:536',
+  'installhook',
+  'your current setup',
+  'check out your vite',
+  'network configuration',
+  'server-options',
+  'overrideMethod',
+  'failed to connect',
+  'connection failed',
 ];
 
 // Fonction pour vérifier si une erreur doit être ignorée

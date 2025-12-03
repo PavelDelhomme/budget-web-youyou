@@ -37,7 +37,17 @@
         'vite',
         'webpack',
         'failed to connect',
-        'connection failed'
+        'connection failed',
+        'setupwebsocket',
+        'client:536',
+        'installhook',
+        'failed to connect to websocket',
+        'websocket connection to',
+        'your current setup',
+        'check out your vite',
+        'network configuration',
+        'server-options',
+        'overrideMethod'
       ];
       
       function shouldIgnore(...args) {
@@ -89,33 +99,74 @@
         }
       };
       
-      // Intercepter window.onerror
+      // Intercepter window.onerror AVANT tout le reste
       const originalOnError = window.onerror;
       window.onerror = function(message, source, lineno, colno, error) {
-        if (shouldIgnore(message, source, error)) {
-          return true; // Empêcher l'affichage
+        const messageStr = String(message || '').toLowerCase();
+        const sourceStr = String(source || '').toLowerCase();
+        
+        // Vérifier plus agressivement les erreurs WebSocket
+        if (shouldIgnore(messageStr, sourceStr, error) ||
+            messageStr.includes('setupwebsocket') ||
+            messageStr.includes('client:536') ||
+            sourceStr.includes('client:536') ||
+            sourceStr.includes('vite') ||
+            (error && error.message && shouldIgnore(error.message))) {
+          return true; // Empêcher complètement l'affichage
         }
+        
         if (originalOnError) {
           return originalOnError.call(window, message, source, lineno, colno, error);
         }
         return false;
       };
       
-      // Intercepter window.onunhandledrejection
-      window.addEventListener('unhandledrejection', function(event) {
-        if (shouldIgnore(event.reason, String(event.reason))) {
+      // Intercepter window.onunhandledrejection AVANT
+      const originalUnhandledRejection = window.onunhandledrejection;
+      window.onunhandledrejection = function(event) {
+        const reasonStr = String(event.reason || '').toLowerCase();
+        if (shouldIgnore(event.reason, reasonStr) ||
+            reasonStr.includes('websocket') ||
+            reasonStr.includes('setupwebsocket') ||
+            reasonStr.includes('vite') ||
+            reasonStr.includes('hmr')) {
           event.preventDefault();
           event.stopPropagation();
+          return;
         }
-      }, true);
+        if (originalUnhandledRejection) {
+          return originalUnhandledRejection.call(window, event);
+        }
+      };
       
-      // Intercepter les erreurs d'événements
+      // Intercepter les erreurs d'événements avec useCapture pour intercepter plus tôt
       window.addEventListener('error', function(event) {
-        if (shouldIgnore(event.message, event.filename, event.error)) {
+        const messageStr = String(event.message || '').toLowerCase();
+        const filenameStr = String(event.filename || '').toLowerCase();
+        if (shouldIgnore(event.message, event.filename, event.error) ||
+            messageStr.includes('websocket') ||
+            messageStr.includes('setupwebsocket') ||
+            filenameStr.includes('client:536') ||
+            filenameStr.includes('vite')) {
           event.preventDefault();
           event.stopPropagation();
+          event.stopImmediatePropagation();
         }
-      }, true);
+      }, true); // useCapture = true pour intercepter plus tôt
+      
+      // Intercepter aussi unhandledrejection avec useCapture
+      window.addEventListener('unhandledrejection', function(event) {
+        const reasonStr = String(event.reason || '').toLowerCase();
+        if (shouldIgnore(event.reason, reasonStr) ||
+            reasonStr.includes('websocket') ||
+            reasonStr.includes('setupwebsocket') ||
+            reasonStr.includes('vite') ||
+            reasonStr.includes('hmr')) {
+          event.preventDefault();
+          event.stopPropagation();
+          event.stopImmediatePropagation();
+        }
+      }, true); // useCapture = true
     })();
   </script>
 </head>
