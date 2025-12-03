@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { UserGlobalData, YearData, Expense, Category } from '../../core/types';
 import { currency, today } from '../../lib/utils';
 import { calculateProjectsContributionsForYear } from '../../lib/utils/savingsProjects';
+import { getActiveSalaryForYear } from '../../lib/utils/salaryHistory';
 import { BudgetSuggestions } from '../ai/BudgetSuggestions';
 import { analyzeBudget } from '../../lib/utils/budgetAnalyzer';
 import { ExpensesPieChart } from '../charts/ExpensesPieChart';
@@ -99,8 +100,22 @@ export function Dashboard({
   }, [globalData?.temporaryIncomes, currentYear]);
 
   const monthlySalary = useMemo(() => {
-    return yearData.monthlySalary || globalData?.monthlySalary || 0;
-  }, [yearData.monthlySalary, globalData?.monthlySalary]);
+    // Priorité : revenu spécifique à l'année > revenu global > salaire actif de l'historique
+    if (yearData.monthlySalary !== undefined && yearData.monthlySalary !== null && yearData.monthlySalary > 0) {
+      return yearData.monthlySalary;
+    }
+    if (globalData?.monthlySalary && globalData.monthlySalary > 0) {
+      return globalData.monthlySalary;
+    }
+    // Utiliser le salaire actif de l'historique si disponible
+    if (globalData?.salaryHistory) {
+      const activeSalary = getActiveSalaryForYear(globalData.salaryHistory, currentYear);
+      if (activeSalary !== null && activeSalary > 0) {
+        return activeSalary;
+      }
+    }
+    return 0;
+  }, [yearData.monthlySalary, globalData?.monthlySalary, globalData?.salaryHistory, currentYear]);
   
   const additionalIncome = calculateAdditionalIncome;
   const annualIncome = useMemo(() => {

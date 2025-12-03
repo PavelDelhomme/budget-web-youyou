@@ -21,7 +21,18 @@ export function AnnualEvolutionChart({ historicalData, globalData }: AnnualEvolu
     
     return sorted.map(({ year, data }) => {
       // Calculate annual income
-      const monthlySalary = data.monthlySalary || globalData?.monthlySalary || 0;
+      // Priorité : revenu spécifique à l'année > revenu global > salaire actif de l'historique
+      let monthlySalary = data.monthlySalary;
+      if (monthlySalary === undefined || monthlySalary === null || monthlySalary === 0) {
+        monthlySalary = globalData?.monthlySalary || 0;
+        // Si toujours 0, chercher dans l'historique
+        if (monthlySalary === 0 && globalData?.salaryHistory) {
+          const activeSalary = getActiveSalaryForYear(globalData.salaryHistory, year);
+          if (activeSalary !== null && activeSalary > 0) {
+            monthlySalary = activeSalary;
+          }
+        }
+      }
       let annualIncome = monthlySalary * 12;
       
       // Add variable monthly incomes if available
@@ -64,11 +75,19 @@ export function AnnualEvolutionChart({ historicalData, globalData }: AnnualEvolu
         }
       }
       
-      // Add salary from salaryHistory for this year if monthlySalary is 0 or not set
-      if (annualIncome === 0 || (!monthlySalary && globalData?.salaryHistory)) {
+      // Add salary from salaryHistory if monthlySalary is 0 or not set
+      // Utiliser les salaires de l'historique seulement si aucun revenu mensuel n'est défini
+      if ((!monthlySalary || monthlySalary === 0) && globalData?.salaryHistory) {
         const salaryFromHistory = calculateAnnualIncomeFromSalaryHistory(globalData?.salaryHistory as any, year);
         if (salaryFromHistory > 0) {
-          annualIncome = salaryFromHistory;
+          // Si on n'avait pas de revenu mensuel de base, remplacer le revenu annuel
+          // Sinon, ajouter au revenu annuel existant
+          if (annualIncome === 0 || annualIncome === monthlySalary * 12) {
+            annualIncome = salaryFromHistory;
+          } else {
+            // Ajouter les revenus de l'historique aux revenus existants
+            annualIncome += salaryFromHistory;
+          }
         }
       }
       
