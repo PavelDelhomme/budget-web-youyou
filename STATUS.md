@@ -217,9 +217,10 @@
   - Permet modifier montant revenu permanent pour un mois spécifique
   - Exemple : Chômage 900€/mois → 706,86€ pour décembre
   - Type MonthlyIncomeAdjustment ajouté dans types.ts
-- ✅ **Factures annuelles ponctuelles/récurrentes** : Champ isRecurring ajouté
-  - Récurrente : Répétée chaque année (isRecurring: true)
+- ✅ **Factures annuelles ponctuelles/récurrentes** : Champ isRecurring intégré dans l'interface
+  - Récurrente : Répétée chaque année (isRecurring: true) - défaut
   - Ponctuelle : Une seule fois cette année (isRecurring: false)
+  - Checkbox dans le formulaire + indicateur visuel dans le tableau (🔄/📌)
 - ✅ **Remplacement boutons par icônes SVG** : Tous les boutons "+ Ajouter" remplacés
   - Composant AddIcon réutilisable créé
   - Amélioration accessibilité (titres, aria-labels)
