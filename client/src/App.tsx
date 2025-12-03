@@ -141,7 +141,10 @@ function App() {
   const prevMaxYearsRef = useRef<number | undefined>(undefined);
 
   // Check if user has a valid session on mount and load global data
+  // Vérifier la session au démarrage et périodiquement
   useEffect(() => {
+    let sessionCheckInterval: ReturnType<typeof setInterval> | null = null;
+    
     async function checkSession() {
       try {
         // First check if user is authenticated without generating 401 errors
@@ -214,17 +217,36 @@ function App() {
               }
             }
           } catch (err: any) {
-            // Error loading years data
-            console.error('Could not load years:', err);
+            // Error loading years data - peut-être que la session a expiré
+            if (err?.status === 401) {
+              setSessionEmail(null);
+            } else {
+              console.error('Could not load years:', err);
+            }
           }
+        } else {
+          // User is not authenticated - clear session
+          setSessionEmail(null);
         }
-        // If not authenticated, silently return - user will see login form
       } catch (err: any) {
-        // Silent fail - user is not logged in, this is normal
-        // No need to log anything
+        // Session check failed - user is not logged in
+        setSessionEmail(null);
       }
     }
+    
+    // Vérifier la session au démarrage
     checkSession();
+    
+    // Vérifier la session périodiquement (toutes les 5 minutes)
+    sessionCheckInterval = setInterval(() => {
+      checkSession();
+    }, 5 * 60 * 1000);
+    
+    return () => {
+      if (sessionCheckInterval) {
+        clearInterval(sessionCheckInterval);
+      }
+    };
   }, []);
 
   // Fonction réutilisable pour charger les données historiques et régénérer les prédictions

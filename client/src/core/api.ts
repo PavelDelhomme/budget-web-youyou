@@ -28,9 +28,11 @@ async function api(path: string, opts: RequestInit = {}, silent: boolean = false
       // For 401 errors, always treat them as silent to avoid console pollution
       // It's normal if user is not authenticated
       if (res.status === 401) {
+        // Si c'est une requête qui nécessite une authentification, signaler que la session a expiré
         const error = new Error('Not authenticated');
         (error as any).status = 401;
         (error as any).silent = true;
+        (error as any).sessionExpired = true;
         throw error;
       }
       
