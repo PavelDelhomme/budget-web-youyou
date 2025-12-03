@@ -533,7 +533,10 @@ function App() {
       } catch (err: any) {
         // Only log errors that are not CSRF-related (they are auto-retried)
         if (err?.message && !err.message.includes('CSRF') && err?.status !== 403) {
-          console.error('save error', err);
+          // Ne pas afficher les erreurs 401 (non authentifié) - c'est normal si l'utilisateur n'est pas connecté
+          if (err?.status !== 401) {
+            console.error('save error', err);
+          }
         }
       }
     }, 500);
