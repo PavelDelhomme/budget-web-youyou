@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal } from '../layout/Modal';
 import { TemporaryIncome } from '../../core/types';
 import { currency, parseAmount, toISODate, today } from '../../lib/utils';
+import { MonthlyIncomeAdjustments } from './MonthlyIncomeAdjustments';
 
 interface RevenusManagerProps {
   isOpen: boolean;
@@ -223,78 +224,94 @@ export function RevenusManager({ isOpen, onClose, temporaryIncomes, onUpdate }: 
         {incomes.length > 0 && (
           <div className="space-y-2">
             <h4 className="font-medium text-gray-900 dark:text-white">Revenus supplémentaires :</h4>
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              {incomes.map((ti) => (
-                <div key={ti.id} className="flex justify-between items-start p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-900 dark:text-white">{ti.name}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      {ti.type === 'gift' ? 'Cadeau' : 
-                       ti.type === 'government_aid' ? 'Aide de l\'État' : 
-                       ti.type === 'allocation' ? 'Allocation' :
-                       ti.type === 'bonus' ? 'Prime' : 'Autre'} • 
-                      {ti.duration === 'permanent' ? ' Permanent' :
-                       ti.duration === 'once' ? ' Une fois' : 
-                       ` ${ti.numberOfMonths} mois`}
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {incomes.map((ti) => {
+                const updateIncome = (updatedIncome: TemporaryIncome) => {
+                  setIncomes(incomes.map(inc => inc.id === updatedIncome.id ? updatedIncome : inc));
+                };
+                
+                return (
+                  <div key={ti.id} className="p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900 dark:text-white">{ti.name}</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                          {ti.type === 'gift' ? 'Cadeau' : 
+                           ti.type === 'government_aid' ? 'Aide de l\'État' : 
+                           ti.type === 'allocation' ? 'Allocation' :
+                           ti.type === 'bonus' ? 'Prime' : 'Autre'} • 
+                          {ti.duration === 'permanent' ? ' Permanent' :
+                           ti.duration === 'once' ? ' Une fois' : 
+                           ` ${ti.numberOfMonths} mois`}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          Du {new Date(ti.startDate).toLocaleDateString('fr-FR')}
+                          {ti.endDate && ` au ${new Date(ti.endDate).toLocaleDateString('fr-FR')}`}
+                          {ti.duration === 'permanent' && ' (récurrent)'}
+                        </div>
+                        {ti.note && (
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Note: {ti.note}</div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-right">
+                          <span className="font-semibold text-gray-900 dark:text-white">{currency(ti.amount)}</span>
+                          {ti.duration === 'permanent' && (
+                            <span className="text-xs text-gray-600 dark:text-gray-400 block">/mois</span>
+                          )}
+                          {ti.duration === 'months' && (
+                            <span className="text-xs text-gray-600 dark:text-gray-400 block">
+                              /mois = {currency((ti.amount * (ti.numberOfMonths || 1)))} total
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => {
+                            // Pré-remplir le formulaire avec les données existantes pour modification
+                            setCurrentIncome({
+                              name: ti.name,
+                              type: ti.type,
+                              amount: ti.amount,
+                              duration: ti.duration,
+                              startDate: ti.startDate,
+                              endDate: ti.endDate || '',
+                              numberOfMonths: ti.numberOfMonths || 1,
+                              note: ti.note || '',
+                            });
+                            // Supprimer l'ancien revenu pour permettre la modification
+                            removeIncome(ti.id);
+                            // Scroll vers le formulaire
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          className="p-1.5 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded transition-colors"
+                          title="Modifier le revenu"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => removeIncome(ti.id)}
+                          className="p-1.5 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-colors"
+                          title="Supprimer"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                      Du {new Date(ti.startDate).toLocaleDateString('fr-FR')}
-                      {ti.endDate && ` au ${new Date(ti.endDate).toLocaleDateString('fr-FR')}`}
-                      {ti.duration === 'permanent' && ' (récurrent)'}
-                    </div>
-                    {ti.note && (
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Note: {ti.note}</div>
+                    {/* Ajustements mensuels pour revenus permanents */}
+                    {ti.duration === 'permanent' && (
+                      <MonthlyIncomeAdjustments
+                        income={ti}
+                        currentYear={new Date().getFullYear()}
+                        onUpdate={updateIncome}
+                      />
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="text-right">
-                      <span className="font-semibold text-gray-900 dark:text-white">{currency(ti.amount)}</span>
-                      {ti.duration === 'permanent' && (
-                        <span className="text-xs text-gray-600 dark:text-gray-400 block">/mois</span>
-                      )}
-                      {ti.duration === 'months' && (
-                        <span className="text-xs text-gray-600 dark:text-gray-400 block">
-                          /mois = {currency((ti.amount * (ti.numberOfMonths || 1)))} total
-                        </span>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => {
-                        // Pré-remplir le formulaire avec les données existantes pour modification
-                        setCurrentIncome({
-                          name: ti.name,
-                          type: ti.type,
-                          amount: ti.amount,
-                          duration: ti.duration,
-                          startDate: ti.startDate,
-                          endDate: ti.endDate || '',
-                          numberOfMonths: ti.numberOfMonths || 1,
-                          note: ti.note || '',
-                        });
-                        // Supprimer l'ancien revenu pour permettre la modification
-                        removeIncome(ti.id);
-                        // Scroll vers le formulaire
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }}
-                      className="p-1.5 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded transition-colors"
-                      title="Modifier le montant"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => removeIncome(ti.id)}
-                      className="p-1.5 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-colors"
-                      title="Supprimer"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <div className="pt-2 border-t border-gray-200 dark:border-gray-700 space-y-1">
               <p className="text-sm text-gray-900 dark:text-white">
