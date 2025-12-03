@@ -7,12 +7,25 @@
   ],
   "datasets": {
     "2025": {
-      "categories": [],
+      "categories": [
+        {
+          "id": "achats",
+          "name": "Achats & Loisirs",
+          "target": 0.0,
+          "monthlyTargets": null
+        },
+        {
+          "id": "alimentation",
+          "name": "Alimentation",
+          "target": 0.0,
+          "monthlyTargets": null
+        }
+      ],
       "expenses": [],
       "subs": [],
       "annualFixedExpenses": [],
-      "monthlySalary": 0,
-      "currentSavings": 0,
+      "monthlySalary": 0.0,
+      "currentSavings": 0.0,
       "additionalMonthlyIncomes": [],
       "savingsTransactions": []
     }
