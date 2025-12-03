@@ -1,6 +1,5 @@
 {
   "years": [
-    1900,
     2025,
     2026,
     2100
@@ -28,10 +27,42 @@
       "currentSavings": 0.0,
       "additionalMonthlyIncomes": [],
       "savingsTransactions": []
+    },
+    "2026": {
+      "categories": [
+        {
+          "id": "achats",
+          "name": "Achats & Loisirs",
+          "target": 0.0,
+          "monthlyTargets": null
+        },
+        {
+          "id": "alimentation",
+          "name": "Alimentation",
+          "target": 0.0,
+          "monthlyTargets": null
+        }
+      ],
+      "expenses": [],
+      "subs": [],
+      "annualFixedExpenses": [],
+      "monthlySalary": 0.0,
+      "currentSavings": 0.0,
+      "additionalMonthlyIncomes": [],
+      "savingsTransactions": []
     }
   },
   "globalData": {
-    "bankAccounts": [],
+    "bankAccounts": [
+      {
+        "id": "31206cde-ee25-4ac5-b4b1-ecab4e2b9882",
+        "name": "Compte Principal",
+        "balance": 0,
+        "type": "checking",
+        "isShared": false,
+        "sharedWith": ""
+      }
+    ],
     "investments": [],
     "savingsGoals": [],
     "savingsProjects": [],
@@ -40,10 +71,12 @@
     "personTransactions": [],
     "salaryHistory": [
       {
-        "id": "a7a324b6-9f5e-41ac-a152-82b4e32d5f53",
         "amount": 900,
+        "id": "a7a324b6-9f5e-41ac-a152-82b4e32d5f53",
         "startDate": "2025-09-01",
-        "type": "unemployment"
+        "type": "unemployment",
+        "endDate": "",
+        "note": ""
       }
     ],
     "initializationComplete": true,

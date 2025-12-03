@@ -176,8 +176,15 @@ function App() {
                     setIsInitializationModalOpen(true);
                   }
                 } else {
-                  setIsInitializationModalOpen(false);
-                  setIsAdvancedSignupOpen(false);
+                  // Vérifier qu'au moins un compte bancaire est défini
+                  if (!global.bankAccounts || global.bankAccounts.length === 0) {
+                    // Aucun compte bancaire défini : forcer l'ouverture du modal d'initialisation
+                    setIsInitializationModalOpen(true);
+                    setIsAdvancedSignupOpen(false);
+                  } else {
+                    setIsInitializationModalOpen(false);
+                    setIsAdvancedSignupOpen(false);
+                  }
                 }
               } catch (err: any) {
                 console.error('Could not load global data:', err);
@@ -744,8 +751,15 @@ function App() {
                     setIsInitializationModalOpen(true);
                   }
                 } else {
-                  setIsInitializationModalOpen(false);
-                  setIsAdvancedSignupOpen(false);
+                  // Vérifier qu'au moins un compte bancaire est défini
+                  if (!global.bankAccounts || global.bankAccounts.length === 0) {
+                    // Aucun compte bancaire défini : forcer l'ouverture du modal d'initialisation
+                    setIsInitializationModalOpen(true);
+                    setIsAdvancedSignupOpen(false);
+                  } else {
+                    setIsInitializationModalOpen(false);
+                    setIsAdvancedSignupOpen(false);
+                  }
                 }
             } else {
               // Session not ready yet - will be loaded by checkSession useEffect
@@ -875,6 +889,13 @@ function App() {
     monthlySalaryStartDate?: string;
     temporaryIncomes: any[];
   }) {
+    // Validation obligatoire : au moins un compte bancaire doit être défini
+    if (!data.bankAccounts || data.bankAccounts.length === 0) {
+      alert('⚠️ Vous devez définir au moins un compte bancaire pour continuer. Veuillez ajouter un compte bancaire.');
+      // Ne pas fermer le modal, rester sur la page d'initialisation
+      return;
+    }
+    
     try {
       const globalDataToSave: UserGlobalData = {
         bankAccounts: data.bankAccounts,

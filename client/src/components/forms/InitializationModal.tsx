@@ -182,6 +182,13 @@ export function InitializationModal({ isOpen, onComplete, canSkip = false, initi
   }
 
   function handleComplete() {
+    // Validation obligatoire : au moins un compte bancaire doit être défini
+    if (bankAccounts.length === 0) {
+      alert('⚠️ Vous devez définir au moins un compte bancaire pour continuer. Veuillez retourner à l\'étape 1 pour ajouter un compte.');
+      setStep(1); // Retourner à l'étape des comptes bancaires
+      return;
+    }
+    
     onComplete({ 
       bankAccounts, 
       investments, 
@@ -929,10 +936,24 @@ export function InitializationModal({ isOpen, onComplete, canSkip = false, initi
               </div>
               <button
                 onClick={handleComplete}
-                className="w-full px-4 py-3 bg-green-600 dark:bg-green-500 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 font-semibold text-lg transition-colors"
+                disabled={bankAccounts.length === 0}
+                className={`w-full px-4 py-3 rounded-lg font-semibold text-lg transition-colors ${
+                  bankAccounts.length === 0
+                    ? 'bg-gray-400 dark:bg-gray-600 text-gray-200 dark:text-gray-400 cursor-not-allowed'
+                    : 'bg-green-600 dark:bg-green-500 text-white hover:bg-green-700 dark:hover:bg-green-600'
+                }`}
+                title={bankAccounts.length === 0 ? 'Vous devez définir au moins un compte bancaire pour continuer' : ''}
               >
-                ✅ Terminer la configuration et accéder à l'interface
+                {bankAccounts.length === 0 
+                  ? '⚠️ Ajoutez au moins un compte bancaire pour continuer'
+                  : '✅ Terminer la configuration et accéder à l\'interface'
+                }
               </button>
+              {bankAccounts.length === 0 && (
+                <p className="mt-2 text-sm text-red-600 dark:text-red-400 text-center">
+                  ⚠️ Un compte bancaire est obligatoire. Veuillez retourner à l'étape 1 pour en ajouter un.
+                </p>
+              )}
             </>
           )}
         </div>
