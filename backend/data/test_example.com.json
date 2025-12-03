@@ -1,0 +1,23 @@
+{
+  "years": [
+    2024,
+    2025
+  ],
+  "datasets": {},
+  "globalData": {
+    "bankAccounts": [],
+    "investments": [],
+    "savingsGoals": [],
+    "savingsProjects": [],
+    "temporaryIncomes": [],
+    "sharedExpensePersons": [],
+    "personTransactions": [],
+    "salaryHistory": [],
+    "initializationComplete": false,
+    "monthlySalary": 0,
+    "monthlySalaryStartDate": null,
+    "lockedYears": [],
+    "excludedPredictedYears": [],
+    "maxPredictedYears": 3
+  }
+}

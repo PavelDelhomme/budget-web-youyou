@@ -1,56 +1,28 @@
 {
   "years": [
-    2025
+    1900,
+    2025,
+    2026,
+    2100
   ],
   "datasets": {
     "2025": {
-      "categories": [
-        {
-          "id": "achats",
-          "name": "Achats & Loisirs",
-          "target": 0.0,
-          "monthlyTargets": null
-        },
-        {
-          "id": "alimentation",
-          "name": "Alimentation",
-          "target": 0.0,
-          "monthlyTargets": null
-        }
-      ],
+      "categories": [],
       "expenses": [],
       "subs": [],
       "annualFixedExpenses": [],
-      "monthlySalary": 0.0,
-      "currentSavings": 0.0,
+      "monthlySalary": 0,
+      "currentSavings": 0,
       "additionalMonthlyIncomes": [],
       "savingsTransactions": []
     }
   },
   "globalData": {
-    "bankAccounts": [
-      {
-        "id": "27ebc32a-b8a9-4b09-bd57-80753468950f",
-        "name": "Compte principal",
-        "balance": 0,
-        "type": "checking",
-        "isShared": false,
-        "sharedWith": ""
-      }
-    ],
+    "bankAccounts": [],
     "investments": [],
     "savingsGoals": [],
     "savingsProjects": [],
-    "temporaryIncomes": [
-      {
-        "id": "cfb7139f-185a-4a1b-aad8-f41df88cef3b",
-        "name": "Chômage",
-        "type": "allocation",
-        "amount": 900,
-        "duration": "permanent",
-        "startDate": "2025-12-02"
-      }
-    ],
+    "temporaryIncomes": [],
     "sharedExpensePersons": [],
     "personTransactions": [],
     "salaryHistory": [],
@@ -60,19 +32,6 @@
     "lockedYears": [],
     "excludedPredictedYears": [],
     "maxPredictedYears": 3,
-    "userProfile": {
-      "age": 25,
-      "geographic_location": {
-        "city": "Rennes",
-        "country": "FR",
-        "countryName": "France",
-        "department": "Ille-et-Vilaine",
-        "region": "europe"
-      },
-      "profession": "Chômeur",
-      "secteur_activite": "Informatique",
-      "csp": "chomeur",
-      "situation_familiale": "couple"
-    }
+    "userProfile": {}
   }
 }

@@ -106,9 +106,23 @@ export function AnnualFixedExpenses({
               setIsAdding(true);
             }
           }}
-          className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+          className={`p-2 rounded transition-colors ${
+            isAdding
+              ? 'border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white'
+              : 'bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600'
+          }`}
+          title={isAdding ? 'Annuler' : 'Ajouter une dépense fixe annuelle'}
+          aria-label={isAdding ? 'Annuler' : 'Ajouter une dépense fixe annuelle'}
         >
-          {isAdding ? 'Annuler' : '+ Ajouter'}
+          {isAdding ? (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          ) : (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+          )}
         </button>
       </div>
 
