@@ -273,6 +273,11 @@ function App() {
           const data = await Api.getYearData(y);
           historicalDataMap.set(y, data);
         } catch (err: any) {
+          // Si erreur 401, la session a peut-être expiré - rediriger vers login
+          if (err?.status === 401) {
+            setSessionEmail(null);
+            return;
+          }
           // Skip years with errors (especially 401 - session not ready)
           if (err?.status !== 401) {
             console.debug('Error loading year data:', err);
