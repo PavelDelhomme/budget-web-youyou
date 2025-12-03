@@ -210,12 +210,22 @@
 
 ## 📝 **HISTORIQUE DES MODIFICATIONS**
 
-### 2024-12-03 (Améliorations UX)
-- ✅ Remplacement boutons "+ Ajouter" par icônes SVG
-- ✅ Amélioration modification revenus avec icône crayon
-- ✅ Déplacement documentation dans /docs
-- ✅ Création composant AddIcon réutilisable
-- ✅ Amélioration accessibilité (titres, aria-labels)
+### 2024-12-03 (Améliorations UX et Fonctionnalités)
+- ✅ **Système ajustements mensuels revenus** : Composant MonthlyIncomeAdjustments créé
+  - Permet modifier montant revenu permanent pour un mois spécifique
+  - Exemple : Chômage 900€/mois → 706,86€ pour décembre
+  - Type MonthlyIncomeAdjustment ajouté dans types.ts
+- ✅ **Factures annuelles ponctuelles/récurrentes** : Champ isRecurring ajouté
+  - Récurrente : Répétée chaque année (isRecurring: true)
+  - Ponctuelle : Une seule fois cette année (isRecurring: false)
+- ✅ **Remplacement boutons par icônes SVG** : Tous les boutons "+ Ajouter" remplacés
+  - Composant AddIcon réutilisable créé
+  - Amélioration accessibilité (titres, aria-labels)
+- ✅ **Déplacement documentation dans /docs** : 11 fichiers déplacés
+- ✅ **Tests complets IA** : test_ml_complete.py créé
+  - Tests prédictions, entraînement, recommandations
+  - Tests réseau neuronal, performance, intégration
+- ✅ **STATUS.md amélioré** : Explications concrètes de chaque fonctionnalité
 
 ### 2024-12-03 (Tests et Production)
 - ✅ Suite complète de tests backend (70 tests, 78.6% réussite)
