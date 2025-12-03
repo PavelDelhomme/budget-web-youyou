@@ -1195,17 +1195,15 @@ function App() {
   // UI when logged in
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-gray-900 w-full overflow-x-hidden">
-      {/* Floating Action Button */}
-      {sessionEmail && (
-        <FloatingActionButton
-          onAddExpense={() => {
-            setIsQuickAddExpenseOpen(true);
-          }}
-          onAddIncome={() => {
-            setIsQuickAddIncomeOpen(true);
-          }}
-        />
-      )}
+      {/* Floating Action Button - Toujours affiché si connecté */}
+      <FloatingActionButton
+        onAddExpense={() => {
+          setIsQuickAddExpenseOpen(true);
+        }}
+        onAddIncome={() => {
+          setIsQuickAddIncomeOpen(true);
+        }}
+      />
       
       {/* Hamburger Menu Button */}
       <HamburgerMenu isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />

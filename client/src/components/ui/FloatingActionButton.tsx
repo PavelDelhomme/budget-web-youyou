@@ -9,50 +9,85 @@ export function FloatingActionButton({ onAddExpense, onAddIncome }: FloatingActi
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const isMountedRef = useRef(true);
 
   // Debug : vérifier que le composant est bien monté et visible
   useEffect(() => {
+    isMountedRef.current = true;
     console.log('✅ FloatingActionButton monté !');
     
     // Vérifier que le bouton est dans le DOM après un court délai
     const checkButton = () => {
+      if (!isMountedRef.current) return;
+      
       const container = containerRef.current;
       const button = buttonRef.current;
       
       if (container) {
         const rect = container.getBoundingClientRect();
         const styles = window.getComputedStyle(container);
-        console.log('✅ Container trouvé !', {
-          rect,
-          display: styles.display,
-          visibility: styles.visibility,
-          opacity: styles.opacity,
-          zIndex: styles.zIndex,
-          position: styles.position
-        });
+        
+        // FORCER la visibilité si caché
+        if (styles.display === 'none' || styles.visibility === 'hidden' || parseFloat(styles.opacity) < 0.1) {
+          console.warn('⚠️ Container caché, force la visibilité !');
+          container.style.cssText = `
+            position: fixed !important;
+            bottom: 24px !important;
+            right: 24px !important;
+            z-index: 999999 !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            display: block !important;
+            pointer-events: auto !important;
+          `;
+        }
       } else {
-        console.error('❌ Container PAS trouvé !');
+        console.error('❌ Container PAS trouvé dans le DOM !');
+        // Si le container n'existe pas, c'est un problème sérieux
+        // On va forcer sa création
+        if (isMountedRef.current && document.getElementById('fab-container') === null) {
+          console.warn('⚠️ Container complètement absent, recréation nécessaire');
+        }
       }
       
       if (button) {
         const rect = button.getBoundingClientRect();
         const styles = window.getComputedStyle(button);
-        console.log('✅ Bouton trouvé !', {
-          rect,
-          display: styles.display,
-          visibility: styles.visibility,
-          opacity: styles.opacity,
-          zIndex: styles.zIndex,
-          backgroundColor: styles.backgroundColor
-        });
+        
+        // FORCER la visibilité si caché
+        if (styles.display === 'none' || styles.visibility === 'hidden' || parseFloat(styles.opacity) < 0.1) {
+          console.warn('⚠️ Bouton caché, force la visibilité !');
+          button.style.cssText += `
+            position: relative !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            display: flex !important;
+            pointer-events: auto !important;
+            z-index: 999999 !important;
+          `;
+        }
       } else {
-        console.error('❌ Bouton PAS trouvé !');
+        console.error('❌ Bouton PAS trouvé dans le DOM !');
       }
     };
     
+    // Vérifications multiples pour s'assurer que le bouton reste visible
     setTimeout(checkButton, 100);
     setTimeout(checkButton, 500);
     setTimeout(checkButton, 1000);
+    setTimeout(checkButton, 2000);
+    
+    // Vérification périodique toutes les 2 secondes pour maintenir la visibilité
+    const interval = setInterval(() => {
+      if (isMountedRef.current) {
+        checkButton();
+      }
+    }, 2000);
+    
+    return () => {
+      isMountedRef.current = false;
+      clearInterval(interval);
+    };
   }, []);
 
   return (
@@ -61,14 +96,14 @@ export function FloatingActionButton({ onAddExpense, onAddIncome }: FloatingActi
       id="fab-container"
       className="fab-container"
       style={{ 
-        position: 'fixed !important' as any,
-        bottom: '24px !important' as any,
-        right: '24px !important' as any,
-        zIndex: '999999 !important' as any,
+        position: 'fixed',
+        bottom: '24px',
+        right: '24px',
+        zIndex: 999999,
         pointerEvents: 'auto',
-        visibility: 'visible !important' as any,
-        opacity: '1 !important' as any,
-        display: 'block !important' as any,
+        visibility: 'visible',
+        opacity: 1,
+        display: 'block'
       }}
     >
       {/* Menu déroulant */}
