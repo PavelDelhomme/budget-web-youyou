@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { YearData } from '../../core/types';
 import { currency } from '../../lib/utils';
-import { calculateAnnualIncomeFromSalaryHistory } from '../../lib/utils/salaryHistory';
+import { calculateAnnualIncomeFromSalaryHistory, getActiveSalaryForYear } from '../../lib/utils/salaryHistory';
 
 interface AnnualEvolutionChartProps {
   historicalData: Array<{ year: number; data: YearData }>;
