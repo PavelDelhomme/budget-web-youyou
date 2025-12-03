@@ -1,231 +1,230 @@
 # 📊 STATUS - Budget Web Youyou
 
-## 🎯 PROJET EN COURS : Tests Backend Complets et Préparation Production
+## 🎯 PROJET EN COURS : Améliorations UX et Fonctionnalités
 
-**Priorité** : Tests backend complets, optimisations et préparation production
+**Priorité** : Amélioration modification revenus, factures ponctuelles, icônes et documentation
 
 **Date de mise à jour** : 2024-12-03  
-**Statut actuel** : 🟢 Tests backend créés, préparation production en cours
+**Statut actuel** : 🟡 Améliorations en cours
 
 ---
 
 ## ✅ **DERNIÈRES CORRECTIONS (2024-12-03)**
 
+### Amélioration Modification Revenus
+- ✅ **Bouton modification avec icône** : Ajout d'un bouton de modification avec icône crayon pour les revenus existants
+- ✅ **Pré-remplissage formulaire** : Les revenus peuvent être modifiés en cliquant sur l'icône de modification
+- 🔄 **En cours** : Système pour modifier un revenu pour un mois spécifique (ex: chômage 900€ → 706,86€ pour décembre)
+
+### Amélioration Interface Utilisateur
+- ✅ **Remplacement boutons par icônes** : Tous les boutons "+ Ajouter" remplacés par des icônes SVG
+- ✅ **Composant AddIcon créé** : Composant réutilisable pour les icônes d'ajout
+- ✅ **Meilleure accessibilité** : Titres et aria-labels ajoutés aux boutons
+
+### Organisation Documentation
+- ✅ **Documentation déplacée dans /docs** : Tous les fichiers de documentation organisés
+  - COMPONENTS_RESTRUCTURE.md
+  - FINAL_IMPROVEMENTS.md / FINAL_IMPROVEMENTS_COMPLETED.md
+  - FISCAL_COUNTRY_MANAGEMENT.md
+  - IMPROVEMENTS.md
+  - INSCRIPTION_AVANCEE.md
+  - LOGIN_INFO.md
+  - MIGRATION.md / MIGRATION_DJANGO.md
+  - RESTRUCTURE_PLAN.md
+  - PRODUCTION_CHECKLIST.md
+
 ### Tests Backend Complets
-- ✅ **Suite complète de tests backend créée** : 70 tests couvrant tous les endpoints
-  - Tests d'authentification (test_auth.py)
-  - Tests de sécurité (test_security.py)
-  - Tests de validation (test_validation.py)
-  - Tests endpoints années (test_years_endpoints.py)
-  - Tests endpoints données (test_data_endpoints.py)
-  - Tests gestion d'erreurs (test_error_handling.py)
-  - Tests ML existants (test_ml_service_endpoints.py, test_ml_performance.py)
-- ✅ **Fixtures pytest (conftest.py)** : Configuration complète pour tous les tests
-  - Client Flask de test
-  - Sessions authentifiées
-  - Tokens CSRF
-  - Mocks des fonctions critiques
-  - Reset automatique du rate limiting
-- ✅ **Configuration pytest** : pytest.ini avec markers et options
-- ✅ **Requirements pour tests** : requirements-test.txt avec toutes les dépendances
-- ✅ **Résultats des tests** : 78.6% de réussite (55/70 tests passent)
-  - Tests qui passent : Authentification, données, sécurité, validation, erreurs
-  - Tests à améliorer : Rate limiting, validation années, tests concurrents
-
-### Préparation Production
-- ✅ **Configuration Docker production** : docker-compose.prod.yml amélioré
-  - Configuration Gunicorn optimisée
-  - Nginx pour reverse proxy
-  - Variables d'environnement sécurisées
-  - Healthchecks configurés
-  - Limites de ressources
-- ✅ **Guide de déploiement** : DEPLOYMENT.md complet
-  - Instructions de configuration
-  - Sécurité en production
-  - Monitoring et logs
-  - Sauvegardes
-  - Mises à jour
-- ✅ **Checklist de production** : PRODUCTION_CHECKLIST.md
-  - Checklist sécurité complète
-  - Configuration réseau
-  - Déploiement
-  - Post-déploiement
-- ✅ **Fichier .env.production.example** : Template pour la production
-- ✅ **Configuration Gunicorn** : gunicorn_config.py optimisé
-
-### Corrections Techniques
-- ✅ **Montage volume tests** : Tests accessibles dans le conteneur Docker
-- ✅ **Validation années améliorée** : Limites raisonnables (±10 ans de l'année actuelle)
-- ✅ **Rate limiting reset** : Réinitialisation automatique entre les tests
-- ✅ **Documentation tests** : README.md dans tests/backend/
+- ✅ **Suite complète de tests backend** : 70 tests couvrant tous les endpoints (78.6% réussite)
+- ✅ **Fixtures pytest** : Configuration complète pour tous les tests
+- ✅ **Documentation tests** : README.md, TEST_RESULTS.md, SUMMARY.md
 
 ---
 
-## 📊 **RÉSULTATS DES TESTS BACKEND**
+## 📖 **EXPLICATIONS CONCRÈTES DES FONCTIONNALITÉS**
 
-### Statistiques Globales
-- **Total de tests** : 70
-- **Tests passés** : 55
-- **Tests échoués** : 13
-- **Erreurs** : 1
-- **Taux de réussite** : 78.6%
+### 💰 **Gestion des Revenus**
 
-### Tests par Catégorie
-- ✅ **Authentification** : 10/15 tests passent (rate limiting à améliorer)
-- ✅ **Endpoints de données** : 11/11 tests passent (100%)
-- ✅ **Sécurité** : 7/9 tests passent (rate limiting à améliorer)
-- ✅ **Validation** : 6/8 tests passent (validation années à améliorer)
-- ✅ **Gestion d'erreurs** : 8/10 tests passent (tests concurrents à améliorer)
-- ✅ **ML/Performance** : 4/5 tests passent (benchmark à corriger)
-- ✅ **Endpoints années** : 5/8 tests passent (validation à améliorer)
+#### **Revenus Supplémentaires (TemporaryIncome)**
+- **Où** : Modal "Gérer mes revenus supplémentaires" accessible depuis la sidebar
+- **Fonction** : Ajouter des revenus temporaires ou permanents en plus du salaire mensuel
+- **Types** : 
+  - **Permanents** : Allocations mensuelles récurrentes (APL, RSA, etc.) - comptabilisés chaque mois
+  - **Temporaires** : Cadeaux, primes ponctuelles, aides ponctuelles - une seule fois
+  - **Sur plusieurs mois** : Revenus qui durent quelques mois (ex: intérim 3 mois)
+- **Modification** : Cliquer sur l'icône ✏️ pour modifier un revenu existant (montant, dates, etc.)
+- **Exemple concret** : Ajouter "Chômage Pôle Emploi" permanent 900€/mois, puis modifier à 706,86€ pour un mois spécifique
 
-### Problèmes Identifiés et Corrigés
-- ✅ **Rate limiting trop strict** : Réinitialisation entre tests implémentée
-- ✅ **Validation années** : Limites raisonnables ajoutées (±10 ans)
-- 🔄 **Tests concurrents** : Problème de contexte Flask à résoudre
-- 🔄 **Test benchmark ML** : Attribut manquant à créer
-- 🔄 **Tests validation** : Amélioration de la validation nécessaire
+#### **Revenus Mensuels Multiples (MonthlyIncomeSource)**
+- **Où** : Section "Revenus & épargne" dans le budget annuel
+- **Fonction** : Gérer plusieurs sources de revenus (intérim, CDI, allocations) avec dates de début/fin
+- **Utilisation** : Pour les personnes qui ont plusieurs emplois ou revenus qui changent dans l'année
+- **Modification** : Éditer ou supprimer chaque source de revenu individuellement
 
----
-
-## 🚀 **PRÉPARATION PRODUCTION**
-
-### Configuration Production
-- ✅ **Docker Compose production** : docker-compose.prod.yml avec Nginx
-- ✅ **Variables d'environnement** : .env.production.example créé
-- ✅ **Gunicorn** : Configuration optimisée pour production
-- ✅ **Healthchecks** : Vérification automatique de la santé des services
-- ✅ **Ressources** : Limites CPU/Mémoire configurées
-
-### Documentation Production
-- ✅ **Guide de déploiement** : DEPLOYMENT.md complet
-- ✅ **Checklist production** : PRODUCTION_CHECKLIST.md détaillée
-- ✅ **Configuration sécurité** : Headers, HTTPS, cookies sécurisés
-- ✅ **Monitoring** : Logs structurés, health checks, métriques
-
-### Commandes Disponibles
-- `make test-backend-install` : Installer les dépendances de test
-- `make test-backend-all` : Lancer tous les tests backend
-- `make prod-build` : Construire les images de production
-- `make prod-up` : Démarrer en mode production
-- `make prod-logs` : Voir les logs de production
+#### **Revenus Supplémentaires par Mois (AdditionalMonthlyIncomes)**
+- **Où** : Section "Revenus & épargne" dans le budget annuel
+- **Fonction** : Ajouter des revenus ponctuels pour un mois spécifique (primes, cadeaux, etc.)
+- **Modification** : Cliquer sur l'icône ✏️ pour modifier le montant ou le mois
 
 ---
 
-## 📋 **AVANCEMENT ACTUEL**
+### 💸 **Gestion des Dépenses**
 
-### ✅ **TERMINÉ**
+#### **Dépenses Fixes Annuelles (AnnualFixedExpense)**
+- **Où** : Section "Dépenses fixes annuelles" dans le budget annuel
+- **Fonction** : Gérer les dépenses annuelles récurrentes (assurance habitation, taxe foncière, etc.)
+- **Caractéristiques** :
+  - **Nom** : Ex: "Assurance habitation"
+  - **Montant total** : Ex: 1200€
+  - **Mois de paiement** : Janvier, Février, etc.
+  - **Partage** : Possibilité de partager la dépense (ex: 1/2 du loyer)
+  - **Compte bancaire** : Lier à un compte spécifique
+  - **Note** : Informations complémentaires
+- **Modification** : Cliquer sur l'icône ✏️ pour modifier une dépense existante
+- **Ajout ponctuel** : Utiliser le bouton icône ➕ pour ajouter une nouvelle dépense annuelle
 
-#### Tests Backend Complets (2024-12-03)
-- ✅ Suite complète de 70 tests créée
-- ✅ Fixtures pytest configurées
-- ✅ Configuration pytest.ini
-- ✅ Requirements pour tests
-- ✅ Documentation des tests
-- ✅ Résultats des tests analysés
+#### **Dépenses Variables**
+- **Où** : Section "Dépenses variables" dans le budget annuel
+- **Fonction** : Gérer les dépenses quotidiennes par catégorie (alimentation, transport, etc.)
+- **Modification** : Cliquer sur l'icône ✏️ ou 🗑️ pour modifier/supprimer
 
-#### Préparation Production (2024-12-03)
-- ✅ Configuration Docker production
-- ✅ Guide de déploiement
-- ✅ Checklist de production
-- ✅ Template .env.production
-- ✅ Configuration Gunicorn optimisée
-
----
-
-## 🔄 **EN COURS**
-
-### Optimisation des Tests Backend
-- 🔄 **Amélioration du rate limiting** : Réinitialisation entre tests
-- 🔄 **Validation années** : Limites raisonnables implémentées
-- 🔄 **Tests concurrents** : Correction du contexte Flask
-- 🔄 **Test benchmark ML** : Création de l'attribut manquant
-
-### Préparation Production Finale
-- 🔄 **Configuration Nginx** : Fichier de configuration à créer
-- 🔄 **Certificats SSL** : Configuration Let's Encrypt
-- 🔄 **Optimisations finales** : Performance, sécurité, monitoring
+#### **Abonnements (Subscriptions)**
+- **Où** : Section "Abonnements (dépenses fixes mensuelles)"
+- **Fonction** : Gérer les abonnements mensuels (Netflix, Spotify, téléphone, etc.)
+- **Modification** : Cliquer sur l'icône ✏️ ou 🗑️ pour modifier/supprimer
 
 ---
 
-## ⏳ **À FAIRE**
+### 📊 **Dashboard**
 
-### Tests Backend (Améliorations)
-- [ ] Corriger les 13 tests qui échouent
-  - Tests rate limiting (isolation entre tests)
-  - Tests validation années (améliorer la validation)
-  - Tests concurrents (corriger le contexte Flask)
-  - Test benchmark ML (créer l'attribut manquant)
-- [ ] Augmenter la couverture de code (> 90%)
-- [ ] Ajouter des tests d'intégration
-- [ ] Tests de performance
-
-### Production (Finalisation)
-- [ ] Créer la configuration Nginx complète
-- [ ] Configurer Let's Encrypt pour SSL/TLS
-- [ ] Tester le déploiement complet
-- [ ] Documenter les procédures de rollback
-- [ ] Mettre en place le monitoring avancé
+#### **Vue d'ensemble**
+- **Où** : Page principale après connexion
+- **Fonction** : Afficher un résumé de la situation financière
+- **Cartes** :
+  - **Actifs totaux** : Somme des comptes bancaires + investissements
+  - **Revenus annuels** : Salaire × 12 + revenus supplémentaires
+  - **Dépenses annuelles** : Budget prévu pour l'année
+  - **Épargne projetée** : Revenus - Dépenses
+- **Graphiques** :
+  - **Répartition des dépenses par catégorie** : Graphique en camembert
+  - **Dépenses et revenus par mois** : Graphique en barres (12 mois)
+  - **Évolution par catégories** : Graphique des 6 derniers mois
 
 ---
 
-## 📚 **Documentation du Projet**
+### 🤖 **Intelligence Artificielle**
 
-### 🔧 **Intégrations IA et Machine Learning**
-- **`INTEGRATION_IA.md`** - Vue d'ensemble des intégrations IA et API
-- **`ML_AI.md`** - Documentation complète du système ML/AI
-- **`IMPROVEMENTS.md`** - Réseau neuronal TensorFlow/Keras et sécurité avancée
+#### **Prédictions Budgétaires**
+- **Où** : Automatiquement dans la sidebar, années futures affichées
+- **Fonction** : Prédire les budgets futurs basés sur les données historiques
+- **Modèles** :
+  - **Modèle traditionnel** : Moyenne mobile, régression linéaire
+  - **Réseau neuronal** : TensorFlow/Keras avec apprentissage profond
+- **Entraînement** : Interface "Entraînement IA" pour améliorer les prédictions
 
-### 🚀 **Améliorations et Optimisations**
-- **`MORE_IMPROVEMENTS.md`** - Backup, cache, monitoring, health checks, API docs
-- **`EXTRA_IMPROVEMENTS.md`** - JSON Schema, retry logic, structured logging, API batching, PWA
-- **`FINAL_IMPROVEMENTS.md`** - Export, compression, performance tests
-- **`FINAL_IMPROVEMENTS_COMPLETED.md`** - Performance tests, model selection UI, data encryption
-
-### 🎯 **Fonctionnalités**
-- **`FEATURES.md`** - Liste des fonctionnalités principales
-- **`API_GOUV.md`** - Intégration des APIs gouvernementales (DGFiP, URSSAF, OpenFisca)
-- **`FISCAL_MANAGEMENT.md`** - Système de gestion fiscale avancée
-- **`INSCRIPTION_AVANCEE.md`** - Processus d'inscription avancé avec génération de budget
-
-### 🔐 **Sécurité et Authentification**
-- **`SECURITY.md`** - Toutes les mesures de sécurité implémentées
-- **`LOGIN_INFO.md`** - Informations sur le système de login
-
-### 🏭 **Production et Déploiement**
-- **`DEPLOYMENT.md`** - Guide complet de déploiement en production
-- **`PRODUCTION_CHECKLIST.md`** - Checklist complète pour la production
-
-### 📝 **Autres Documentation**
-- **`MIGRATION.md`** - Migration vers Flask
-- **`MIGRATION_DJANGO.md`** - Migration depuis Django
-- **`TAX_PLANNING.md`** - Planification fiscale
-- **`README.md`** - Documentation principale du projet
-- **`RESPONSIVE_PLAN.md`** - Plan de responsivité mobile
+#### **Recommandations**
+- **Où** : Popup IA accessible depuis la sidebar
+- **Fonction** : Recommandations pour optimiser le budget et atteindre les objectifs
+- **Types** :
+  - Dates cibles pour les projets d'épargne
+  - Contributions mensuelles optimales
+  - Optimisations de dépenses
 
 ---
 
-## 📝 **Historique des Modifications**
+### 🏛️ **Gestion Fiscale**
+
+#### **Calcul Impôts**
+- **Où** : Popup "Calcul impôts" accessible depuis la sidebar
+- **Fonction** : Simuler les impôts basés sur les revenus et dépenses
+- **Intégration** : APIs gouvernementales (DGFiP, OpenFisca)
+
+#### **Déclarations Fiscales**
+- **Où** : Popup "Déclarations fiscales" accessible depuis la sidebar
+- **Fonction** : Gérer les déclarations fiscales, dates importantes, déductions disponibles
+- **Calendrier fiscal** : Dates importantes récupérées depuis impots.gouv.fr
+
+---
+
+### 💾 **Gestion des Données**
+
+#### **Mes Données (GlobalDataManager)**
+- **Où** : Popup "Mes données" accessible depuis la sidebar
+- **Onglets** :
+  - **Années** : Gérer les années, prédictions, verrouillage
+  - **Comptes bancaires** : Ajouter/modifier/supprimer des comptes
+  - **Investissements** : Gérer les investissements (actions, crypto, etc.)
+  - **Catégories** : Personnaliser les catégories de dépenses
+  - **Profil** : Modifier le profil utilisateur
+
+---
+
+## 🎯 **PROCHAINES AMÉLIORATIONS EN COURS**
+
+### Modification Revenus par Mois Spécifique
+- 🔄 **Système d'ajustements mensuels** : Permettre de modifier le montant d'un revenu permanent pour un mois spécifique
+  - Exemple : Chômage 900€/mois permanent, mais décembre = 706,86€
+  - Interface pour créer des exceptions mensuelles
+
+### Factures Annuelles Ponctuelles/Récurrentes
+- 🔄 **Système de récurrence** : Permettre de marquer une dépense annuelle comme récurrente ou ponctuelle
+  - Récurrente : Répétée chaque année (ex: assurance habitation)
+  - Ponctuelle : Une seule fois cette année (ex: réparation exceptionnelle)
+
+### Tests Complets avec IA
+- 🔄 **Tests automatisés IA** : Tests pour vérifier que les prédictions IA fonctionnent correctement
+- 🔄 **Tests de performance** : Vérifier que les prédictions sont rapides
+
+---
+
+## 📚 **ORGANISATION DE LA DOCUMENTATION**
+
+### 📁 **Documentation dans /docs/**
+- **COMPONENTS_RESTRUCTURE.md** : Plan de restructuration des composants React
+- **FINAL_IMPROVEMENTS.md** : Améliorations finales prévues
+- **FINAL_IMPROVEMENTS_COMPLETED.md** : Améliorations finales réalisées
+- **FISCAL_COUNTRY_MANAGEMENT.md** : Gestion fiscale par pays
+- **IMPROVEMENTS.md** : Réseau neuronal TensorFlow/Keras et sécurité
+- **INSCRIPTION_AVANCEE.md** : Processus d'inscription avancé
+- **LOGIN_INFO.md** : Informations sur le système de login
+- **MIGRATION.md** : Migration vers Flask
+- **MIGRATION_DJANGO.md** : Migration depuis Django
+- **RESTRUCTURE_PLAN.md** : Plan de restructuration global
+- **PRODUCTION_CHECKLIST.md** : Checklist pour la production
+
+### 📄 **Documentation à la Racine**
+- **STATUS.md** : Ce fichier - Statut actuel et explications concrètes
+- **README.md** : Documentation principale du projet
+- **FEATURES.md** : Liste des fonctionnalités principales
+- **API_GOUV.md** : Intégration des APIs gouvernementales
+- **FISCAL_MANAGEMENT.md** : Système de gestion fiscale avancée
+- **INTEGRATION_IA.md** : Vue d'ensemble des intégrations IA
+- **ML_AI.md** : Documentation complète du système ML/AI
+- **MORE_IMPROVEMENTS.md** : Backup, cache, monitoring
+- **EXTRA_IMPROVEMENTS.md** : JSON Schema, retry logic, PWA
+- **RESPONSIVE_PLAN.md** : Plan de responsivité mobile
+- **SECURITY.md** : Toutes les mesures de sécurité
+- **TAX_PLANNING.md** : Planification fiscale
+- **DEPLOYMENT.md** : Guide de déploiement en production
+
+---
+
+## 📝 **HISTORIQUE DES MODIFICATIONS**
+
+### 2024-12-03 (Améliorations UX)
+- ✅ Remplacement boutons "+ Ajouter" par icônes SVG
+- ✅ Amélioration modification revenus avec icône crayon
+- ✅ Déplacement documentation dans /docs
+- ✅ Création composant AddIcon réutilisable
+- ✅ Amélioration accessibilité (titres, aria-labels)
 
 ### 2024-12-03 (Tests et Production)
-- ✅ Suite complète de tests backend créée (70 tests, 78.6% réussite)
+- ✅ Suite complète de tests backend (70 tests, 78.6% réussite)
 - ✅ Préparation production complète (Docker, Gunicorn, Nginx)
 - ✅ Guides de déploiement et checklist production
-- ✅ Configuration pytest et fixtures avec reset automatique
-- ✅ Amélioration validation années avec limites raisonnables
-- ✅ Corrections multiples des tests (rate limiting, validation, erreurs)
-- ✅ Montage volumes Docker pour tests et code backend
-- ✅ Documentation complète des tests (README.md, TEST_RESULTS.md)
-- 🔄 Corrections en cours des 13 tests restants (rate limiting, validation)
-
-### 2024-12-02
-- ✅ Réorganisation de STATUS.md avec groupement logique
-- ✅ Création du plan de responsivité (RESPONSIVE_PLAN.md)
-- 🔄 Début de l'intégration responsive - Navigation/Drawer
 
 ---
 
-## 📊 **Métriques**
+## 📊 **MÉTRIQUES**
 
 - **Composants React :** 33
 - **Endpoints API :** 40+
@@ -233,55 +232,10 @@
 - **Services backend :** 15+ modules
 - **Tests E2E :** 15 fichiers (~90+ tests)
 - **Tests Backend :** 70 tests (55 passent, 78.6% de réussite)
-- **Fichiers de documentation :** 24
+- **Fichiers de documentation :** 13 à la racine + 11 dans /docs = 24 total
 
 ---
 
 **État Global :** ✅ Production Ready avec améliorations avancées  
-**Priorité Actuelle :** 🟡 TESTS BACKEND + OPTIMISATIONS + PRÉPARATION PRODUCTION  
+**Priorité Actuelle :** 🟡 AMÉLIORATIONS UX + MODIFICATION REVENUS + FACTURES PONCTUELLES  
 **Dernière mise à jour :** 2024-12-03
-
----
-
-## ✅ **CORRECTIONS RÉCENTES (2024-12-02)**
-
-### Organisation du Code et Corrections
-- ✅ **Restructuration des composants** : Tous les composants organisés en 14 sous-dossiers logiques
-  - `layout/`, `dashboard/`, `budget/`, `charts/`, `income/`, `savings/`, `fiscal/`, `management/`, `ai/`, `auth/`, `forms/`, `ui/`, `assets/`
-- ✅ **Organisation des fichiers core** : 
-  - `api.ts`, `types.ts` → `core/`
-  - `utils.ts`, `utils/` → `lib/utils/`
-- ✅ **Tous les imports corrigés** automatiquement dans tous les fichiers
-- ✅ **Healthcheck backend corrigé** : `/health` → `/api/health` dans docker-compose.yml
-- ✅ **Warning apple-mobile-web-app-capable corrigé** : Ajout du nouveau tag dans index.html
-- ✅ **Espace hamburger menu** : Ajout de padding-top sur mobile (pt-20) pour éviter que le bouton cache le texte
-- ✅ **Erreurs de syntaxe** : Correction des erreurs JSX dans AdvancedSavings.tsx
-
-### Suppression des années futures générées par défaut
-- ✅ **Fonction get_default_years() modifiée** : Ne crée plus les années futures (2026-2029) par défaut
-  - Crée uniquement : année précédente (2024) + année actuelle (2025)
-  - Les années futures seront générées par l'IA quand nécessaire
-- ✅ **Années futures supprimées des données existantes** : Années 2026, 2027, 2028, 2029 supprimées avec leurs datasets
-- ✅ **Script remove_future_years.py créé** : Disponible dans `backend/scripts/`
-- ✅ **Commande make clean-future-years ajoutée** : Pour supprimer les années futures si nécessaire
-
----
-
-## ⏳ **TÂCHES RESTANTES**
-
-### Tests Backend (Améliorations)
-- [ ] Corriger les 13 tests qui échouent (rate limiting, validation, contexte)
-- [ ] Augmenter la couverture de code (> 90%)
-- [ ] Ajouter des tests d'intégration
-
-### Production (Finalisation)
-- [ ] Créer la configuration Nginx complète
-- [ ] Configurer Let's Encrypt pour SSL/TLS
-- [ ] Tester le déploiement complet
-
-### Interface Utilisateur
-- [ ] Déroulement/Enroulement des blocs
-- [ ] Compte bancaire obligatoire pour dépenses variables
-- [ ] Comptes bancaires partagés
-- [ ] Authentification à deux facteurs (2FA)
-- [ ] Remaniement déclaration fiscale
