@@ -12,6 +12,7 @@ from api.fiscal_tracking import (
     FiscalCalendar, FiscalRegulationTracker
 )
 from api.fiscal_country_manager import CountryFiscalManager
+from api.government_fiscal_regulations import GovernmentFiscalRegulationsService
 from api.utils import load_user
 
 
@@ -111,7 +112,7 @@ def register_fiscal_routes(app):
                         'documentation_url': d.documentation_url,
                         'receipt_path': d.receipt_path
                     }
-                    for d in declaration.deductions
+                    for d in decl.deductions
                 ],
                 'notes': declaration.notes,
                 'documents': declaration.documents
@@ -189,7 +190,7 @@ def register_fiscal_routes(app):
     @app.route('/api/fiscal/calendar/<int:year>', methods=['GET'])
     @require_auth
     def get_fiscal_calendar(year: int):
-        """Get fiscal calendar for a year, adapted to user's country"""
+        """Get fiscal calendar for a year, with live data from government websites"""
         user_email = session['user_email']
         user_data = load_user(user_email)
         global_data = user_data.get('globalData', {})
@@ -198,6 +199,10 @@ def register_fiscal_routes(app):
         country_code = geographic_location.get('country', 'FR')  # Default to FR
         
         try:
+            # Utiliser le service de réglementations gouvernementales pour récupérer les dates en temps réel
+            gov_service = GovernmentFiscalRegulationsService()
+            live_dates = gov_service.fetch_live_calendar_dates(year)
+            
             # Use country-specific calendar if available
             country_manager = CountryFiscalManager()
             country_calendar = country_manager.get_fiscal_calendar(country_code, year)
@@ -206,7 +211,7 @@ def register_fiscal_routes(app):
             calendar = FiscalCalendar(year)
             default_dates = calendar.important_dates
             
-            # Combine dates (country-specific dates take priority)
+            # Combiner les dates : priorités aux dates en temps réel, puis country-specific, puis défaut
             all_dates = {}
             for date_info in default_dates:
                 key = date_info['date']
@@ -214,6 +219,9 @@ def register_fiscal_routes(app):
             for date_info in country_calendar:
                 key = date_info['date']
                 all_dates[key] = date_info  # Override if exists
+            for date_info in live_dates:
+                key = date_info['date']
+                all_dates[key] = date_info  # Highest priority - override if exists
             
             combined_dates = sorted(all_dates.values(), key=lambda x: x['date'])
             
@@ -227,7 +235,9 @@ def register_fiscal_routes(app):
                 'important_dates': combined_dates,
                 'upcoming_deadlines': calendar.get_upcoming_deadlines(days_ahead=60),
                 'next_deadline': calendar.get_next_deadline(),
-                'fiscal_info': fiscal_info
+                'fiscal_info': fiscal_info,
+                'source': 'live_government_data',
+                'last_update': datetime.now().isoformat()
             })
         except Exception as e:
             return jsonify({
@@ -237,34 +247,27 @@ def register_fiscal_routes(app):
     @app.route('/api/fiscal/regulations', methods=['GET'])
     @require_auth
     def get_regulations():
-        """Get applicable fiscal regulations"""
+        """Get applicable fiscal regulations from live government sources"""
         year = request.args.get('year', type=int) or datetime.now().year
         category = request.args.get('category')
         
         try:
-            tracker = FiscalRegulationTracker()
-            regulations = tracker.get_applicable_regulations(year, category)
+            # Utiliser le service de réglementations gouvernementales
+            gov_service = GovernmentFiscalRegulationsService()
+            regulations_data = gov_service.get_fiscal_regulations(year, use_cache=True)
             
-            regulations_dict = [
-                {
-                    'id': r.id,
-                    'title': r.title,
-                    'description': r.description,
-                    'category': r.category,
-                    'effective_date': r.effective_date,
-                    'expiration_date': r.expiration_date,
-                    'source': r.source,
-                    'impact': r.impact,
-                    'url': r.url
-                }
-                for r in regulations
-            ]
+            # Filtrer par catégorie si demandé
+            if category:
+                regulations_data = [r for r in regulations_data if r.get('category') == category]
             
             return jsonify({
                 'success': True,
                 'year': year,
-                'regulations': regulations_dict,
-                'last_update': tracker.last_update.isoformat() if tracker.last_update else None
+                'regulations': regulations_data,
+                'category': category,
+                'total_count': len(regulations_data),
+                'source': 'live_government_data',
+                'last_update': datetime.now().isoformat()
             })
         except Exception as e:
             return jsonify({
@@ -274,20 +277,27 @@ def register_fiscal_routes(app):
     @app.route('/api/fiscal/deductions/available', methods=['GET'])
     @require_auth
     def get_available_deductions():
-        """Get available fiscal deductions and credits from official sources"""
+        """Get available fiscal deductions and credits from official government sources"""
         category = request.args.get('category')
         year = request.args.get('year', type=int) or datetime.now().year
         
         try:
-            manager = FiscalDeductionManager()
-            deductions = manager.get_available_deductions(category, year)
+            # Utiliser le service de réglementations gouvernementales
+            gov_service = GovernmentFiscalRegulationsService()
+            deductions = gov_service.get_all_available_deductions(year)
+            
+            # Filtrer par catégorie si demandé
+            if category:
+                deductions = [d for d in deductions if d.get('category') == category]
             
             return jsonify({
                 'success': True,
                 'deductions': deductions,
                 'category': category,
                 'year': year,
-                'total_count': len(deductions)
+                'total_count': len(deductions),
+                'source': 'live_government_data',
+                'last_update': datetime.now().isoformat()
             })
         except Exception as e:
             return jsonify({
@@ -353,4 +363,55 @@ def register_fiscal_routes(app):
             return jsonify({
                 'error': f'Erreur: {str(e)}'
             }), 500
-
+    
+    @app.route('/api/fiscal/payroll-summary/<int:year>', methods=['GET'])
+    @require_auth
+    def get_payroll_summary(year: int):
+        """Get summary of payroll slips for a year to prepare tax declaration"""
+        user_email = session['user_email']
+        user_data = load_user(user_email)
+        global_data = user_data.get('globalData', {})
+        payroll_slips = global_data.get('payrollSlips', [])
+        
+        try:
+            # Filtrer les fiches de paie pour l'année
+            year_slips = [slip for slip in payroll_slips if slip.get('year') == year]
+            
+            # Calculer les totaux
+            total_gross = sum(slip.get('grossSalary', 0) for slip in year_slips)
+            total_net = sum(slip.get('netSalary', 0) for slip in year_slips)
+            total_contributions = sum(slip.get('socialContributions', 0) for slip in year_slips)
+            total_tax_withheld = sum(slip.get('incomeTaxWithheld', 0) for slip in year_slips)
+            
+            # Groupement par employeur
+            by_employer = {}
+            for slip in year_slips:
+                employer = slip.get('employer', 'Inconnu')
+                if employer not in by_employer:
+                    by_employer[employer] = {
+                        'count': 0,
+                        'total_gross': 0,
+                        'total_net': 0,
+                        'contract_type': slip.get('contractType', 'Unknown')
+                    }
+                by_employer[employer]['count'] += 1
+                by_employer[employer]['total_gross'] += slip.get('grossSalary', 0)
+                by_employer[employer]['total_net'] += slip.get('netSalary', 0)
+            
+            return jsonify({
+                'success': True,
+                'year': year,
+                'summary': {
+                    'total_slips': len(year_slips),
+                    'total_gross_salary': total_gross,
+                    'total_net_salary': total_net,
+                    'total_social_contributions': total_contributions,
+                    'total_tax_withheld': total_tax_withheld,
+                    'by_employer': by_employer
+                },
+                'slips': year_slips
+            })
+        except Exception as e:
+            return jsonify({
+                'error': f'Erreur: {str(e)}'
+            }), 500

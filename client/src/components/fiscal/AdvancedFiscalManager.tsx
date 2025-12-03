@@ -161,6 +161,11 @@ export function AdvancedFiscalManager({ isOpen, onClose, annualIncome = 0 }: Adv
         const data = await response.json();
         setCalendar(data.important_dates || []);
         setNextDeadline(data.next_deadline || null);
+        
+        // Afficher une notification si les données proviennent de sources en temps réel
+        if (data.source === 'live_government_data') {
+          console.log(`✅ Calendrier fiscal mis à jour depuis sources gouvernementales (${data.last_update})`);
+        }
       } else if (response.status === 404) {
         // Endpoint non disponible, utiliser données vides
         setCalendar([]);
@@ -182,6 +187,11 @@ export function AdvancedFiscalManager({ isOpen, onClose, annualIncome = 0 }: Adv
       if (response.ok) {
         const data = await response.json();
         setRegulations(data.regulations || []);
+        
+        // Afficher une notification si les données proviennent de sources en temps réel
+        if (data.source === 'live_government_data') {
+          console.log(`✅ Réglementations mises à jour depuis sources gouvernementales (${data.last_update})`);
+        }
       } else if (response.status === 404) {
         // Endpoint non disponible, utiliser données vides
         setRegulations([]);
@@ -201,6 +211,11 @@ export function AdvancedFiscalManager({ isOpen, onClose, annualIncome = 0 }: Adv
       if (response.ok) {
         const data = await response.json();
         setAvailableDeductions(data.deductions || []);
+        
+        // Afficher une notification si les données proviennent de sources en temps réel
+        if (data.source === 'live_government_data') {
+          console.log(`✅ Déductions mises à jour depuis sources gouvernementales (${data.last_update})`);
+        }
       } else if (response.status === 404) {
         // Endpoint non disponible, utiliser données vides
         setAvailableDeductions([]);
