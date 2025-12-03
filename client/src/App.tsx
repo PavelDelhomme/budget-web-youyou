@@ -465,8 +465,11 @@ function App() {
             setTriggerAddExpense(true);
           }, 200);
         }
-      } catch (err) {
-        console.error(err);
+      } catch (err: any) {
+        // Ne pas afficher les erreurs 401 (non authentifié) - c'est normal si l'utilisateur n'est pas connecté
+        if (err?.status !== 401) {
+          console.error('Erreur lors du chargement des données:', err);
+        }
         // En cas d'erreur, réinitialiser le pending
         if (pendingAddExpense) {
           setPendingAddExpense(false);
