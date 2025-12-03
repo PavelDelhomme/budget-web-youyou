@@ -5,7 +5,7 @@
 **Priorité** : Amélioration modification revenus, factures ponctuelles, icônes et documentation
 
 **Date de mise à jour** : 2024-12-03  
-**Statut actuel** : 🟡 Améliorations en cours
+**Statut actuel** : 🟢 Fonctionnel - Améliorations en cours
 
 ---
 
@@ -294,20 +294,73 @@
 - ✅ Préparation production complète (Docker, Gunicorn, Nginx)
 - ✅ Guides de déploiement et checklist production
 
+### 2024-12-03 (Amélioration Revenu Mensuel et Filtrage Erreurs)
+- ✅ **Indication source revenu mensuel** : Badge visuel pour distinguer revenu spécifique à l'année vs global
+- ✅ **Message explicatif** : Guide utilisateur pour comprendre d'où vient le revenu
+- ✅ **Amélioration filtrage WebSocket** : Filtrage plus agressif des erreurs WebSocket dans la console
+- ✅ **Documentation erreurs WebSocket** : Explication complète dans `/docs/WEBSOCKET_ERRORS.md`
+
 ---
 
 ## 📊 **MÉTRIQUES**
 
-- **Composants React :** 33
-- **Endpoints API :** 40+
-- **Modèles ML :** 3 traditionnels + Réseau Neuronal TensorFlow
-- **Services backend :** 15+ modules
-- **Tests E2E :** 15 fichiers (~90+ tests)
+- **Composants React :** 43+
+- **Endpoints API :** 50+
+- **Modèles ML :** 3 traditionnels + Réseau Neuronal TensorFlow + Neural Network
+- **Services backend :** 20+ modules
+- **Tests E2E :** 18 fichiers (~100+ tests)
 - **Tests Backend :** 70 tests (55 passent, 78.6% de réussite)
-- **Fichiers de documentation :** 13 à la racine + 11 dans /docs = 24 total
+- **Fichiers de documentation :** 2 à la racine (STATUS.md, README.md) + 12 dans /docs
+
+---
+
+## 🔗 **DOCUMENTATION ORGANISÉE**
+
+Toute la documentation est maintenant organisée dans `/docs/` par catégories :
+
+### 📁 **Fonctionnalités** (`/docs/features/`)
+- `FEATURES.md` - Liste complète des fonctionnalités
+- `INSCRIPTION_AVANCEE.md` - Processus d'inscription avancé
+
+### 📁 **Gestion Fiscale** (`/docs/fiscal/`)
+- `FISCAL_MANAGEMENT.md` - Système de gestion fiscale avancée
+- `TAX_PLANNING.md` - Planification fiscale
+- `FISCAL_COUNTRY_MANAGEMENT.md` - Gestion fiscale par pays
+- `API_GOUV.md` - Intégration des APIs gouvernementales
+
+### 📁 **Intelligence Artificielle** (`/docs/ai/`)
+- `ML_AI.md` - Documentation complète du système ML/AI
+- `INTEGRATION_IA.md` - Vue d'ensemble des intégrations IA
+
+### 📁 **Déploiement et Production** (`/docs/deployment/`)
+- `DEPLOYMENT.md` - Guide de déploiement en production
+- `PRODUCTION_CHECKLIST.md` - Checklist pour la production
+
+### 📁 **Améliorations et Optimisations** (`/docs/improvements/`)
+- `EXTRA_IMPROVEMENTS.md` - JSON Schema, retry logic, PWA
+- `MORE_IMPROVEMENTS.md` - Backup, cache, monitoring
+- `IMPROVEMENTS.md` - Réseau neuronal TensorFlow et sécurité
+- `FINAL_IMPROVEMENTS.md` / `FINAL_IMPROVEMENTS_COMPLETED.md`
+- `RESPONSIVE_PLAN.md` - Plan de responsivité mobile
+
+### 📁 **Réorganisation** (`/docs/restructure/`)
+- `COMPONENTS_RESTRUCTURE.md` - Plan de restructuration des composants
+- `RESTRUCTURE_PLAN.md` - Plan de restructuration global
+- `MIGRATION.md` / `MIGRATION_DJANGO.md` - Migrations
+
+### 📁 **Sécurité et Technique** (`/docs/technical/`)
+- `SECURITY.md` - Toutes les mesures de sécurité
+- `LOGIN_INFO.md` - Informations sur le système de login
+- `WEBSOCKET_ERRORS.md` - Explication des erreurs WebSocket
+
+### 📄 **À la Racine**
+- **STATUS.md** (ce fichier) - Statut actuel et explications concrètes
+- **README.md** - Documentation principale du projet
+
+**Voir README.md pour les références complètes à tous les documents.**
 
 ---
 
 **État Global :** ✅ Production Ready avec améliorations avancées  
-**Priorité Actuelle :** 🟡 AMÉLIORATIONS UX + MODIFICATION REVENUS + FACTURES PONCTUELLES  
+**Priorité Actuelle :** 🟢 FONCTIONNEL - Améliorations continues  
 **Dernière mise à jour :** 2024-12-03
