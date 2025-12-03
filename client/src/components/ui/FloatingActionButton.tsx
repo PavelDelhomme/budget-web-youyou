@@ -8,66 +8,112 @@ interface FloatingActionButtonProps {
 
 export function FloatingActionButton({ onAddExpense, onAddIncome }: FloatingActionButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+  const [containerReady, setContainerReady] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const initAttemptedRef = useRef(false);
 
-  // Créer le container directement dans le body avec Portal
+  // Créer le container directement dans le body avec Portal - GARANTIR qu'il persiste
   useEffect(() => {
-    console.log('🔧 FloatingActionButton useEffect - Montage...');
-    
-    // Nettoyer l'ancien container s'il existe (pour éviter les doublons)
-    const existingContainer = document.getElementById('fab-portal-container');
-    if (existingContainer) {
-      console.log('🧹 Nettoyage ancien container...');
-      existingContainer.remove();
-    }
-    
-    // Créer un nouveau container
-    const container = document.createElement('div');
-    container.id = 'fab-portal-container';
-    container.style.cssText = `
-      position: fixed !important;
-      bottom: 24px !important;
-      right: 24px !important;
-      z-index: 999999 !important;
-      pointer-events: none !important;
-    `;
-    document.body.appendChild(container);
-    
-    containerRef.current = container;
-    setIsMounted(true);
-    
-    console.log('✅ FloatingActionButton Portal créé !', container);
-    
-    return () => {
-      console.log('🧹 FloatingActionButton démontage...');
-      setIsMounted(false);
-      // Ne PAS supprimer le container ici, car React peut re-render rapidement
-      // On le nettoiera au prochain montage
-    };
-  }, []); // Dépendances vides = montage une seule fois
-
-  // Vérification périodique de visibilité et forcer le re-render si nécessaire
-  useEffect(() => {
-    if (!isMounted) {
-      console.warn('⚠️ Composant non monté, tentative de remontage...');
-      // Forcer le remontage
-      const container = document.getElementById('fab-portal-container');
-      if (container && !containerRef.current) {
-        containerRef.current = container;
-        setIsMounted(true);
-      }
+    // Éviter les doubles initialisations
+    if (initAttemptedRef.current) {
       return;
     }
+    initAttemptedRef.current = true;
+
+    console.log('🔧 FloatingActionButton - Initialisation du Portal...');
+    
+    const initPortal = () => {
+      // Vérifier si le container existe déjà
+      let container = document.getElementById('fab-portal-container') as HTMLDivElement;
+      
+      if (!container) {
+        console.log('📦 Création du container Portal...');
+        container = document.createElement('div');
+        container.id = 'fab-portal-container';
+        container.style.cssText = `
+          position: fixed !important;
+          bottom: 24px !important;
+          right: 24px !important;
+          z-index: 999999 !important;
+          pointer-events: none !important;
+        `;
+        document.body.appendChild(container);
+        console.log('✅ Container Portal créé !', container);
+      } else {
+        console.log('✅ Container Portal existe déjà, réutilisation', container);
+      }
+      
+      containerRef.current = container;
+      
+      // Forcer la visibilité
+      container.style.pointerEvents = 'auto';
+      container.style.display = 'block';
+      container.style.visibility = 'visible';
+      container.style.opacity = '1';
+      
+      setContainerReady(true);
+      
+      // Vérifier périodiquement que le container est toujours présent
+      const checkInterval = setInterval(() => {
+        const existingContainer = document.getElementById('fab-portal-container');
+        if (!existingContainer && containerRef.current) {
+          console.warn('⚠️ Container Portal supprimé ! Recréation...');
+          // Recréer le container
+          const newContainer = document.createElement('div');
+          newContainer.id = 'fab-portal-container';
+          newContainer.style.cssText = `
+            position: fixed !important;
+            bottom: 24px !important;
+            right: 24px !important;
+            z-index: 999999 !important;
+            pointer-events: auto !important;
+          `;
+          document.body.appendChild(newContainer);
+          containerRef.current = newContainer;
+        }
+      }, 1000);
+      
+      return () => {
+        clearInterval(checkInterval);
+        // NE PAS supprimer le container au démontage
+        // Il doit persister même si React se remonte
+      };
+    };
+    
+    // Initialiser immédiatement
+    const cleanup = initPortal();
+    
+    // Retry si document.body n'est pas encore disponible
+    if (!document.body) {
+      console.log('⏳ Body pas encore disponible, attente...');
+      const waitForBody = setInterval(() => {
+        if (document.body) {
+          clearInterval(waitForBody);
+          initPortal();
+        }
+      }, 100);
+      
+      return () => {
+        clearInterval(waitForBody);
+        if (cleanup) cleanup();
+      };
+    }
+    
+    return cleanup;
+  }, []); // Une seule fois au montage
+
+  // Vérification périodique de visibilité
+  useEffect(() => {
+    if (!containerReady) return;
     
     const checkVisibility = () => {
       const container = containerRef.current;
       const button = buttonRef.current;
       
       if (!container) {
-        console.error('❌ Container manquant, recréation...');
-        // Recréer le container
+        console.error('❌ Container manquant !');
+        // Recréer immédiatement
         const newContainer = document.createElement('div');
         newContainer.id = 'fab-portal-container';
         newContainer.style.cssText = `
@@ -75,65 +121,41 @@ export function FloatingActionButton({ onAddExpense, onAddIncome }: FloatingActi
           bottom: 24px !important;
           right: 24px !important;
           z-index: 999999 !important;
-          pointer-events: none !important;
+          pointer-events: auto !important;
         `;
         document.body.appendChild(newContainer);
         containerRef.current = newContainer;
         return;
       }
       
-      const rect = container.getBoundingClientRect();
-      const styles = window.getComputedStyle(container);
-      
-      // Vérifier si le container est visible
-      const isVisible = rect.width > 0 && rect.height > 0 && 
-                       styles.display !== 'none' && 
-                       styles.visibility !== 'hidden' &&
-                       parseFloat(styles.opacity) > 0.1;
-      
-      if (!isVisible) {
-        console.warn('⚠️ Container non visible, force la visibilité !', {
-          rect: { width: rect.width, height: rect.height },
-          display: styles.display,
-          visibility: styles.visibility,
-          opacity: styles.opacity
-        });
+      // Forcer la visibilité du container
+      if (container.style.pointerEvents !== 'auto') {
         container.style.pointerEvents = 'auto';
-        container.style.display = 'block';
-        container.style.visibility = 'visible';
-        container.style.opacity = '1';
       }
       
       if (button) {
         const buttonRect = button.getBoundingClientRect();
-        const buttonStyles = window.getComputedStyle(button);
-        
         if (buttonRect.width === 0 || buttonRect.height === 0) {
-          console.warn('⚠️ Bouton a une taille 0, force les dimensions !');
+          console.warn('⚠️ Bouton invisible, force les dimensions !');
           button.style.width = '64px';
           button.style.height = '64px';
           button.style.display = 'flex';
         }
-      } else {
-        console.warn('⚠️ Bouton non trouvé dans le DOM');
       }
     };
     
-    // Vérifications immédiates
+    // Vérifications immédiates et périodiques
     setTimeout(checkVisibility, 50);
     setTimeout(checkVisibility, 200);
     setTimeout(checkVisibility, 500);
-    setTimeout(checkVisibility, 1000);
     
-    // Vérification périodique
     const interval = setInterval(checkVisibility, 2000);
     
     return () => clearInterval(interval);
-  }, [isMounted]);
+  }, [containerReady]);
 
-  // Si pas encore monté, ne rien rendre
-  if (!isMounted || !containerRef.current) {
-    console.log('⏳ FloatingActionButton en attente de montage...');
+  // Si le container n'est pas prêt, ne rien rendre
+  if (!containerReady || !containerRef.current) {
     return null;
   }
 
