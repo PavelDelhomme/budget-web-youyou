@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface FloatingActionButtonProps {
   onAddExpense: () => void;
@@ -7,35 +7,68 @@ interface FloatingActionButtonProps {
 
 export function FloatingActionButton({ onAddExpense, onAddIncome }: FloatingActionButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   // Debug : vérifier que le composant est bien monté et visible
   useEffect(() => {
     console.log('✅ FloatingActionButton monté !');
+    
     // Vérifier que le bouton est dans le DOM après un court délai
-    setTimeout(() => {
-      const btn = document.getElementById('fab-main-button');
-      if (btn) {
-        console.log('✅ Bouton trouvé dans le DOM !', btn);
-        console.log('✅ Position:', btn.getBoundingClientRect());
-        console.log('✅ Styles:', window.getComputedStyle(btn));
+    const checkButton = () => {
+      const container = containerRef.current;
+      const button = buttonRef.current;
+      
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        const styles = window.getComputedStyle(container);
+        console.log('✅ Container trouvé !', {
+          rect,
+          display: styles.display,
+          visibility: styles.visibility,
+          opacity: styles.opacity,
+          zIndex: styles.zIndex,
+          position: styles.position
+        });
       } else {
-        console.error('❌ Bouton PAS trouvé dans le DOM !');
+        console.error('❌ Container PAS trouvé !');
       }
-    }, 500);
+      
+      if (button) {
+        const rect = button.getBoundingClientRect();
+        const styles = window.getComputedStyle(button);
+        console.log('✅ Bouton trouvé !', {
+          rect,
+          display: styles.display,
+          visibility: styles.visibility,
+          opacity: styles.opacity,
+          zIndex: styles.zIndex,
+          backgroundColor: styles.backgroundColor
+        });
+      } else {
+        console.error('❌ Bouton PAS trouvé !');
+      }
+    };
+    
+    setTimeout(checkButton, 100);
+    setTimeout(checkButton, 500);
+    setTimeout(checkButton, 1000);
   }, []);
 
   return (
     <div 
+      ref={containerRef}
       id="fab-container"
+      className="fab-container"
       style={{ 
-        position: 'fixed',
-        bottom: '24px',
-        right: '24px',
-        zIndex: 999999,
+        position: 'fixed !important' as any,
+        bottom: '24px !important' as any,
+        right: '24px !important' as any,
+        zIndex: '999999 !important' as any,
         pointerEvents: 'auto',
-        visibility: 'visible',
-        opacity: 1,
-        display: 'block'
+        visibility: 'visible !important' as any,
+        opacity: '1 !important' as any,
+        display: 'block !important' as any,
       }}
     >
       {/* Menu déroulant */}
@@ -136,41 +169,51 @@ export function FloatingActionButton({ onAddExpense, onAddIncome }: FloatingActi
         </div>
       )}
 
-      {/* Bouton principal - Version ultra visible pour debug */}
+      {/* Bouton principal */}
       <button
+        ref={buttonRef}
         id="fab-main-button"
+        className="fab-main-button"
         onClick={(e) => {
           e.stopPropagation();
           e.preventDefault();
+          console.log('🎯 Bouton cliqué !', isOpen);
           setIsOpen(!isOpen);
         }}
         style={{
           width: '64px',
           height: '64px',
           borderRadius: '50%',
-          backgroundColor: '#FF0000', // ROUGE VIF pour test
+          backgroundColor: '#2563eb',
           color: 'white',
           border: '4px solid white',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: '0 10px 30px rgba(255, 0, 0, 0.5), 0 0 0 4px rgba(255, 255, 255, 0.3)',
+          boxShadow: '0 10px 30px rgba(37, 99, 235, 0.5), 0 0 0 4px rgba(255, 255, 255, 0.3)',
           transition: 'all 0.3s',
           transform: isOpen ? 'rotate(45deg) scale(1.1)' : 'scale(1)',
           zIndex: 999999,
           outline: 'none',
           position: 'relative',
           visibility: 'visible',
-          opacity: 1
+          opacity: 1,
+          pointerEvents: 'auto'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = '#FF3333';
-          e.currentTarget.style.transform = isOpen ? 'rotate(45deg) scale(1.2)' : 'scale(1.2)';
+          if (!isOpen) {
+            e.currentTarget.style.backgroundColor = '#1d4ed8';
+            e.currentTarget.style.transform = 'scale(1.15)';
+          }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = isOpen ? '#4b5563' : '#2563eb';
-          e.currentTarget.style.transform = isOpen ? 'rotate(45deg) scale(1.1)' : 'scale(1)';
+          if (!isOpen) {
+            e.currentTarget.style.backgroundColor = '#2563eb';
+            e.currentTarget.style.transform = 'scale(1)';
+          } else {
+            e.currentTarget.style.transform = 'rotate(45deg) scale(1.1)';
+          }
         }}
         aria-label="Ajouter une dépense ou un revenu"
       >
