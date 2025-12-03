@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 
 interface FloatingActionButtonProps {
   onAddExpense: () => void;
@@ -7,19 +8,44 @@ interface FloatingActionButtonProps {
 
 export function FloatingActionButton({ onAddExpense, onAddIncome }: FloatingActionButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const isMountedRef = useRef(true);
+  const [isMounted, setIsMounted] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
 
-  // Debug : vérifier que le composant est bien monté et visible
+  // Créer le container directement dans le body avec Portal
   useEffect(() => {
-    isMountedRef.current = true;
-    console.log('✅ FloatingActionButton monté !');
+    setIsMounted(true);
     
-    // Vérifier que le bouton est dans le DOM après un court délai
-    const checkButton = () => {
-      if (!isMountedRef.current) return;
-      
+    // Créer un container dédié dans le body si il n'existe pas
+    let container = document.getElementById('fab-portal-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'fab-portal-container';
+      container.style.cssText = `
+        position: fixed !important;
+        bottom: 24px !important;
+        right: 24px !important;
+        z-index: 999999 !important;
+        pointer-events: none !important;
+      `;
+      document.body.appendChild(container);
+    }
+    
+    containerRef.current = container as HTMLDivElement;
+    
+    console.log('✅ FloatingActionButton Portal créé !', container);
+    
+    return () => {
+      // Ne pas supprimer le container, juste marquer comme non monté
+      setIsMounted(false);
+    };
+  }, []);
+
+  // Vérification périodique de visibilité
+  useEffect(() => {
+    if (!isMounted) return;
+    
+    const checkVisibility = () => {
       const container = containerRef.current;
       const button = buttonRef.current;
       
@@ -27,26 +53,19 @@ export function FloatingActionButton({ onAddExpense, onAddIncome }: FloatingActi
         const rect = container.getBoundingClientRect();
         const styles = window.getComputedStyle(container);
         
-        // FORCER la visibilité si caché
-        if (styles.display === 'none' || styles.visibility === 'hidden' || parseFloat(styles.opacity) < 0.1) {
-          console.warn('⚠️ Container caché, force la visibilité !');
-          container.style.cssText = `
-            position: fixed !important;
-            bottom: 24px !important;
-            right: 24px !important;
-            z-index: 999999 !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            display: block !important;
-            pointer-events: auto !important;
-          `;
-        }
-      } else {
-        console.error('❌ Container PAS trouvé dans le DOM !');
-        // Si le container n'existe pas, c'est un problème sérieux
-        // On va forcer sa création
-        if (isMountedRef.current && document.getElementById('fab-container') === null) {
-          console.warn('⚠️ Container complètement absent, recréation nécessaire');
+        console.log('🔍 Vérification FAB:', {
+          inDOM: document.body.contains(container),
+          rect: { width: rect.width, height: rect.height, top: rect.top, right: rect.right },
+          display: styles.display,
+          visibility: styles.visibility,
+          opacity: styles.opacity,
+          zIndex: styles.zIndex,
+          pointerEvents: styles.pointerEvents
+        });
+        
+        // Forcer la visibilité
+        if (container.style.pointerEvents !== 'auto') {
+          container.style.pointerEvents = 'auto';
         }
       }
       
@@ -54,56 +73,35 @@ export function FloatingActionButton({ onAddExpense, onAddIncome }: FloatingActi
         const rect = button.getBoundingClientRect();
         const styles = window.getComputedStyle(button);
         
-        // FORCER la visibilité si caché
-        if (styles.display === 'none' || styles.visibility === 'hidden' || parseFloat(styles.opacity) < 0.1) {
-          console.warn('⚠️ Bouton caché, force la visibilité !');
-          button.style.cssText += `
-            position: relative !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            display: flex !important;
-            pointer-events: auto !important;
-            z-index: 999999 !important;
-          `;
+        if (rect.width === 0 || rect.height === 0) {
+          console.warn('⚠️ Bouton a une taille 0, force les dimensions !');
+          button.style.width = '64px';
+          button.style.height = '64px';
         }
-      } else {
-        console.error('❌ Bouton PAS trouvé dans le DOM !');
       }
     };
     
-    // Vérifications multiples pour s'assurer que le bouton reste visible
-    setTimeout(checkButton, 100);
-    setTimeout(checkButton, 500);
-    setTimeout(checkButton, 1000);
-    setTimeout(checkButton, 2000);
+    // Vérifications régulières
+    const interval = setInterval(checkVisibility, 1000);
+    setTimeout(checkVisibility, 100);
+    setTimeout(checkVisibility, 500);
     
-    // Vérification périodique toutes les 2 secondes pour maintenir la visibilité
-    const interval = setInterval(() => {
-      if (isMountedRef.current) {
-        checkButton();
-      }
-    }, 2000);
-    
-    return () => {
-      isMountedRef.current = false;
-      clearInterval(interval);
-    };
-  }, []);
+    return () => clearInterval(interval);
+  }, [isMounted]);
 
-  return (
+  if (!isMounted || !containerRef.current) {
+    return null;
+  }
+
+  const buttonContent = (
     <div 
-      ref={containerRef}
       id="fab-container"
       className="fab-container"
       style={{ 
-        position: 'fixed',
-        bottom: '24px',
-        right: '24px',
-        zIndex: 999999,
-        pointerEvents: 'auto',
-        visibility: 'visible',
-        opacity: 1,
-        display: 'block'
+        position: 'relative',
+        width: '64px',
+        height: '64px',
+        pointerEvents: 'auto'
       }}
     >
       {/* Menu déroulant */}
@@ -117,7 +115,8 @@ export function FloatingActionButton({ onAddExpense, onAddIncome }: FloatingActi
             display: 'flex',
             flexDirection: 'column',
             gap: '8px',
-            zIndex: 999999
+            zIndex: 999999,
+            pointerEvents: 'auto'
           }}
         >
           {/* Bouton Ajouter Revenu */}
@@ -140,7 +139,8 @@ export function FloatingActionButton({ onAddExpense, onAddIncome }: FloatingActi
               transition: 'all 0.2s',
               fontWeight: '600',
               fontSize: '14px',
-              whiteSpace: 'nowrap'
+              whiteSpace: 'nowrap',
+              pointerEvents: 'auto'
             }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#15803d'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#16a34a'}
@@ -181,7 +181,8 @@ export function FloatingActionButton({ onAddExpense, onAddIncome }: FloatingActi
               transition: 'all 0.2s',
               fontWeight: '600',
               fontSize: '14px',
-              whiteSpace: 'nowrap'
+              whiteSpace: 'nowrap',
+              pointerEvents: 'auto'
             }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#b91c1c'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
@@ -229,12 +230,12 @@ export function FloatingActionButton({ onAddExpense, onAddIncome }: FloatingActi
           boxShadow: '0 10px 30px rgba(37, 99, 235, 0.5), 0 0 0 4px rgba(255, 255, 255, 0.3)',
           transition: 'all 0.3s',
           transform: isOpen ? 'rotate(45deg) scale(1.1)' : 'scale(1)',
-          zIndex: 999999,
           outline: 'none',
           position: 'relative',
           visibility: 'visible',
           opacity: 1,
-          pointerEvents: 'auto'
+          pointerEvents: 'auto',
+          zIndex: 999999
         }}
         onMouseEnter={(e) => {
           if (!isOpen) {
@@ -285,4 +286,7 @@ export function FloatingActionButton({ onAddExpense, onAddIncome }: FloatingActi
       )}
     </div>
   );
+
+  // Utiliser createPortal pour rendre directement dans le body
+  return createPortal(buttonContent, containerRef.current);
 }
