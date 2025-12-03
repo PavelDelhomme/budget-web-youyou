@@ -135,11 +135,9 @@ def reset_login_attempts():
     
     # Reset aussi le rate limiter si possible
     try:
-        from api.middleware import rate_limit_storage
-        if hasattr(rate_limit_storage, 'clear'):
-            rate_limit_storage.clear()
-        elif isinstance(rate_limit_storage, dict):
-            rate_limit_storage.clear()
+        from api.middleware import rate_limit_store
+        if isinstance(rate_limit_store, dict):
+            rate_limit_store.clear()
     except:
         pass
     
@@ -150,11 +148,9 @@ def reset_login_attempts():
     
     # Reset rate limiter après
     try:
-        from api.middleware import rate_limit_storage
-        if hasattr(rate_limit_storage, 'clear'):
-            rate_limit_storage.clear()
-        elif isinstance(rate_limit_storage, dict):
-            rate_limit_storage.clear()
+        from api.middleware import rate_limit_store
+        if isinstance(rate_limit_store, dict):
+            rate_limit_store.clear()
     except:
         pass
 
