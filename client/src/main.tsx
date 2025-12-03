@@ -6,7 +6,6 @@ import App from './App'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
 import './index.css'
-import './utils/silentErrorHandler'
 
 // Créer le container Portal AVANT que React ne se monte
 // Cela garantit qu'il existe toujours, même après un refresh normal
