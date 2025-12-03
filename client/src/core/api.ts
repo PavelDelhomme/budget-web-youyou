@@ -25,9 +25,9 @@ async function api(path: string, opts: RequestInit = {}, silent: boolean = false
     });
     
     if (!res.ok) {
-      // For 401 errors in silent mode (session checks), don't create Error object
-      // to avoid console pollution
-      if (silent && res.status === 401) {
+      // For 401 errors, always treat them as silent to avoid console pollution
+      // It's normal if user is not authenticated
+      if (res.status === 401) {
         const error = new Error('Not authenticated');
         (error as any).status = 401;
         (error as any).silent = true;
