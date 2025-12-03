@@ -1223,16 +1223,34 @@ function App() {
             setIsSidebarOpen(false);
           }
         }}
-        onAddYear={onAddYear}
+        onAddYear={() => {
+          setIsSidebarOpen(false);
+          onAddYear();
+        }}
         onLogout={onLogout}
         sessionEmail={sessionEmail || ''}
         predictedYears={predictedYears.map(p => p.year)}
         onMaterializeYear={handleMaterializeYear}
-        onOpenGlobalData={() => setIsGlobalDataManagerOpen(true)}
-        onOpenRevenus={() => setIsRevenusManagerOpen(true)}
-        onOpenMLTraining={() => setIsMLTrainingOpen(true)}
-        onOpenTaxManager={() => setIsTaxManagerOpen(true)}
-        onOpenAdvancedFiscal={() => setIsAdvancedFiscalManagerOpen(true)}
+        onOpenGlobalData={() => {
+          setIsSidebarOpen(false);
+          setIsGlobalDataManagerOpen(true);
+        }}
+        onOpenRevenus={() => {
+          setIsSidebarOpen(false);
+          setIsRevenusManagerOpen(true);
+        }}
+        onOpenMLTraining={() => {
+          setIsSidebarOpen(false);
+          setIsMLTrainingOpen(true);
+        }}
+        onOpenTaxManager={() => {
+          setIsSidebarOpen(false);
+          setIsTaxManagerOpen(true);
+        }}
+        onOpenAdvancedFiscal={() => {
+          setIsSidebarOpen(false);
+          setIsAdvancedFiscalManagerOpen(true);
+        }}
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
         onClose={() => setIsSidebarOpen(false)}
