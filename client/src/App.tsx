@@ -437,6 +437,11 @@ function App() {
     setIsViewingPrediction(false);
     async function load() {
       if (year === 'dashboard') return;
+      // Vérifier que l'année est valide (entre 2000 et 2100)
+      if (typeof year === 'number' && (year < 2000 || year > 2100)) {
+        console.warn(`⚠️ Année invalide ignorée: ${year}`);
+        return;
+      }
       try {
         const ds = await Api.getYearData(year);
         setCategories(

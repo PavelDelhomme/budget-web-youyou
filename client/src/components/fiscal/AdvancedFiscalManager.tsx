@@ -141,12 +141,15 @@ export function AdvancedFiscalManager({ isOpen, onClose, annualIncome = 0 }: Adv
       if (response.ok) {
         const data = await response.json();
         setDeclarations(data.declarations || []);
+      } else if (response.status === 401) {
+        // Utilisateur non authentifié - c'est normal, ne pas afficher d'erreur
+        setDeclarations([]);
       } else if (response.status === 404) {
         // Endpoint non disponible, utiliser données vides
         setDeclarations([]);
       }
     } catch (err: any) {
-      // Erreur silencieuse si endpoint non disponible
+      // Erreur silencieuse si endpoint non disponible ou utilisateur non authentifié
       setDeclarations([]);
     }
   };
@@ -166,6 +169,10 @@ export function AdvancedFiscalManager({ isOpen, onClose, annualIncome = 0 }: Adv
         if (data.source === 'live_government_data') {
           console.log(`✅ Calendrier fiscal mis à jour depuis sources gouvernementales (${data.last_update})`);
         }
+      } else if (response.status === 401) {
+        // Utilisateur non authentifié - c'est normal, ne pas afficher d'erreur
+        setCalendar([]);
+        setNextDeadline(null);
       } else if (response.status === 404) {
         // Endpoint non disponible, utiliser données vides
         setCalendar([]);
@@ -201,8 +208,11 @@ export function AdvancedFiscalManager({ isOpen, onClose, annualIncome = 0 }: Adv
         if (data.source === 'live_government_data') {
           console.log(`✅ Réglementations mises à jour depuis sources gouvernementales (${data.last_update})`);
         }
+      } else if (response.status === 401) {
+        // Utilisateur non authentifié - c'est normal, ne pas afficher d'erreur
+        setRegulations([]);
       } else {
-        // Afficher l'erreur pour le débogage
+        // Afficher l'erreur pour le débogage seulement si ce n'est pas une erreur d'authentification
         const errorData = await response.json().catch(() => ({ error: response.statusText }));
         console.error(`❌ Erreur lors du chargement des réglementations (${response.status}):`, errorData);
         setError(`Erreur ${response.status}: ${errorData.error || 'Impossible de charger les réglementations'}`);
@@ -229,12 +239,15 @@ export function AdvancedFiscalManager({ isOpen, onClose, annualIncome = 0 }: Adv
         if (data.source === 'live_government_data') {
           console.log(`✅ Déductions mises à jour depuis sources gouvernementales (${data.last_update})`);
         }
+      } else if (response.status === 401) {
+        // Utilisateur non authentifié - c'est normal, ne pas afficher d'erreur
+        setAvailableDeductions([]);
       } else if (response.status === 404) {
         // Endpoint non disponible, utiliser données vides
         setAvailableDeductions([]);
       }
     } catch (err: any) {
-      // Erreur silencieuse si endpoint non disponible
+      // Erreur silencieuse si endpoint non disponible ou utilisateur non authentifié
       setAvailableDeductions([]);
     }
   };
