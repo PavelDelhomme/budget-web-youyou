@@ -189,6 +189,28 @@
 - ✅ **Mise à jour automatique** : Les actifs se mettent à jour quand on ajoute/modifie un compte
 - ✅ **Calculs intégrés** : Actifs totaux calculés dans Dashboard et sections budgétaires
 
+### Système Fiscal avec Données en Temps Réel
+- ✅ **Service réglementations gouvernementales** : Récupération automatique depuis sites officiels
+  - Impots.gouv.fr : Barèmes, plafonds, déductions
+  - Economie.gouv.fr : Changements réglementaires
+  - Service-public.fr : Plafonds et seuils
+  - Cache local avec mise à jour périodique (24h)
+- ✅ **Calendrier fiscal en temps réel** : Dates importantes récupérées depuis sources officielles
+  - Dates de déclaration par département
+  - Dates de paiement
+  - Alertes et notifications
+- ✅ **Déductions et crédits d'impôt** : Liste complète depuis sources gouvernementales
+  - Dons aux œuvres (66%)
+  - Crédit d'impôt transition énergétique (30%)
+  - Frais réels (10%)
+  - Services à la personne (50%)
+  - Et plus...
+- ✅ **Intégration fiches de paie** : Extraction données fiscales pour déclarations
+  - Récapitulatif annuel par employeur
+  - Totaux salaires bruts/nets
+  - Cotisations sociales
+  - Retenues à la source
+
 ---
 
 ## 📚 **ORGANISATION DE LA DOCUMENTATION**
@@ -224,6 +246,18 @@
 ---
 
 ## 📝 **HISTORIQUE DES MODIFICATIONS**
+
+### 2024-12-03 (Système Fiscal en Temps Réel)
+- ✅ **Récupération réglementations gouvernementales** : Service complet pour récupérer les données fiscales en temps réel
+  - Barèmes d'imposition, plafonds, déductions depuis Impots.gouv.fr
+  - Changements réglementaires depuis Economie.gouv.fr
+  - Calendrier fiscal avec dates importantes par département
+  - Cache local avec mise à jour périodique (24h)
+- ✅ **Intégration fiches de paie** : Extraction automatique des données fiscales
+  - Récapitulatif annuel par employeur
+  - Totaux salaires bruts/nets pour déclarations
+- ✅ **Déductions disponibles** : Liste complète depuis sources gouvernementales
+  - Dons aux œuvres, crédit d'impôt transition énergétique, frais réels, etc.
 
 ### 2024-12-03 (Validation Numérique et Intégration Actifs)
 - ✅ **Validation et calcul automatique** : Système complet de validation des champs numériques
