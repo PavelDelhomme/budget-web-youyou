@@ -173,9 +173,21 @@
   - Indicateur visuel dans le tableau (🔄 Récurrente / 📌 Ponctuelle)
   - Checkbox dans le formulaire pour définir le type
 
-### Tests Complets avec IA
-- 🔄 **Tests automatisés IA** : Tests pour vérifier que les prédictions IA fonctionnent correctement
-- 🔄 **Tests de performance** : Vérifier que les prédictions sont rapides
+### Validation et Calcul Automatique des Champs Numériques
+- ✅ **Système de validation** : Validation en temps réel des caractères autorisés
+  - Accepte : chiffres, opérateurs (+, -, *, /, x), virgules/points
+  - Bloque les lettres sauf les opérateurs mathématiques
+  - Messages d'erreur logiques pour inputs invalides
+- ✅ **Calcul automatique** : Support des expressions mathématiques dans les champs numériques
+  - Exemples : "1000+500" → 1500, "2000/2" → 1000, "1500*1.2" → 1800
+  - Conversion automatique virgule/point ("," ou ".")
+- ✅ **Composants réutilisables** : NumericInput et NumericInputWithValidation créés
+- ✅ **Tests de validation** : Tests complets pour cas d'erreur et inputs invalides
+
+### Intégration Comptes Bancaires et Actifs Totaux
+- ✅ **Dashboard** : Affichage des actifs totaux (comptes bancaires + investissements)
+- ✅ **Mise à jour automatique** : Les actifs se mettent à jour quand on ajoute/modifie un compte
+- ✅ **Calculs intégrés** : Actifs totaux calculés dans Dashboard et sections budgétaires
 
 ---
 
@@ -212,6 +224,18 @@
 ---
 
 ## 📝 **HISTORIQUE DES MODIFICATIONS**
+
+### 2024-12-03 (Validation Numérique et Intégration Actifs)
+- ✅ **Validation et calcul automatique** : Système complet de validation des champs numériques
+  - Support expressions mathématiques (+, -, *, /, x)
+  - Conversion automatique virgule/point
+  - Messages d'erreur logiques et clairs
+  - Composants NumericInput et NumericInputWithValidation
+- ✅ **Intégration actifs totaux** : Dashboard affiche correctement actifs (comptes + investissements)
+  - Mise à jour automatique lors de l'ajout/modification de comptes
+  - Calculs intégrés dans toutes les sections
+- ✅ **Fermeture automatique drawer** : Drawer se ferme lors de l'ouverture des modals
+- ✅ **Tests validation** : Tests complets pour cas d'erreur et inputs invalides
 
 ### 2024-12-03 (Améliorations UX et Fonctionnalités)
 - ✅ **Système ajustements mensuels revenus** : Composant MonthlyIncomeAdjustments créé
