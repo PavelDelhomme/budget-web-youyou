@@ -57,10 +57,13 @@ def load_user(email: str) -> dict:
         with open(file_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
             
-            # Nettoyer automatiquement les années invalides (< 2000 ou > 2100)
+            # Nettoyer automatiquement les années invalides (< 2000 ou > année actuelle + 10)
+            # Les années futures au-delà de 10 ans ne doivent pas être générées automatiquement
+            current_year = datetime.now().year
+            max_allowed_year = current_year + 10
             years = data.get('years', default_years)
-            valid_years = [y for y in years if 2000 <= y <= 2100]
-            invalid_years = [y for y in years if y < 2000 or y > 2100]
+            valid_years = [y for y in years if 2000 <= y <= max_allowed_year]
+            invalid_years = [y for y in years if y < 2000 or y > max_allowed_year]
             
             # Supprimer les datasets des années invalides
             datasets = data.get('datasets', {})
