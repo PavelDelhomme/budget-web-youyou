@@ -175,7 +175,11 @@ def login():
                 attempt_data['count'] = 0
     
     # Validation des données d'entrée
-    data = request.get_json()
+    try:
+        data = request.get_json(silent=True)
+    except Exception:
+        return jsonify({'error': 'Données invalides'}), 400
+    
     if not data:
         return jsonify({'error': 'Données invalides'}), 400
     
