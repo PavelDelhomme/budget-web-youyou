@@ -161,9 +161,10 @@
 ## 🎯 **PROCHAINES AMÉLIORATIONS EN COURS**
 
 ### Modification Revenus par Mois Spécifique
-- 🔄 **Système d'ajustements mensuels** : Permettre de modifier le montant d'un revenu permanent pour un mois spécifique
+- ✅ **Système d'ajustements mensuels** : Composant MonthlyIncomeAdjustments implémenté
+  - Permet modifier montant revenu permanent pour un mois spécifique
   - Exemple : Chômage 900€/mois permanent, mais décembre = 706,86€
-  - Interface pour créer des exceptions mensuelles
+  - Interface intégrée dans RevenusManager pour créer des exceptions mensuelles
 
 ### Factures Annuelles Ponctuelles/Récurrentes
 - ✅ **Système de récurrence** : Champ `isRecurring` intégré dans l'interface AnnualFixedExpenses
