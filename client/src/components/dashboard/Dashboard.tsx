@@ -321,10 +321,32 @@ export function Dashboard({
             Revenus annuels {currentYear}
           </div>
           <div className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-600 dark:text-blue-400 truncate">{currency(annualIncome)}</div>
-          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
-            <span className="block truncate">{currency(monthlySalary)}/mois</span>
-            {additionalIncome > 0 && (
-              <span className="block truncate">+ {currency(additionalIncome)} supp.</span>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-3">
+            {annualIncome > 0 ? (
+              <>
+                {globalData?.salaryHistory && calculateAnnualIncomeFromSalaryHistory(globalData.salaryHistory, currentYear) > 0 && (
+                  <span className="block truncate">
+                    {(() => {
+                      const salaryFromHistory = calculateAnnualIncomeFromSalaryHistory(globalData.salaryHistory, currentYear);
+                      const monthlySal = getActiveSalaryForYear(globalData.salaryHistory, currentYear) || monthlySalary;
+                      const monthsActive = salaryFromHistory > 0 && monthlySal > 0 ? Math.round(salaryFromHistory / monthlySal) : 0;
+                      return monthsActive > 0 && monthsActive < 12 
+                        ? `${currency(monthlySal)}/mois × ${monthsActive} mois`
+                        : `${currency(monthlySalary)}/mois`;
+                    })()}
+                  </span>
+                )}
+                {(!globalData?.salaryHistory || calculateAnnualIncomeFromSalaryHistory(globalData.salaryHistory, currentYear) === 0) && (
+                  <span className="block truncate">{currency(monthlySalary)}/mois</span>
+                )}
+                {additionalIncome > 0 && (
+                  <span className="block truncate">+ {currency(additionalIncome)} supp.</span>
+                )}
+              </>
+            ) : (
+              <span className="block truncate text-yellow-600 dark:text-yellow-400">
+                Aucun revenu défini
+              </span>
             )}
           </div>
         </div>
