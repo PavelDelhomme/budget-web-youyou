@@ -970,15 +970,6 @@ prod-status: ## Affiche l'état des conteneurs de production
 prod: prod-up ## Alias pour démarrer en mode production (défaut)
 
 
-clean-vite: ## Nettoie le cache Vite dans le conteneur frontend
-	@echo "🧹 Nettoyage du cache Vite..."
-	@docker exec budget-web-frontend sh -c "rm -rf /app/node_modules/.vite /app/.vite 2>/dev/null; echo '✅ Cache Vite nettoyé'" 2>/dev/null || echo "⚠️  Conteneur non accessible, le cache sera nettoyé au redémarrage"
-	@echo "✅ Cache Vite nettoyé (si le conteneur était accessible)"
-
-restart-clean: clean-vite restart ## Nettoie le cache Vite et redémarre les conteneurs
-	@echo "✅ Serveur redémarré avec cache nettoyé !"
-
-
 clean-future-years: ## Supprime les années futures (2026+) des données utilisateur
 	@echo "🗑️  Suppression des années futures (2026+)..."
 	@docker exec budget-web-backend python3 -c " \
