@@ -165,6 +165,15 @@ export interface TemporaryIncome {
   endDate?: string; // Date de fin (si duration = 'months', undefined si 'permanent')
   numberOfMonths?: number; // Nombre de mois (si duration = 'months')
   note?: string;
+  monthlyAdjustments?: MonthlyIncomeAdjustment[]; // Ajustements pour des mois spécifiques (ex: décembre = 706,86€ au lieu de 900€)
+}
+
+// Ajustement mensuel pour un revenu permanent (exception pour un mois spécifique)
+export interface MonthlyIncomeAdjustment {
+  year: number;
+  month: number; // 1-12
+  amount: number; // Nouveau montant pour ce mois
+  note?: string; // Raison de l'ajustement (ex: "Ajustement Pôle Emploi")
 }
 
 // Sources de revenus mensuels multiples (pour intérim, plusieurs emplois, etc.)
