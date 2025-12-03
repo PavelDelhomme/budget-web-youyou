@@ -256,6 +256,11 @@ def register_fiscal_routes(app):
             gov_service = GovernmentFiscalRegulationsService()
             regulations_data = gov_service.get_fiscal_regulations(year, use_cache=True)
             
+            # Vérifier que des données ont été récupérées
+            if not regulations_data or len(regulations_data) == 0:
+                # Essayer sans cache si le cache est vide
+                regulations_data = gov_service.get_fiscal_regulations(year, use_cache=False)
+            
             # Filtrer par catégorie si demandé
             if category:
                 regulations_data = [r for r in regulations_data if r.get('category') == category]
@@ -263,15 +268,22 @@ def register_fiscal_routes(app):
             return jsonify({
                 'success': True,
                 'year': year,
-                'regulations': regulations_data,
+                'regulations': regulations_data or [],
                 'category': category,
-                'total_count': len(regulations_data),
+                'total_count': len(regulations_data) if regulations_data else 0,
                 'source': 'live_government_data',
                 'last_update': datetime.now().isoformat()
             })
         except Exception as e:
+            import traceback
+            error_trace = traceback.format_exc()
+            print(f"❌ Erreur dans get_regulations pour {year}: {str(e)}")
+            print(error_trace)
             return jsonify({
-                'error': f'Erreur: {str(e)}'
+                'success': False,
+                'error': f'Erreur: {str(e)}',
+                'year': year,
+                'regulations': []
             }), 500
     
     @app.route('/api/fiscal/deductions/available', methods=['GET'])

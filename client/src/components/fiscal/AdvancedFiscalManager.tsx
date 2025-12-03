@@ -186,18 +186,31 @@ export function AdvancedFiscalManager({ isOpen, onClose, annualIncome = 0 }: Adv
       
       if (response.ok) {
         const data = await response.json();
-        setRegulations(data.regulations || []);
+        console.log('📜 Données réglementations reçues:', data);
+        
+        // Vérifier que les réglementations sont présentes
+        if (data.regulations && Array.isArray(data.regulations) && data.regulations.length > 0) {
+          setRegulations(data.regulations);
+          console.log(`✅ ${data.regulations.length} réglementations chargées pour ${selectedYear}`);
+        } else {
+          console.warn(`⚠️ Aucune réglementation dans la réponse pour ${selectedYear}`);
+          setRegulations([]);
+        }
         
         // Afficher une notification si les données proviennent de sources en temps réel
         if (data.source === 'live_government_data') {
           console.log(`✅ Réglementations mises à jour depuis sources gouvernementales (${data.last_update})`);
         }
-      } else if (response.status === 404) {
-        // Endpoint non disponible, utiliser données vides
+      } else {
+        // Afficher l'erreur pour le débogage
+        const errorData = await response.json().catch(() => ({ error: response.statusText }));
+        console.error(`❌ Erreur lors du chargement des réglementations (${response.status}):`, errorData);
+        setError(`Erreur ${response.status}: ${errorData.error || 'Impossible de charger les réglementations'}`);
         setRegulations([]);
       }
     } catch (err: any) {
-      // Erreur silencieuse si endpoint non disponible
+      console.error('❌ Exception lors du chargement des réglementations:', err);
+      setError(`Erreur: ${err.message || 'Impossible de charger les réglementations'}`);
       setRegulations([]);
     }
   };

@@ -94,10 +94,18 @@ class GovernmentFiscalRegulationsService:
         
         # Sauvegarder dans le cache
         try:
+            cache_file.parent.mkdir(parents=True, exist_ok=True)
             with open(cache_file, 'w', encoding='utf-8') as f:
                 json.dump(regulations, f, indent=2, ensure_ascii=False, default=str)
-        except Exception:
+        except Exception as e:
+            print(f"⚠️ Échec du cache pour regulations_{year}.json: {e}")
             pass  # Échec du cache, continuer
+        
+        # Vérifier que les réglementations sont bien structurées
+        if not regulations:
+            print(f"⚠️ Aucune réglementation générée pour {year}")
+        else:
+            print(f"✅ {len(regulations)} réglementations générées pour {year}")
         
         return regulations
     
