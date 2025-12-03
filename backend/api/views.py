@@ -52,7 +52,16 @@ def register_routes(app):
         if year_num is None:
             return jsonify({'error': 'Année invalide'}), 400
         
+        # Validation supplémentaire : années raisonnables (pas trop anciennes ou futures)
+        from datetime import datetime
+        current_year = datetime.now().year
+        if year_num < current_year - 10 or year_num > current_year + 10:
+            return jsonify({'error': 'Année trop éloignée'}), 400
+        
         user_data = load_user(user_email)
+        if year_num in user_data['years']:
+            return jsonify({'error': 'Cette année existe déjà'}), 400
+        
         if year_num not in user_data['years']:
             user_data['years'].append(year_num)
             user_data['years'].sort()
