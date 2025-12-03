@@ -1427,7 +1427,9 @@ function App() {
           onMonthlyIncomeSourcesChange={typeof year === 'number' ? setMonthlyIncomeSources : undefined}
           currentYear={typeof year === 'number' ? year : undefined}
           onOpenTaxManager={() => setIsTaxManagerOpen(true)}
-        onOpenAdvancedFiscal={() => setIsAdvancedFiscalManagerOpen(true)}
+          onOpenAdvancedFiscal={() => setIsAdvancedFiscalManagerOpen(true)}
+          globalMonthlySalary={globalData?.monthlySalary}
+          yearSpecificSalary={typeof year === 'number' && historicalData.get(year)?.monthlySalary}
         />
 
         {/* Categories */}

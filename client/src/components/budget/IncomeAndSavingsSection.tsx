@@ -26,6 +26,8 @@ interface IncomeAndSavingsSectionProps {
   onMonthlyIncomeSourcesChange?: (sources: MonthlyIncomeSource[]) => void;
   currentYear?: number; // Pour calculer les revenus actifs
   onOpenTaxManager?: () => void; // Ouvrir le gestionnaire fiscal
+  globalMonthlySalary?: number; // Revenu mensuel global pour indication de la source
+  yearSpecificSalary?: number; // Revenu mensuel spécifique à l'année (undefined si utilise le global)
 }
 
 export function IncomeAndSavingsSection({
@@ -49,6 +51,8 @@ export function IncomeAndSavingsSection({
   onMonthlyIncomeSourcesChange,
   currentYear,
   onOpenTaxManager,
+  globalMonthlySalary,
+  yearSpecificSalary,
 }: IncomeAndSavingsSectionProps) {
   // Calculer les revenus supplémentaires actifs pour l'année
   const activeTemporaryIncomes = useMemo(() => {
@@ -210,45 +214,67 @@ export function IncomeAndSavingsSection({
 
       {/* Income Section */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Revenu mensuel principal</label>
-          {!isEditingSalary ? (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-lg font-semibold text-gray-900 dark:text-white">{currency(monthlySalary)}</span>
-              <button
-                onClick={() => setIsEditingSalary(true)}
-                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-              >
-                ✏️
-              </button>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Revenu mensuel principal</label>
+              {yearSpecificSalary !== undefined ? (
+                <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full">
+                  Spécifique à {currentYear}
+                </span>
+              ) : globalMonthlySalary !== undefined && globalMonthlySalary > 0 ? (
+                <span className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded-full">
+                  Depuis données globales
+                </span>
+              ) : null}
             </div>
-          ) : (
-            <form onSubmit={handleSalarySubmit} className="flex items-center gap-2">
-              <input
-                type="text"
-                value={salaryInput}
-                onChange={(e) => setSalaryInput(e.target.value)}
-                className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1 w-32 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                placeholder="Ex: 2000,00"
-                autoFocus
-              />
-              <button
-                type="submit"
-                className="px-3 py-1 bg-black dark:bg-gray-700 text-white rounded-lg text-sm hover:bg-gray-800 dark:hover:bg-gray-600 transition-colors"
-              >
-                ✓
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsEditingSalary(false);
-                  setSalaryInput(monthlySalary.toString());
-                }}
-                className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-              >
-                ✕
-              </button>
-            </form>
+            {!isEditingSalary ? (
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-semibold text-gray-900 dark:text-white">{currency(monthlySalary)}</span>
+                <button
+                  onClick={() => setIsEditingSalary(true)}
+                  className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  title="Modifier le revenu mensuel"
+                >
+                  ✏️
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSalarySubmit} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={salaryInput}
+                  onChange={(e) => setSalaryInput(e.target.value)}
+                  className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1 w-32 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  placeholder="Ex: 2000,00"
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  className="px-3 py-1 bg-black dark:bg-gray-700 text-white rounded-lg text-sm hover:bg-gray-800 dark:hover:bg-gray-600 transition-colors"
+                  title="Valider"
+                >
+                  ✓
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEditingSalary(false);
+                    setSalaryInput(monthlySalary.toString());
+                  }}
+                  className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                  title="Annuler"
+                >
+                  ✕
+                </button>
+              </form>
+            )}
+          </div>
+          {yearSpecificSalary === undefined && globalMonthlySalary !== undefined && globalMonthlySalary > 0 && (
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              💡 Ce revenu provient de vos données globales ({currency(globalMonthlySalary)}/mois). 
+              Vous pouvez le modifier ici pour cette année spécifique, ou modifier le revenu global dans "Mes données".
+            </p>
           )}
         </div>
 
