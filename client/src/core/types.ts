@@ -82,6 +82,8 @@ export interface AnnualFixedExpense {
   share?: ExpenseShare;
   paidTo?: string;
   accountId?: string;
+  isRecurring?: boolean; // true = récurrente chaque année, false = ponctuelle cette année uniquement
+  year?: number; // Année pour les dépenses ponctuelles (optionnel, défaut = année courante)
 }
 
 // Types d'épargne
