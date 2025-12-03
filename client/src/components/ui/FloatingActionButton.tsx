@@ -6,60 +6,72 @@ interface FloatingActionButtonProps {
   onAddIncome: () => void;
 }
 
+// Créer le container Portal globalement, hors du composant React
+// Cela garantit qu'il persiste même si React ne remonte pas le composant
+function getOrCreatePortalContainer(): HTMLDivElement {
+  let container = document.getElementById('fab-portal-container') as HTMLDivElement;
+  
+  if (!container && document.body) {
+    console.log('📦 Création globale du container Portal...');
+    container = document.createElement('div');
+    container.id = 'fab-portal-container';
+    container.style.cssText = `
+      position: fixed !important;
+      bottom: 24px !important;
+      right: 24px !important;
+      z-index: 999999 !important;
+      pointer-events: auto !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      display: block !important;
+    `;
+    document.body.appendChild(container);
+    console.log('✅ Container Portal créé globalement !', container);
+  }
+  
+  return container;
+}
+
 export function FloatingActionButton({ onAddExpense, onAddIncome }: FloatingActionButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [containerReady, setContainerReady] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
 
-  // Créer le container directement dans le body avec Portal - TOUJOURS
+  // Initialiser le Portal - TOUJOURS, même si React se remonte
   useEffect(() => {
-    console.log('🔧 FloatingActionButton - Initialisation du Portal...');
+    console.log('🔧 FloatingActionButton - Montage du composant...');
     
-    const ensurePortalContainer = () => {
-      // Vérifier si le container existe déjà
-      let container = document.getElementById('fab-portal-container') as HTMLDivElement;
+    const initPortal = () => {
+      if (!document.body) {
+        console.log('⏳ Attente de document.body...');
+        return false;
+      }
       
-      if (!container) {
-        console.log('📦 Création du container Portal...');
-        container = document.createElement('div');
-        container.id = 'fab-portal-container';
-        container.style.cssText = `
-          position: fixed !important;
-          bottom: 24px !important;
-          right: 24px !important;
-          z-index: 999999 !important;
-          pointer-events: auto !important;
-          visibility: visible !important;
-          opacity: 1 !important;
-          display: block !important;
-        `;
-        document.body.appendChild(container);
-        console.log('✅ Container Portal créé !', container);
-      } else {
-        console.log('✅ Container Portal existe déjà, réutilisation', container);
-        // S'assurer que les styles sont corrects
+      const container = getOrCreatePortalContainer();
+      if (container) {
+        containerRef.current = container;
+        setContainerReady(true);
+        
+        // Forcer les styles
         container.style.pointerEvents = 'auto';
         container.style.display = 'block';
         container.style.visibility = 'visible';
         container.style.opacity = '1';
+        
+        console.log('✅ Container Portal prêt !', container);
+        return true;
       }
       
-      containerRef.current = container;
-      setContainerReady(true);
-      
-      return container;
+      return false;
     };
     
-    // Attendre que document.body soit disponible
-    if (document.body) {
-      ensurePortalContainer();
-    } else {
-      console.log('⏳ Attente de document.body...');
+    // Essayer immédiatement
+    if (!initPortal()) {
+      // Attendre document.body
       const waitInterval = setInterval(() => {
-        if (document.body) {
+        if (initPortal()) {
           clearInterval(waitInterval);
-          ensurePortalContainer();
         }
       }, 50);
       
@@ -68,19 +80,28 @@ export function FloatingActionButton({ onAddExpense, onAddIncome }: FloatingActi
     
     // Vérification périodique que le container existe toujours
     const checkInterval = setInterval(() => {
-      const existing = document.getElementById('fab-portal-container');
-      if (!existing && document.body) {
-        console.warn('⚠️ Container Portal supprimé ! Recréation immédiate...');
-        ensurePortalContainer();
+      if (document.body) {
+        const existing = document.getElementById('fab-portal-container');
+        if (!existing) {
+          console.warn('⚠️ Container Portal supprimé ! Recréation...');
+          const container = getOrCreatePortalContainer();
+          if (container) {
+            containerRef.current = container;
+            setContainerReady(true);
+          }
+        } else if (containerRef.current !== existing) {
+          // Container existe mais ref pas synchronisée
+          containerRef.current = existing as HTMLDivElement;
+          setContainerReady(true);
+        }
       }
     }, 500);
     
     return () => {
       clearInterval(checkInterval);
       // NE PAS supprimer le container au démontage
-      // Il doit persister même si React se remonte
     };
-  }, []); // Une seule fois au montage
+  }, []); // Une seule fois
 
   // Vérification périodique de visibilité
   useEffect(() => {
@@ -92,21 +113,8 @@ export function FloatingActionButton({ onAddExpense, onAddIncome }: FloatingActi
       
       if (!container || !document.body.contains(container)) {
         console.error('❌ Container absent du DOM !');
-        // Recréer immédiatement
-        if (document.body) {
-          const newContainer = document.createElement('div');
-          newContainer.id = 'fab-portal-container';
-          newContainer.style.cssText = `
-            position: fixed !important;
-            bottom: 24px !important;
-            right: 24px !important;
-            z-index: 999999 !important;
-            pointer-events: auto !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            display: block !important;
-          `;
-          document.body.appendChild(newContainer);
+        const newContainer = getOrCreatePortalContainer();
+        if (newContainer) {
           containerRef.current = newContainer;
           setContainerReady(true);
         }
@@ -114,10 +122,16 @@ export function FloatingActionButton({ onAddExpense, onAddIncome }: FloatingActi
       }
       
       // Forcer la visibilité
-      container.style.pointerEvents = 'auto';
-      container.style.display = 'block';
-      container.style.visibility = 'visible';
-      container.style.opacity = '1';
+      container.style.cssText = `
+        position: fixed !important;
+        bottom: 24px !important;
+        right: 24px !important;
+        z-index: 999999 !important;
+        pointer-events: auto !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        display: block !important;
+      `;
       
       if (button) {
         const buttonRect = button.getBoundingClientRect();
