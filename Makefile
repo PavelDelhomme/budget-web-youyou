@@ -802,6 +802,40 @@ test-backend-ml: ## Lance les tests unitaires Python pour le ML
 	fi
 	@echo ""
 
+test-backend-all: ## Lance tous les tests backend (auth, security, validation, endpoints, etc.)
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🧪 TESTS BACKEND COMPLETS"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@if docker ps --format "{{.Names}}" | grep -q "^budget-web-backend$$"; then \
+		echo "🔧 Installation des dépendances de test si nécessaire..."; \
+		docker exec budget-web-backend pip install -q pytest pytest-cov pytest-mock 2>/dev/null || true; \
+		echo ""; \
+		echo "🧪 Exécution de tous les tests backend..."; \
+		docker exec budget-web-backend python -m pytest tests/backend/ -v --tb=short || \
+		echo "⚠️  Certains tests ont échoué. Vérifiez les logs ci-dessus."; \
+	else \
+		echo "❌ Conteneur backend non démarré. Utilisez 'make start' d'abord."; \
+	fi
+	@echo ""
+
+test-backend-install: ## Installe les dépendances pour les tests backend
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "📦 INSTALLATION DES DÉPENDANCES DE TEST BACKEND"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@if docker ps --format "{{.Names}}" | grep -q "^budget-web-backend$$"; then \
+		echo "📦 Installation de pytest et dépendances..."; \
+		docker exec budget-web-backend pip install -r backend/requirements-test.txt || \
+		docker exec budget-web-backend pip install pytest pytest-cov pytest-mock pytest-timeout coverage; \
+		echo "✅ Dépendances installées !"; \
+	else \
+		echo "❌ Conteneur backend non démarré. Utilisez 'make start' d'abord."; \
+	fi
+	@echo ""
+
 test-all: test check-errors test-behavior test-files test-ui-components test-endpoints test-data-structure test-features test-e2e test-backend-ml ## Lance tous les tests et vérifie les erreurs (complet)
 
 test-e2e-install: ## Installe Playwright et les navigateurs pour les tests E2E

@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   backend:
     build:
@@ -11,12 +13,19 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       - FLASK_ENV=production
       - DEBUG=False
-      - ADMIN_EMAIL=${ADMIN_EMAIL:-dev@delhomme.ovh}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - GUNICORN_WORKERS=${GUNICORN_WORKERS:-4}
+      - GUNICORN_THREADS=${GUNICORN_THREADS:-2}
+      - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-30}
       - LOG_LEVEL=${LOG_LEVEL:-info}
+      - FORCE_HTTPS=${FORCE_HTTPS:-true}
+      - CORS_ORIGINS=${CORS_ORIGINS:-}
+      - BACKUP_ENABLED=${BACKUP_ENABLED:-true}
+      - MONITORING_ENABLED=${MONITORING_ENABLED:-true}
     volumes:
       - ./backend/data:/app/data
+      - backend_logs:/app/data/logs
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:6060/api/health"]
@@ -24,27 +33,66 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+    networks:
+      - budget-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
 
   frontend:
     build:
       context: ./client
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     container_name: budget-web-frontend-prod
     ports:
-      - "${FRONTEND_PORT:-6061}:3030"
+      - "${FRONTEND_PORT:-6061}:80"
     environment:
-      - VITE_API_URL=${VITE_API_URL:-http://localhost:6060}
+      - VITE_API_URL=${VITE_API_URL}
       - VITE_PROXY_TARGET=http://backend:6060
     volumes:
-      - ./client:/app
-      - budget-web-frontend_node_modules:/app/node_modules
       - budget-web-frontend_dist:/app/dist
     depends_on:
       backend:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - budget-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  nginx:
+    image: nginx:alpine
+    container_name: budget-web-nginx-prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+    networks:
+      - budget-network
 
 volumes:
-  budget-web-frontend_node_modules:
   budget-web-frontend_dist:
+  backend_logs:
+  nginx_logs:
 
+networks:
+  budget-network:
+    driver: bridge
