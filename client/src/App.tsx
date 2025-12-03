@@ -71,6 +71,7 @@ function App() {
   const [annualFixedExpenses, setAnnualFixedExpenses] = useState<AnnualFixedExpense[]>([]);
   const [monthlySalary, setMonthlySalary] = useState<number>(0);
   const [hasYearSpecificSalary, setHasYearSpecificSalary] = useState<boolean>(false); // True si le revenu est spécifique à l'année
+  const [isFromSalaryHistory, setIsFromSalaryHistory] = useState<boolean>(false); // True si le revenu vient de l'historique des salaires
   const [variableMonthlyIncomes, setVariableMonthlyIncomes] = useState<number[] | undefined>(undefined);
   const [additionalMonthlyIncomes, setAdditionalMonthlyIncomes] = useState<MonthlyAdditionalIncome[]>([]);
   const [monthlyIncomeSources, setMonthlyIncomeSources] = useState<MonthlyIncomeSource[]>([]);
@@ -496,14 +497,21 @@ function App() {
         let calculatedMonthlySalary = 0;
         if (yearSpecificSalaryValue !== undefined) {
           calculatedMonthlySalary = yearSpecificSalaryValue;
+          setIsFromSalaryHistory(false); // Pas depuis l'historique si spécifique à l'année
         } else if (globalData?.monthlySalary && globalData.monthlySalary > 0) {
           calculatedMonthlySalary = globalData.monthlySalary;
+          setIsFromSalaryHistory(false); // Pas depuis l'historique si depuis global
         } else if (globalData?.salaryHistory && typeof year === 'number') {
           // Utiliser le salaire actif de l'historique si disponible
           const activeSalary = getActiveSalaryForYear(globalData.salaryHistory, year);
           if (activeSalary !== null && activeSalary > 0) {
             calculatedMonthlySalary = activeSalary;
+            setIsFromSalaryHistory(true); // Le revenu vient de l'historique
+          } else {
+            setIsFromSalaryHistory(false);
           }
+        } else {
+          setIsFromSalaryHistory(false);
         }
         setMonthlySalary(calculatedMonthlySalary);
         setVariableMonthlyIncomes(Array.isArray(ds.variableMonthlyIncomes) && ds.variableMonthlyIncomes.length === 12 ? ds.variableMonthlyIncomes : undefined);
@@ -1472,6 +1480,7 @@ function App() {
           onOpenAdvancedFiscal={() => setIsAdvancedFiscalManagerOpen(true)}
           globalMonthlySalary={globalData?.monthlySalary}
           yearSpecificSalary={hasYearSpecificSalary && typeof year === 'number' ? monthlySalary : undefined}
+          isFromSalaryHistory={isFromSalaryHistory}
         />
 
         {/* Categories */}

@@ -29,6 +29,7 @@ interface IncomeAndSavingsSectionProps {
   onOpenAdvancedFiscal?: () => void; // Ouvrir le gestionnaire fiscal avancé
   globalMonthlySalary?: number; // Revenu mensuel global pour indication de la source
   yearSpecificSalary?: number; // Revenu mensuel spécifique à l'année (undefined si utilise le global)
+  isFromSalaryHistory?: boolean; // Indique si le revenu vient de l'historique des salaires
 }
 
 export function IncomeAndSavingsSection({
@@ -54,6 +55,7 @@ export function IncomeAndSavingsSection({
   onOpenTaxManager,
   globalMonthlySalary,
   yearSpecificSalary,
+  isFromSalaryHistory,
 }: IncomeAndSavingsSectionProps) {
   // Calculer les revenus supplémentaires actifs pour l'année
   const activeTemporaryIncomes = useMemo(() => {
@@ -222,6 +224,10 @@ export function IncomeAndSavingsSection({
               {yearSpecificSalary !== undefined ? (
                 <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full">
                   Spécifique à {currentYear}
+                </span>
+              ) : isFromSalaryHistory ? (
+                <span className="text-xs bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full">
+                  Depuis historique salaires
                 </span>
               ) : globalMonthlySalary !== undefined && globalMonthlySalary > 0 ? (
                 <span className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded-full">
