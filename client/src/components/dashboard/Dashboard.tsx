@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { UserGlobalData, YearData, Expense, Category } from '../../core/types';
 import { currency, today } from '../../lib/utils';
 import { calculateProjectsContributionsForYear } from '../../lib/utils/savingsProjects';
-import { getActiveSalaryForYear } from '../../lib/utils/salaryHistory';
+import { getActiveSalaryForYear, calculateAnnualIncomeFromSalaryHistory } from '../../lib/utils/salaryHistory';
 import { BudgetSuggestions } from '../ai/BudgetSuggestions';
 import { analyzeBudget } from '../../lib/utils/budgetAnalyzer';
 import { ExpensesPieChart } from '../charts/ExpensesPieChart';
@@ -119,8 +119,24 @@ export function Dashboard({
   
   const additionalIncome = calculateAdditionalIncome;
   const annualIncome = useMemo(() => {
-    return (monthlySalary * 12) + additionalIncome;
-  }, [monthlySalary, additionalIncome]);
+    // Calculer les revenus depuis l'historique des salaires si disponible (prend en compte les dates)
+    let baseAnnualIncome = 0;
+    
+    // Si on a un salaire spécifique à l'année ou global, l'utiliser pour 12 mois
+    if (yearData.monthlySalary !== undefined && yearData.monthlySalary !== null && yearData.monthlySalary > 0) {
+      baseAnnualIncome = yearData.monthlySalary * 12;
+    } else if (globalData?.monthlySalary && globalData.monthlySalary > 0) {
+      baseAnnualIncome = globalData.monthlySalary * 12;
+    } else if (globalData?.salaryHistory) {
+      // Utiliser calculateAnnualIncomeFromSalaryHistory pour tenir compte des dates de début/fin
+      baseAnnualIncome = calculateAnnualIncomeFromSalaryHistory(globalData.salaryHistory, currentYear);
+    } else {
+      // Fallback : utiliser monthlySalary * 12 si aucun historique
+      baseAnnualIncome = monthlySalary * 12;
+    }
+    
+    return baseAnnualIncome + additionalIncome;
+  }, [yearData.monthlySalary, globalData?.monthlySalary, globalData?.salaryHistory, monthlySalary, additionalIncome, currentYear]);
   
   // Calculer les dépenses annuelles en tenant compte des budgets mensuels si disponibles
   const variableTargets = yearData.categories.reduce((sum, cat) => {
