@@ -38,8 +38,15 @@ self.addEventListener('activate', (event) => {
 
 // Interception des requêtes
 self.addEventListener('fetch', (event) => {
+  const requestUrl = event.request.url;
+  
+  // Ignorer les requêtes d'extensions Chrome et autres schémas non-HTTP
+  if (!requestUrl.startsWith('http://') && !requestUrl.startsWith('https://')) {
+    return; // Laisser passer les requêtes non-HTTP sans interception
+  }
+  
   // Ne pas intercepter les requêtes API
-  if (event.request.url.includes('/api/')) {
+  if (requestUrl.includes('/api/')) {
     return;
   }
 
@@ -57,14 +64,28 @@ self.addEventListener('fetch', (event) => {
           return response;
         }
 
+        // Vérifier que la requête est une requête HTTP/HTTPS valide avant de mettre en cache
+        if (!requestUrl.startsWith('http://') && !requestUrl.startsWith('https://')) {
+          return response; // Ne pas mettre en cache les requêtes non-HTTP
+        }
+
         // Cloner la réponse pour la mettre en cache
         const responseToCache = response.clone();
 
         caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
+          try {
+            cache.put(event.request, responseToCache);
+          } catch (error) {
+            // Ignorer les erreurs de cache (ex: chrome-extension, data:, etc.)
+            console.debug('Cache ignoré pour:', requestUrl);
+          }
         });
 
         return response;
+      }).catch((error) => {
+        // En cas d'erreur de fetch, retourner une réponse d'erreur
+        console.error('Erreur fetch dans Service Worker:', error);
+        throw error;
       });
     })
   );

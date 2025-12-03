@@ -274,17 +274,20 @@ def register_fiscal_routes(app):
     @app.route('/api/fiscal/deductions/available', methods=['GET'])
     @require_auth
     def get_available_deductions():
-        """Get available fiscal deductions and credits"""
+        """Get available fiscal deductions and credits from official sources"""
         category = request.args.get('category')
+        year = request.args.get('year', type=int) or datetime.now().year
         
         try:
             manager = FiscalDeductionManager()
-            deductions = manager.get_available_deductions(category)
+            deductions = manager.get_available_deductions(category, year)
             
             return jsonify({
                 'success': True,
                 'deductions': deductions,
-                'category': category
+                'category': category,
+                'year': year,
+                'total_count': len(deductions)
             })
         except Exception as e:
             return jsonify({

@@ -20,6 +20,13 @@ export default defineConfig({
     port: 3030,
     strictPort: true, // Fail if port is already in use instead of trying another port
     host: true,
+    hmr: false, // HMR complètement désactivé pour éviter les problèmes WebSocket
+    watch: {
+      usePolling: false,
+      ignored: ['**/node_modules/**', '**/.git/**'],
+    },
+    // Désactiver complètement les WebSockets
+    ws: false,
     proxy: {
       '/api': {
         target: proxyTarget,

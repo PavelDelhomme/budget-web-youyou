@@ -1,4 +1,4 @@
-.PHONY: help install dev start restart stop down build clean docker-build docker-up docker-down docker-logs docker-ps status ports logs logs-backend logs-frontend reset reset-and-restart test test-syntax test-backend test-frontend test-api test-containers test-integration check-errors test-all test-behavior test-files test-ui-components test-endpoints test-data-structure test-features test-e2e test-e2e-install test-e2e-ui test-e2e-report test-backend-ml test-backend-ml
+.PHONY: help install dev start restart stop down build clean docker-build docker-up docker-down docker-logs docker-ps status ports logs logs-backend logs-frontend reset reset-and-restart test test-syntax test-backend test-frontend test-api test-containers test-integration check-errors test-all test-behavior test-files test-ui-components test-endpoints test-data-structure test-features test-e2e test-e2e-install test-e2e-ui test-e2e-report test-backend-ml test-backend-ml prod prod-build prod-up prod-down prod-restart prod-logs prod-status
 
 # Variables
 BACKEND_PORT ?= 6060
@@ -14,6 +14,9 @@ help: ## Affiche l'aide
 	@echo ""
 	@echo "🚀 DÉMARRAGE / ARRÊT :"
 	@grep -E '^(dev|start|stop|down|restart|docker-up|docker-down|docker-restart):.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}'
+	@echo ""
+	@echo "🏭 PRODUCTION :"
+	@grep -E '^(prod|prod-):.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 	@echo "📦 INSTALLATION / BUILD :"
 	@grep -E '^(install|install-all|docker-build|build|build-client):.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}'
@@ -287,7 +290,18 @@ clean: ## Nettoie les fichiers de build et dépendances
 	@echo "Suppression des fichiers locaux (ignore les erreurs de permissions)..."
 	-rm -rf client/dist client/node_modules client/build node_modules 2>/dev/null || true
 	-rm -rf backend/__pycache__ backend/**/__pycache__ backend/*.pyc 2>/dev/null || true
+	-rm -rf client/.vite client/node_modules/.vite 2>/dev/null || true
 	@echo "✅ Nettoyage terminé!"
+
+clean-vite: ## Nettoie le cache Vite dans le conteneur frontend
+	@echo "🧹 Nettoyage du cache Vite..."
+	@docker exec budget-web-frontend sh -c "rm -rf /app/node_modules/.vite /app/.vite 2>/dev/null; echo '✅ Cache Vite nettoyé'" 2>/dev/null || echo "⚠️  Conteneur non accessible, le cache sera nettoyé au redémarrage"
+	-rm -rf client/.vite client/node_modules/.vite 2>/dev/null || true
+	@echo "✅ Cache Vite nettoyé (local + conteneur) !"
+
+restart-clean: clean-vite restart ## Nettoie le cache Vite et redémarre les conteneurs
+	@echo "✅ Serveur redémarré avec cache nettoyé !"
+	@echo "💡 Pensez à vider le cache du navigateur (Ctrl+Shift+R)"
 
 clean-data: ## Nettoie uniquement les données utilisateur (attention!)
 	@echo "⚠️  Suppression des données utilisateur..."
@@ -861,3 +875,109 @@ test-e2e-report: ## Affiche le rapport HTML des tests E2E
 		exit 1; \
 	fi
 	@echo ""
+
+# =============================================================================
+# 🚀 PRODUCTION
+# =============================================================================
+
+prod-build: ## Construit les images Docker pour la production (avec WSGI)
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🏗️  CONSTRUCTION DES IMAGES DE PRODUCTION"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@echo "📦 Construction des images avec configuration de production..."
+	docker-compose -f docker-compose.prod.yml build
+	@echo ""
+	@echo "✅ Images de production construites !"
+	@echo "💡 Utilisez 'make prod-up' pour démarrer en mode production"
+
+prod-up: prod-build ## Démarre les conteneurs en mode production (avec WSGI/Gunicorn)
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🚀 DÉMARRAGE EN MODE PRODUCTION"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@echo "⚠️  Mode production avec :"
+	@echo "   - Backend : Gunicorn (WSGI) avec workers multiples"
+	@echo "   - Frontend : Build optimisé"
+	@echo "   - Sécurité : Cookies sécurisés, HTTPS recommandé"
+	@echo ""
+	docker-compose -f docker-compose.prod.yml up -d
+	@echo ""
+	@echo "✅ Application démarrée en mode production !"
+	@echo "💡 Utilisez 'make prod-logs' pour voir les logs"
+	@echo "💡 Utilisez 'make prod-status' pour vérifier l'état"
+
+prod-down: ## Arrête les conteneurs de production
+	@echo "🛑 Arrêt des conteneurs de production..."
+	docker-compose -f docker-compose.prod.yml down
+	@echo "✅ Conteneurs de production arrêtés !"
+
+prod-restart: prod-down prod-up ## Redémarre les conteneurs en mode production
+	@echo "✅ Conteneurs de production redémarrés !"
+
+prod-logs: ## Affiche les logs des conteneurs de production
+	@echo "📋 Logs des conteneurs de production (Ctrl+C pour quitter)..."
+	docker-compose -f docker-compose.prod.yml logs -f
+
+prod-status: ## Affiche l'état des conteneurs de production
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "📊 ÉTAT DES CONTENEURS DE PRODUCTION"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	docker-compose -f docker-compose.prod.yml ps
+	@echo ""
+
+prod: prod-up ## Alias pour démarrer en mode production (défaut)
+
+
+clean-vite: ## Nettoie le cache Vite dans le conteneur frontend
+	@echo "🧹 Nettoyage du cache Vite..."
+	@docker exec budget-web-frontend sh -c "rm -rf /app/node_modules/.vite /app/.vite 2>/dev/null; echo '✅ Cache Vite nettoyé'" 2>/dev/null || echo "⚠️  Conteneur non accessible, le cache sera nettoyé au redémarrage"
+	@echo "✅ Cache Vite nettoyé (si le conteneur était accessible)"
+
+restart-clean: clean-vite restart ## Nettoie le cache Vite et redémarre les conteneurs
+	@echo "✅ Serveur redémarré avec cache nettoyé !"
+
+
+clean-future-years: ## Supprime les années futures (2026+) des données utilisateur
+	@echo "🗑️  Suppression des années futures (2026+)..."
+	@docker exec budget-web-backend python3 -c " \
+		import json; \
+		import sys; \
+		sys.path.insert(0, '/app'); \
+		from api.utils import DATA_DIR; \
+		current_year = 2025; \
+		removed_count = 0; \
+		for json_file in DATA_DIR.glob('*.json'): \
+			try: \
+				print(f'📄 Traitement de {json_file.name}...'); \
+				with open(json_file, 'r', encoding='utf-8') as f: \
+					data = json.load(f); \
+				original_years = data.get('years', []); \
+				data['years'] = [y for y in original_years if y <= current_year]; \
+				datasets = data.get('datasets', {}); \
+				future_keys = [str(y) for y in range(2026, 2030)]; \
+				removed_datasets = []; \
+				for key in future_keys: \
+					if key in datasets: \
+						del datasets[key]; \
+						removed_datasets.append(key); \
+				data['datasets'] = datasets; \
+				with open(json_file, 'w', encoding='utf-8') as f: \
+					json.dump(data, f, indent=2, ensure_ascii=False); \
+					f.write('\n'); \
+				removed_years = [y for y in original_years if y > current_year]; \
+				if removed_years or removed_datasets: \
+					print(f'  ✅ Supprimé: années {removed_years}, datasets {removed_datasets}'); \
+					removed_count += 1; \
+				else: \
+					print(f'  ℹ️  Aucune année future trouvée'); \
+			except Exception as e: \
+				print(f'  ❌ Erreur: {e}'); \
+		print(f'\n✅ Traitement terminé. {removed_count} fichier(s) modifié(s).'); \
+	" || echo "⚠️  Conteneur non accessible. Utilisez: make restart puis réessayez"
+	@echo "✅ Années futures supprimées !"
+

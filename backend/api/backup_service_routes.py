@@ -21,7 +21,6 @@ def require_auth(f):
 def register_backup_routes(app):
     """Register backup API routes"""
     
-    DATA_DIR = BASE_DIR / 'data'
     backup_service = create_backup_service(DATA_DIR)
     
     @app.route('/api/backup/create', methods=['POST'])

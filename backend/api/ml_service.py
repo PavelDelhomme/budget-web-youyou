@@ -178,12 +178,53 @@ def register_ml_routes(app):
         user_email = session['user_email']
         
         try:
-            # Try neural network first
-            predictor = create_neural_predictor(user_email)
-            if not predictor or not predictor.is_trained:
+            # Vérifier d'abord si un modèle neuronal existe et est disponible
+            neural_predictor = create_neural_predictor(user_email)
+            model_type = 'traditional_ml'
+            predictor = None
+            neural_available = neural_predictor is not None
+            neural_trained = False
+            
+            if neural_predictor:
+                # Vérifier si le modèle neuronal est entraîné
+                # Le load() dans create_neural_predictor devrait avoir chargé le modèle s'il existe
+                if neural_predictor.is_trained:
+                    predictor = neural_predictor
+                    model_type = 'neural_network'
+                    neural_trained = True
+                else:
+                    # Vérifier s'il existe un fichier de modèle sauvegardé même si is_trained est False
+                    from pathlib import Path
+                    model_path = neural_predictor._get_model_path()
+                    scaler_path = neural_predictor._get_scaler_path()
+                    
+                    if model_path.exists() and scaler_path.exists():
+                        # Modèle sauvegardé existe, essayer de le charger
+                        try:
+                            neural_predictor.load()
+                            if neural_predictor.is_trained:
+                                predictor = neural_predictor
+                                model_type = 'neural_network'
+                                neural_trained = True
+                            else:
+                                predictor = create_predictor(user_email)
+                                model_type = 'traditional_ml'
+                        except Exception:
+                            predictor = create_predictor(user_email)
+                            model_type = 'traditional_ml'
+                    else:
+                        # Pas de modèle neuronal entraîné, utiliser le traditionnel
+                        predictor = create_predictor(user_email)
+                        model_type = 'traditional_ml'
+            else:
+                # Pas de modèle neuronal disponible, utiliser le traditionnel
                 predictor = create_predictor(user_email)
+                model_type = 'traditional_ml'
             
             info = predictor.get_training_info()
+            
+            # S'assurer que le type de modèle est correct dans l'info
+            info['model_type'] = model_type
             
             historical_data = get_historical_data_for_ml(user_email)
             
@@ -191,7 +232,9 @@ def register_ml_routes(app):
                 'model_info': info,
                 'historical_years_available': len(historical_data),
                 'years': [d['year'] for d in historical_data],
-                'model_type': info.get('model_type', 'traditional_ml')
+                'model_type': model_type,
+                'neural_network_available': neural_available,
+                'neural_network_trained': neural_trained
             })
             
         except Exception as e:

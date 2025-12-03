@@ -368,3 +368,163 @@ def validate_year_data(data: Any) -> Optional[Dict]:
     
     return validated_data
 
+
+def validate_global_data(data: Any) -> Optional[Dict]:
+    """Validate global user data structure"""
+    if not isinstance(data, dict):
+        return None
+    
+    validated_data = {}
+    
+    # Bank accounts
+    bank_accounts = data.get('bankAccounts', [])
+    if isinstance(bank_accounts, list) and len(bank_accounts) <= 100:
+        validated_accounts = []
+        for account in bank_accounts:
+            if isinstance(account, dict):
+                account_id = validate_id(account.get('id'))
+                if account_id:
+                    validated_account = {
+                        'id': account_id,
+                        'name': validate_string(account.get('name'), max_length=200) or '',
+                        'balance': validate_amount(account.get('balance')) or 0,
+                        'type': validate_string(account.get('type'), max_length=50) or 'checking',
+                        'isShared': bool(account.get('isShared', False)),
+                        'sharedWith': validate_string(account.get('sharedWith'), max_length=500, allow_empty=True) or ''
+                    }
+                    validated_accounts.append(validated_account)
+        validated_data['bankAccounts'] = validated_accounts
+    else:
+        validated_data['bankAccounts'] = []
+    
+    # Investments
+    investments = data.get('investments', [])
+    if isinstance(investments, list) and len(investments) <= 100:
+        validated_investments = []
+        for investment in investments:
+            if isinstance(investment, dict):
+                inv_id = validate_id(investment.get('id'))
+                if inv_id:
+                    validated_inv = {
+                        'id': inv_id,
+                        'name': validate_string(investment.get('name'), max_length=200) or '',
+                        'value': validate_amount(investment.get('value')) or 0,
+                        'type': validate_string(investment.get('type'), max_length=50) or 'stock'
+                    }
+                    validated_investments.append(validated_inv)
+        validated_data['investments'] = validated_investments
+    else:
+        validated_data['investments'] = []
+    
+    # Savings goals
+    savings_goals = data.get('savingsGoals', [])
+    if isinstance(savings_goals, list) and len(savings_goals) <= 100:
+        validated_goals = []
+        for goal in savings_goals:
+            if isinstance(goal, dict):
+                goal_id = validate_id(goal.get('id'))
+                if goal_id:
+                    validated_goal = {
+                        'id': goal_id,
+                        'name': validate_string(goal.get('name'), max_length=200) or '',
+                        'target': validate_amount(goal.get('target')) or 0,
+                        'current': validate_amount(goal.get('current')) or 0,
+                        'deadline': validate_date(goal.get('deadline')) or None
+                    }
+                    validated_goals.append(validated_goal)
+        validated_data['savingsGoals'] = validated_goals
+    else:
+        validated_data['savingsGoals'] = []
+    
+    # Savings projects
+    savings_projects = data.get('savingsProjects', [])
+    if isinstance(savings_projects, list) and len(savings_projects) <= 100:
+        validated_projects = []
+        for project in savings_projects:
+            if isinstance(project, dict):
+                project_id = validate_id(project.get('id'))
+                if project_id:
+                    validated_project = {
+                        'id': project_id,
+                        'name': validate_string(project.get('name'), max_length=200) or '',
+                        'target': validate_amount(project.get('target')) or 0,
+                        'monthlyContribution': validate_amount(project.get('monthlyContribution')) or 0,
+                        'current': validate_amount(project.get('current')) or 0,
+                        'deadline': validate_date(project.get('deadline')) or None,
+                        'categoryId': validate_id(project.get('categoryId')) or None
+                    }
+                    validated_projects.append(validated_project)
+        validated_data['savingsProjects'] = validated_projects
+    else:
+        validated_data['savingsProjects'] = []
+    
+    # Temporary incomes (keep as-is, validate structure if needed)
+    temporary_incomes = data.get('temporaryIncomes', [])
+    if isinstance(temporary_incomes, list) and len(temporary_incomes) <= 1000:
+        validated_data['temporaryIncomes'] = temporary_incomes
+    else:
+        validated_data['temporaryIncomes'] = []
+    
+    # Shared expense persons (keep as-is)
+    shared_expense_persons = data.get('sharedExpensePersons', [])
+    if isinstance(shared_expense_persons, list) and len(shared_expense_persons) <= 100:
+        validated_data['sharedExpensePersons'] = shared_expense_persons
+    else:
+        validated_data['sharedExpensePersons'] = []
+    
+    # Person transactions (keep as-is)
+    person_transactions = data.get('personTransactions', [])
+    if isinstance(person_transactions, list) and len(person_transactions) <= 10000:
+        validated_data['personTransactions'] = person_transactions
+    else:
+        validated_data['personTransactions'] = []
+    
+    # Salary history (keep as-is)
+    salary_history = data.get('salaryHistory', [])
+    if isinstance(salary_history, list) and len(salary_history) <= 1000:
+        validated_data['salaryHistory'] = salary_history
+    else:
+        validated_data['salaryHistory'] = []
+    
+    # Boolean and simple fields
+    validated_data['initializationComplete'] = bool(data.get('initializationComplete', False))
+    validated_data['monthlySalary'] = validate_amount(data.get('monthlySalary')) or 0
+    validated_data['monthlySalaryStartDate'] = validate_date(data.get('monthlySalaryStartDate'))
+    
+    # Locked years
+    locked_years = data.get('lockedYears', [])
+    if isinstance(locked_years, list) and len(locked_years) <= 100:
+        validated_years = []
+        for year in locked_years:
+            validated_year = validate_year(year)
+            if validated_year:
+                validated_years.append(validated_year)
+        validated_data['lockedYears'] = validated_years
+    else:
+        validated_data['lockedYears'] = []
+    
+    # Excluded predicted years
+    excluded_years = data.get('excludedPredictedYears', [])
+    if isinstance(excluded_years, list) and len(excluded_years) <= 100:
+        validated_excluded = []
+        for year in excluded_years:
+            validated_year = validate_year(year)
+            if validated_year:
+                validated_excluded.append(validated_year)
+        validated_data['excludedPredictedYears'] = validated_excluded
+    else:
+        validated_data['excludedPredictedYears'] = []
+    
+    # Max predicted years
+    max_predicted = data.get('maxPredictedYears')
+    if isinstance(max_predicted, int) and 1 <= max_predicted <= 10:
+        validated_data['maxPredictedYears'] = max_predicted
+    else:
+        validated_data['maxPredictedYears'] = 3
+    
+    # User profile (if present)
+    user_profile = data.get('userProfile', {})
+    if isinstance(user_profile, dict):
+        validated_data['userProfile'] = user_profile
+    
+    return validated_data

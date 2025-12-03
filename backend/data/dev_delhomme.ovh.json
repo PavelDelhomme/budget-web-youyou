@@ -1,326 +1,78 @@
 {
   "years": [
-    2024,
-    2025,
-    2026,
-    2027,
-    2028
+    2025
   ],
   "datasets": {
     "2025": {
       "categories": [
         {
-          "id": "cat_1",
-          "monthlyTargets": [
-            137.7,
-            137.7,
-            137.7,
-            137.7,
-            137.7,
-            137.7,
-            137.7,
-            137.7,
-            137.7,
-            137.7,
-            137.7,
-            137.7
-          ],
-          "name": "Alimentation",
-          "target": 1652.4
-        },
-        {
-          "id": "cat_2",
-          "monthlyTargets": [
-            91.8,
-            91.8,
-            91.8,
-            91.8,
-            91.8,
-            91.8,
-            91.8,
-            91.8,
-            91.8,
-            91.8,
-            91.8,
-            91.8
-          ],
-          "name": "Transport",
-          "target": 1101.6
-        },
-        {
-          "id": "cat_3",
-          "monthlyTargets": [
-            229.5,
-            229.5,
-            229.5,
-            229.5,
-            229.5,
-            229.5,
-            229.5,
-            229.5,
-            229.5,
-            229.5,
-            229.5,
-            229.5
-          ],
-          "name": "Logement",
-          "target": 2754
-        },
-        {
-          "id": "cat_4",
-          "monthlyTargets": [
-            38.25,
-            38.25,
-            38.25,
-            38.25,
-            38.25,
-            38.25,
-            38.25,
-            38.25,
-            38.25,
-            38.25,
-            38.25,
-            38.25
-          ],
-          "name": "Santé",
-          "target": 459
-        },
-        {
-          "id": "cat_5",
-          "monthlyTargets": [
-            61.2,
-            61.2,
-            61.2,
-            61.2,
-            61.2,
-            61.2,
-            61.2,
-            61.2,
-            61.2,
-            61.2,
-            61.2,
-            61.2
-          ],
-          "name": "Loisirs",
-          "target": 734.4
-        },
-        {
-          "id": "cat_6",
-          "monthlyTargets": [
-            22.95,
-            22.95,
-            22.95,
-            22.95,
-            22.95,
-            22.95,
-            22.95,
-            22.95,
-            22.95,
-            22.95,
-            22.95,
-            22.95
-          ],
-          "name": "Télécommunications",
-          "target": 275.4
-        },
-        {
-          "id": "cat_7",
-          "monthlyTargets": [
-            38.25,
-            38.25,
-            38.25,
-            38.25,
-            38.25,
-            38.25,
-            38.25,
-            38.25,
-            38.25,
-            38.25,
-            38.25,
-            38.25
-          ],
-          "name": "Assurance",
-          "target": 459
-        },
-        {
-          "id": "cat_8",
-          "monthlyTargets": [
-            30.6,
-            30.6,
-            30.6,
-            30.6,
-            30.6,
-            30.6,
-            30.6,
-            30.6,
-            30.6,
-            30.6,
-            30.6,
-            30.6
-          ],
-          "name": "Habillement",
-          "target": 367.2
-        },
-        {
-          "id": "cat_9",
-          "monthlyTargets": [
-            114.75,
-            114.75,
-            114.75,
-            114.75,
-            114.75,
-            114.75,
-            114.75,
-            114.75,
-            114.75,
-            114.75,
-            114.75,
-            114.75
-          ],
-          "name": "Divers",
-          "target": 1377
-        }
-      ],
-      "expenses": [
-        {
-          "amount": 9.82,
-          "categoryId": "cat_3",
-          "date": "2025-08-04",
-          "description": "Dépense typique Alimentation",
-          "id": "exp_1"
-        },
-        {
-          "amount": 37.1,
-          "categoryId": "cat_3",
-          "date": "2025-01-28",
-          "description": "Dépense typique Transport",
-          "id": "exp_2"
-        },
-        {
-          "amount": 20.21,
-          "categoryId": "cat_9",
-          "date": "2025-04-06",
-          "description": "Dépense typique Logement",
-          "id": "exp_3"
-        },
-        {
-          "amount": 19.4,
-          "categoryId": "cat_6",
-          "date": "2025-07-20",
-          "description": "Dépense typique Santé",
-          "id": "exp_4"
-        },
-        {
-          "amount": 23.34,
-          "categoryId": "cat_5",
-          "date": "2025-04-02",
-          "description": "Dépense typique Loisirs",
-          "id": "exp_5"
-        }
-      ],
-      "subs": [
-        {
-          "id": "sub_1",
-          "monthly": 30,
-          "name": "Internet/Fibre"
-        },
-        {
-          "id": "sub_2",
-          "monthly": 20,
-          "name": "Téléphone mobile"
-        },
-        {
-          "id": "sub_3",
-          "monthly": 10,
-          "name": "Abonnement streaming"
-        }
-      ],
-      "annualFixedExpenses": [
-        {
-          "amount": 600,
-          "id": "fixed_1",
-          "name": "Assurance voiture"
-        },
-        {
-          "amount": 800,
-          "id": "fixed_2",
-          "name": "Impôts locaux"
-        }
-      ],
-      "monthlySalary": 900,
-      "variableMonthlyIncomes": null,
-      "additionalMonthlyIncomes": [],
-      "currentSavings": 0,
-      "savingsTransactions": []
-    },
-    "2028": {
-      "categories": [
-        {
           "id": "achats",
           "name": "Achats & Loisirs",
-          "target": 2400
+          "target": 0.0,
+          "monthlyTargets": null
         },
         {
           "id": "alimentation",
           "name": "Alimentation",
-          "target": 2400
+          "target": 0.0,
+          "monthlyTargets": null
         }
       ],
       "expenses": [],
       "subs": [],
       "annualFixedExpenses": [],
-      "monthlySalary": 0,
-      "variableMonthlyIncomes": null,
+      "monthlySalary": 0.0,
+      "currentSavings": 0.0,
       "additionalMonthlyIncomes": [],
-      "currentSavings": 0,
-      "savingsTransactions": []
-    },
-    "2026": {
-      "categories": [
-        {
-          "id": "achats",
-          "name": "Achats & Loisirs",
-          "target": 2400
-        },
-        {
-          "id": "alimentation",
-          "name": "Alimentation",
-          "target": 2400
-        }
-      ],
-      "expenses": [],
-      "subs": [],
-      "annualFixedExpenses": [],
-      "monthlySalary": 0,
-      "variableMonthlyIncomes": null,
-      "additionalMonthlyIncomes": [],
-      "currentSavings": 0,
       "savingsTransactions": []
     }
   },
   "globalData": {
-    "bankAccounts": [],
-    "initializationComplete": true,
+    "bankAccounts": [
+      {
+        "id": "27ebc32a-b8a9-4b09-bd57-80753468950f",
+        "name": "Compte principal",
+        "balance": 0,
+        "type": "checking",
+        "isShared": false,
+        "sharedWith": ""
+      }
+    ],
     "investments": [],
-    "monthlySalary": 0,
-    "monthlySalaryStartDate": null,
-    "personTransactions": [],
-    "salaryHistory": [],
     "savingsGoals": [],
     "savingsProjects": [],
+    "temporaryIncomes": [
+      {
+        "id": "cfb7139f-185a-4a1b-aad8-f41df88cef3b",
+        "name": "Chômage",
+        "type": "allocation",
+        "amount": 900,
+        "duration": "permanent",
+        "startDate": "2025-12-02"
+      }
+    ],
     "sharedExpensePersons": [],
-    "temporaryIncomes": [],
+    "personTransactions": [],
+    "salaryHistory": [],
+    "initializationComplete": true,
+    "monthlySalary": 0,
+    "monthlySalaryStartDate": null,
+    "lockedYears": [],
+    "excludedPredictedYears": [],
+    "maxPredictedYears": 3,
     "userProfile": {
+      "age": 25,
       "geographic_location": {
-        "region": "europe",
+        "city": "Rennes",
         "country": "FR",
         "countryName": "France",
-        "city": "Rennes",
-        "department": "Ille-et-Vilaine"
+        "department": "Ille-et-Vilaine",
+        "region": "europe"
       },
-      "age": 19,
       "profession": "Chômeur",
-      "secteur_activite": "Informatique"
+      "secteur_activite": "Informatique",
+      "csp": "chomeur",
+      "situation_familiale": "couple"
     }
   }
 }

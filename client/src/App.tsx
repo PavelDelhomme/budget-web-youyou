@@ -1,29 +1,52 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Api } from './api';
-import { LoginForm } from './components/LoginForm';
-import { Sidebar } from './components/Sidebar';
-import { HamburgerMenu } from './components/HamburgerMenu';
-import { SummaryCard } from './components/SummaryCard';
-import { CategoriesSection } from './components/CategoriesSection';
-import { ExpensesSection } from './components/ExpensesSection';
-import { SubscriptionsSection } from './components/SubscriptionsSection';
-import { IncomeAndSavingsSection } from './components/IncomeAndSavingsSection';
-import { AnnualFixedExpenses } from './components/AnnualFixedExpenses';
-import { AddYearModal } from './components/AddYearModal';
-import { InitializationModal } from './components/InitializationModal';
-import { AdvancedSignupForm, UserProfile } from './components/AdvancedSignupForm';
-import { Dashboard } from './components/Dashboard';
-import { GlobalDataManager } from './components/GlobalDataManager';
-import { RevenusManager } from './components/RevenusManager';
-import { MLTrainingInterface } from './components/MLTrainingInterface';
-import { TaxManager } from './components/TaxManager';
-import { AdvancedFiscalManager } from './components/AdvancedFiscalManager';
-import { ExpensesPieChart } from './components/ExpensesPieChart';
-import { MonthlyExpensesIncomeChart } from './components/MonthlyExpensesIncomeChart';
+import { Api } from './core/api';
+// Layout
+import { Sidebar } from './components/layout/Sidebar';
+import { HamburgerMenu } from './components/layout/HamburgerMenu';
+import { Modal } from './components/layout/Modal';
+
+// Auth
+import { LoginForm } from './components/auth/LoginForm';
+
+// Dashboard
+import { Dashboard } from './components/dashboard/Dashboard';
+import { SummaryCard } from './components/dashboard/SummaryCard';
+
+// Budget
+import { CategoriesSection } from './components/budget/CategoriesSection';
+import { UnifiedExpensesManager } from './components/budget/UnifiedExpensesManager';
+import { IncomeAndSavingsSection } from './components/budget/IncomeAndSavingsSection';
+
+// Charts
+import { ExpensesPieChart } from './components/charts/ExpensesPieChart';
+import { MonthlyExpensesIncomeChart } from './components/charts/MonthlyExpensesIncomeChart';
+
+// Income
+import { RevenusManager } from './components/income/RevenusManager';
+
+// Management
+import { GlobalDataManager } from './components/management/GlobalDataManager';
+
+// AI
+import { MLTrainingInterface } from './components/ai/MLTrainingInterface';
+
+// UI
+import { FloatingActionButton } from './components/ui/FloatingActionButton';
+import { QuickAddExpenseModal } from './components/ui/QuickAddExpenseModal';
+import { QuickAddIncomeModal } from './components/ui/QuickAddIncomeModal';
+
+// Fiscal
+import { TaxManager } from './components/fiscal/TaxManager';
+import { AdvancedFiscalManager } from './components/fiscal/AdvancedFiscalManager';
+
+// Forms
+import { AddYearModal } from './components/forms/AddYearModal';
+import { InitializationModal } from './components/forms/InitializationModal';
+import { AdvancedSignupForm, UserProfile } from './components/forms/AdvancedSignupForm';
 import { useBudgetCalculations } from './hooks/useBudgetData';
-import { Category, Expense, Subscription, SavingsTransaction, YearData, UserGlobalData, AnnualFixedExpense, MonthlyAdditionalIncome, MonthlyIncomeSource } from './types';
-import { generatePredictions, getFutureYears, getHistoricalYears, PredictedYearData } from './utils/budgetPredictor';
-import { calculateProjectsContributionsForYear } from './utils/savingsProjects';
+import { Category, Expense, Subscription, SavingsTransaction, YearData, UserGlobalData, AnnualFixedExpense, MonthlyAdditionalIncome, MonthlyIncomeSource } from './core/types';
+import { generatePredictions, getFutureYears, getHistoricalYears, PredictedYearData } from './lib/utils/budgetPredictor';
+import { calculateProjectsContributionsForYear } from './lib/utils/savingsProjects';
 import {
   defaultCategories,
   INITIAL_YEARS,
@@ -31,7 +54,7 @@ import {
   currency,
   toISODate,
   today,
-} from './utils';
+} from './lib/utils';
 
 function App() {
   const [sessionEmail, setSessionEmail] = useState<string | null>(null);
@@ -68,28 +91,54 @@ function App() {
   const [isMLTrainingOpen, setIsMLTrainingOpen] = useState(false);
   const [isTaxManagerOpen, setIsTaxManagerOpen] = useState(false);
   const [isAdvancedFiscalManagerOpen, setIsAdvancedFiscalManagerOpen] = useState(false);
+  // États pour les popups rapides depuis le FAB
+  const [isQuickAddExpenseOpen, setIsQuickAddExpenseOpen] = useState(false);
+  const [isQuickAddIncomeOpen, setIsQuickAddIncomeOpen] = useState(false);
+  // État pour déclencher l'ajout d'une dépense depuis le FAB (pour UnifiedExpensesManager)
+  const [triggerAddExpense, setTriggerAddExpense] = useState(false);
+  const [pendingAddExpense, setPendingAddExpense] = useState(false);
   // Drawer : logique simplifiée et robuste
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  // État du drawer : fermé par défaut sur mobile, ouvert par défaut sur desktop
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sidebar-open');
+      if (saved !== null) {
+        return saved === 'true';
+      }
+      // Sur desktop, drawer ouvert par défaut
+      return window.innerWidth >= 1024;
+    }
+    return false;
+  });
   
-  // Sauvegarder l'état dans localStorage (mobile uniquement)
+  // Sauvegarder l'état dans localStorage
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+    if (typeof window !== 'undefined') {
       localStorage.setItem('sidebar-open', isSidebarOpen.toString());
     }
   }, [isSidebarOpen]);
-
-  // Restaurer l'état depuis localStorage au chargement (mobile uniquement)
+  
+  // Gérer le resize window pour ajuster le drawer sur desktop
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-      const savedState = localStorage.getItem('sidebar-open');
-      if (savedState === 'true') {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        // Sur desktop, toujours afficher le drawer
         setIsSidebarOpen(true);
       }
-    }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // Debounce timer for saving
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Flag to prevent multiple simultaneous calls to reloadHistoricalDataAndRegeneratePredictions
+  const isReloadingHistoricalData = useRef<boolean>(false);
+  // Store previous values to detect real changes
+  const prevYearsRef = useRef<string>('');
+  const prevExcludedYearsRef = useRef<string>('');
+  const prevMaxYearsRef = useRef<number | undefined>(undefined);
 
   // Check if user has a valid session on mount and load global data
   useEffect(() => {
@@ -182,6 +231,13 @@ function App() {
   const reloadHistoricalDataAndRegeneratePredictions = React.useCallback(async () => {
     if (!sessionEmail || years.length === 0) return;
     
+    // Prevent multiple simultaneous calls
+    if (isReloadingHistoricalData.current) {
+      return;
+    }
+    
+    isReloadingHistoricalData.current = true;
+    
     try {
       const currentYearNum = today.getFullYear();
       const historicalYearsList = getHistoricalYears(years, currentYearNum);
@@ -215,11 +271,8 @@ function App() {
         }
       }
       
-      setHistoricalData(historicalDataMap);
-      
       // Load ALL future years that exist in years list to check if they have real data
       // If they have data, they are real years, not predictions
-      const futureRealYearsDataMap = new Map<number, YearData>();
       const futureRealYears = years.filter(y => y > currentYearNum);
       for (const y of futureRealYears) {
         try {
@@ -230,7 +283,6 @@ function App() {
                               (data.subs && data.subs.length > 0) ||
                               (data.monthlySalary && data.monthlySalary > 0);
           if (hasRealData) {
-            futureRealYearsDataMap.set(y, data);
             historicalDataMap.set(y, data); // Include in historical data for dashboard
           }
         } catch (err: any) {
@@ -241,25 +293,32 @@ function App() {
         }
       }
       
-      // Update historical data with future real years
-      if (futureRealYearsDataMap.size > 0) {
-        futureRealYearsDataMap.forEach((data, year) => {
-          historicalDataMap.set(year, data);
-        });
-        setHistoricalData(new Map(historicalDataMap));
-      }
+      // Update historical data ONCE with all data collected
+      setHistoricalData(new Map(historicalDataMap));
+      
+      // Generate predictions ONLY if we have enough historical data with real values
+      // Need at least 1 year with meaningful data (not just defaults)
+      const hasEnoughData = Array.from(historicalDataMap.values()).some(data => {
+        const hasExpenses = data.expenses && data.expenses.length > 0;
+        const hasCategoriesWithTargets = data.categories && data.categories.some((c: Category) => c.target > 0);
+        const hasSubs = data.subs && data.subs.length > 0;
+        const hasSalary = data.monthlySalary && data.monthlySalary > 0;
+        return hasExpenses || hasCategoriesWithTargets || hasSubs || hasSalary;
+      });
       
       // Generate predictions ONLY for years that:
       // 1. Are NOT in the years list (not manually created)
       // 2. Are truly in the future (not yet created)
       // 3. Are not in excludedPredictedYears
-      if (historicalDataMap.size > 0) {
-        // Use current globalData state
-        const globalDataForPredictions = globalData;
+      // 4. We have enough historical data
+      if (hasEnoughData && historicalDataMap.size > 0) {
+        // Use current globalData from closure (captured at call time, not dependency)
+        // This avoids recreating the callback when globalData changes
+        const currentGlobalData = globalData;
         
-        if (globalDataForPredictions) {
-          const excludedYears = globalDataForPredictions.excludedPredictedYears || [];
-          const maxYears = globalDataForPredictions.maxPredictedYears || 3;
+        if (currentGlobalData) {
+          const excludedYears = currentGlobalData.excludedPredictedYears || [];
+          const maxYears = currentGlobalData.maxPredictedYears || 3;
           
           const futureYearsList = getFutureYears(years, currentYearNum, excludedYears, maxYears);
           // Filter out any years that are already in years list (real years)
@@ -270,101 +329,85 @@ function App() {
             data
           }));
           
-          const predictions = generatePredictions(historicalArray, predictedYearsOnly, globalDataForPredictions);
-          setPredictedYears(predictions);
+          const predictions = generatePredictions(historicalArray, predictedYearsOnly, currentGlobalData);
+          
+          // Only update if predictions actually changed
+          setPredictedYears(prev => {
+            const prevYears = prev.map(p => p.year).sort().join(',');
+            const newYears = predictions.map(p => p.year).sort().join(',');
+            if (prevYears === newYears && prev.length === predictions.length) {
+              return prev; // Same predictions, return previous reference
+            }
+            return predictions;
+          });
         }
+      } else {
+        // Not enough data, clear predictions only if not already empty
+        setPredictedYears(prev => prev.length === 0 ? prev : []);
       }
     } catch (err) {
       console.error('Error loading historical data:', err);
+    } finally {
+      isReloadingHistoricalData.current = false;
     }
-  }, [sessionEmail, years, globalData]);
+    // IMPORTANT: Do NOT include globalData in dependencies to avoid infinite loops
+    // Instead, we capture it from closure at call time
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionEmail, years]);
 
-  // Load historical data and generate predictions
-  // Use dependencies directly instead of the function reference to avoid infinite loops
+  // Call reloadHistoricalDataAndRegeneratePredictions when dependencies change
+  // DISABLED: This was causing infinite loops. Instead, reload manually when needed.
+  // The function is now called explicitly in handleAddYear, handleResetYear, etc.
+  // useEffect(() => {
+  //   if (!sessionEmail || years.length === 0 || isReloadingHistoricalData.current) {
+  //     return;
+  //   }
+  //   
+  //   // Check if dependencies have really changed
+  //   const currentYearsStr = JSON.stringify([...years].sort());
+  //   const currentExcludedYearsStr = JSON.stringify(globalData?.excludedPredictedYears || []);
+  //   const currentMaxYears = globalData?.maxPredictedYears;
+  //   
+  //   const yearsChanged = prevYearsRef.current !== currentYearsStr;
+  //   const excludedYearsChanged = prevExcludedYearsRef.current !== currentExcludedYearsStr;
+  //   const maxYearsChanged = prevMaxYearsRef.current !== currentMaxYears;
+  //   
+  //   // Only reload if something actually changed
+  //   if (!yearsChanged && !excludedYearsChanged && !maxYearsChanged && prevYearsRef.current !== '') {
+  //     return; // Nothing changed, skip reload
+  //   }
+  //   
+  //   // Update previous values
+  //   prevYearsRef.current = currentYearsStr;
+  //   prevExcludedYearsRef.current = currentExcludedYearsStr;
+  //   prevMaxYearsRef.current = currentMaxYears;
+  //   
+  //   // Debounce the call to avoid rapid successive calls
+  //   const timeoutId = setTimeout(() => {
+  //     if (!isReloadingHistoricalData.current) {
+  //       reloadHistoricalDataAndRegeneratePredictions();
+  //     }
+  //   }, 300);
+  //   
+  //   return () => clearTimeout(timeoutId);
+  // }, [sessionEmail, years, globalData?.excludedPredictedYears, globalData?.maxPredictedYears]);
+  
+  // Initial load only when session is established - ONE TIME ONLY
+  const hasInitialLoadRef = useRef<boolean>(false);
   useEffect(() => {
-    if (!sessionEmail || years.length === 0) return;
-    
-    const loadData = async () => {
-      try {
-        const currentYearNum = today.getFullYear();
-        const historicalYearsList = getHistoricalYears(years, currentYearNum);
-        
-        // Load all historical year data AND current year for dashboard
-        const historicalDataMap = new Map<number, YearData>();
-        
-        // Load historical years
-        for (const y of historicalYearsList) {
-          try {
-            const data = await Api.getYearData(y);
-            historicalDataMap.set(y, data);
-          } catch (err: any) {
-            // Skip years with errors (especially 401 - session not ready)
-            if (err?.status !== 401) {
-              // Only log non-401 errors
-              console.debug('Error loading year data:', err);
-            }
-          }
-        }
-        
-        // Also load current year for dashboard stats
-        if (years.includes(currentYearNum)) {
-          try {
-            const data = await Api.getYearData(currentYearNum);
-            historicalDataMap.set(currentYearNum, data);
-          } catch (err: any) {
-            // Skip if error (especially 401 - session not ready)
-            if (err?.status !== 401) {
-              console.debug('Error loading current year data:', err);
-            }
-          }
-        }
-        
-        // Load ALL future years that exist in years list to check if they have real data
-        const futureRealYears = years.filter(y => y > currentYearNum);
-        for (const y of futureRealYears) {
-          try {
-            const data = await Api.getYearData(y);
-            // Check if year has meaningful data (not just defaults)
-            const hasRealData = (data.expenses && data.expenses.length > 0) ||
-                                (data.categories && data.categories.some((c: Category) => c.target > 0)) ||
-                                (data.subs && data.subs.length > 0) ||
-                                (data.monthlySalary && data.monthlySalary > 0);
-            if (hasRealData) {
-              historicalDataMap.set(y, data);
-            }
-          } catch (err: any) {
-            // Skip years with errors (especially 401 - session not ready)
-            if (err?.status !== 401) {
-              console.debug('Error loading future year data:', err);
-            }
-          }
-        }
-        
-        setHistoricalData(new Map(historicalDataMap));
-        
-        // Generate predictions ONLY for years that are NOT in the years list
-        if (historicalDataMap.size > 0 && globalData) {
-          const excludedYears = globalData.excludedPredictedYears || [];
-          const maxYears = globalData.maxPredictedYears || 3;
-          
-          const futureYearsList = getFutureYears(years, currentYearNum, excludedYears, maxYears);
-          const predictedYearsOnly = futureYearsList.filter(y => !years.includes(y));
-          
-          const historicalArray = Array.from(historicalDataMap.entries()).map(([year, data]) => ({
-            year,
-            data
-          }));
-          
-          const predictions = generatePredictions(historicalArray, predictedYearsOnly, globalData);
-          setPredictedYears(predictions);
-        }
-      } catch (err) {
-        console.error('Error loading historical data:', err);
-      }
-    };
-    
-    loadData();
-  }, [sessionEmail, years, globalData]);
+    if (sessionEmail && years.length > 0 && !hasInitialLoadRef.current) {
+      hasInitialLoadRef.current = true;
+      prevYearsRef.current = JSON.stringify([...years].sort());
+      prevExcludedYearsRef.current = JSON.stringify(globalData?.excludedPredictedYears || []);
+      prevMaxYearsRef.current = globalData?.maxPredictedYears;
+      
+      // Call after a delay to ensure all state is ready
+      setTimeout(() => {
+        reloadHistoricalDataAndRegeneratePredictions();
+      }, 500);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionEmail]);
 
   // Load data when sessionEmail or year changes
   useEffect(() => {
@@ -409,12 +452,24 @@ function App() {
         setMonthlyIncomeSources(Array.isArray(ds.monthlyIncomeSources) ? ds.monthlyIncomeSources : []);
         setCurrentSavings(ds.currentSavings || 0);
         setSavingsTransactions(Array.isArray(ds.savingsTransactions) ? ds.savingsTransactions : []);
+        
+        // Si on attendait d'ouvrir le formulaire, le faire maintenant
+        if (pendingAddExpense) {
+          setPendingAddExpense(false);
+          setTimeout(() => {
+            setTriggerAddExpense(true);
+          }, 200);
+        }
       } catch (err) {
         console.error(err);
+        // En cas d'erreur, réinitialiser le pending
+        if (pendingAddExpense) {
+          setPendingAddExpense(false);
+        }
       }
     }
     load();
-  }, [sessionEmail, year, predictedYears, globalData]);
+  }, [sessionEmail, year, predictedYears, globalData, pendingAddExpense]);
 
   // Save data when categories, expenses, subs, salary, savings change, with debounce
   // Don't save if viewing a prediction or if we're on the dashboard
@@ -474,7 +529,7 @@ function App() {
         }
       }
     }, 500);
-  }, [categories, expenses, subs, annualFixedExpenses, monthlySalary, variableMonthlyIncomes, additionalMonthlyIncomes, monthlyIncomeSources, currentSavings, savingsTransactions, sessionEmail, year, isViewingPrediction, globalData?.lockedYears, globalData, years]);
+  }, [categories, expenses, subs, annualFixedExpenses, monthlySalary, variableMonthlyIncomes, additionalMonthlyIncomes, monthlyIncomeSources, currentSavings, savingsTransactions, sessionEmail, year, isViewingPrediction, globalData?.lockedYears]);
 
   // Use budget calculations hook (only for numeric years, not dashboard)
   const calculations = useBudgetCalculations(
@@ -889,8 +944,16 @@ function App() {
     
     setHistoricalData(historicalDataMap);
     
-    // Régénérer les prédictions
-    if (historicalDataMap.size > 0 && globalData) {
+    // Régénérer les prédictions SEULEMENT si on a assez de données
+    const hasEnoughData = Array.from(historicalDataMap.values()).some(data => {
+      const hasExpenses = data.expenses && data.expenses.length > 0;
+      const hasCategoriesWithTargets = data.categories && data.categories.some((c: Category) => c.target > 0);
+      const hasSubs = data.subs && data.subs.length > 0;
+      const hasSalary = data.monthlySalary && data.monthlySalary > 0;
+      return hasExpenses || hasCategoriesWithTargets || hasSubs || hasSalary;
+    });
+    
+    if (hasEnoughData && historicalDataMap.size > 0 && globalData) {
       const excludedYears = globalData.excludedPredictedYears || [];
       const maxYears = globalData.maxPredictedYears || 3;
       
@@ -904,6 +967,8 @@ function App() {
       
       const predictions = generatePredictions(historicalArray, predictedYearsOnly, globalData);
       setPredictedYears(predictions);
+    } else {
+      setPredictedYears([]);
     }
   }
 
@@ -1093,9 +1158,9 @@ function App() {
   };
   
   const additionalIncome = typeof year === 'number' ? calculateAdditionalIncome(year) : 0;
-  // Calculer le revenu annuel : si variableMonthlyIncomes est défini, utiliser la somme, sinon monthlySalary * 12
-  const baseAnnualIncome = variableMonthlyIncomes && variableMonthlyIncomes.length === 12
-    ? variableMonthlyIncomes.reduce((sum, v) => sum + v, 0)
+  // Calculer le revenu annuel : si variableMonthlyIncomes est défini avec 12 valeurs, utiliser la somme, sinon monthlySalary * 12
+  const baseAnnualIncome = variableMonthlyIncomes && variableMonthlyIncomes.length === 12 && variableMonthlyIncomes.some(v => v > 0)
+    ? variableMonthlyIncomes.reduce((sum, v) => sum + (v || 0), 0)
     : monthlySalary * 12;
   // Ajouter les revenus supplémentaires par mois (primes, cadeaux, etc.)
   const additionalMonthlyIncomeTotal = additionalMonthlyIncomes.reduce((sum, inc) => sum + inc.amount, 0);
@@ -1130,6 +1195,18 @@ function App() {
   // UI when logged in
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-gray-900 w-full overflow-x-hidden">
+      {/* Floating Action Button */}
+      {sessionEmail && (
+        <FloatingActionButton
+          onAddExpense={() => {
+            setIsQuickAddExpenseOpen(true);
+          }}
+          onAddIncome={() => {
+            setIsQuickAddIncomeOpen(true);
+          }}
+        />
+      )}
+      
       {/* Hamburger Menu Button */}
       <HamburgerMenu isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
       
@@ -1164,8 +1241,8 @@ function App() {
       />
 
       {/* Main content */}
-      <main className={`flex-1 w-full overflow-x-hidden p-4 sm:p-4 md:p-6 lg:p-8 dark:text-gray-100 transition-all duration-300 lg:ml-64 min-h-screen bg-gray-50 dark:bg-gray-900`}>
-        <div className="w-full max-w-7xl mx-auto space-y-4 sm:space-y-6 px-2 sm:px-4">
+      <main className={`flex-1 w-full overflow-x-hidden p-4 sm:p-4 md:p-6 lg:px-0 lg:py-4 dark:text-gray-100 transition-all duration-300 min-h-screen bg-gray-50 dark:bg-gray-900 ${isSidebarOpen && typeof window !== 'undefined' && window.innerWidth < 1024 ? 'overflow-hidden' : ''} pt-12 lg:pt-2`}>
+        <div className="w-full max-w-full lg:max-w-none space-y-4 sm:space-y-6 lg:pl-2 lg:pr-4">
           {/* Dashboard View */}
           {year === 'dashboard' && (
             <>
@@ -1305,61 +1382,28 @@ function App() {
           hasExpensesInCategory={(id) => expenses.some((e) => e.categoryId === id)}
         />
 
-        {/* Expenses */}
-        <ExpensesSection
+        {/* Unified Expenses Manager */}
+        <UnifiedExpensesManager
           expenses={expenses}
+          subs={subs}
+          annualFixedExpenses={annualFixedExpenses}
           categories={categories}
           bankAccounts={globalData?.bankAccounts || []}
           savingsProjects={globalData?.savingsProjects || []}
+          monthNow={calculations.monthNow}
           onAddExpense={addExpense}
           onRemoveExpense={removeExpense}
           onUpdateExpense={updateExpense}
-        />
-
-        {/* Subscriptions */}
-        <SubscriptionsSection
-          subs={subs}
-          monthNow={calculations.monthNow}
-          bankAccounts={globalData?.bankAccounts || []}
           onAddSub={addSub}
           onRemoveSub={removeSub}
           onUpdateSub={updateSub}
-          monthsOverlapFullYear={calculations.monthsOverlapFullYear}
-          monthsOverlapInYear={calculations.monthsOverlapInYear}
+          onAddAnnualFixed={addAnnualFixedExpense}
+          onRemoveAnnualFixed={removeAnnualFixedExpense}
+          onUpdateAnnualFixed={updateAnnualFixedExpense}
+          triggerAddExpense={triggerAddExpense}
+          onTriggerAddExpenseComplete={() => setTriggerAddExpense(false)}
         />
 
-        {/* Annual Fixed Expenses */}
-        <AnnualFixedExpenses
-          expenses={annualFixedExpenses}
-          bankAccounts={globalData?.bankAccounts || []}
-          onAdd={addAnnualFixedExpense}
-          onRemove={removeAnnualFixedExpense}
-          onUpdate={updateAnnualFixedExpense}
-        />
-
-        {/* Charts Section - Full width below all cards */}
-        <section className="grid md:grid-cols-1 lg:grid-cols-2 gap-6">
-          <ExpensesPieChart
-            categories={categories}
-            expenses={expenses}
-            size={300}
-            isPrediction={isViewingPrediction}
-          />
-          {typeof year === 'number' && (
-            <MonthlyExpensesIncomeChart
-              expenses={expenses}
-              monthlySalary={monthlySalary}
-              variableMonthlyIncomes={variableMonthlyIncomes}
-              additionalMonthlyIncomes={additionalMonthlyIncomes}
-              year={year}
-              height={300}
-              isPrediction={isViewingPrediction}
-              categories={isViewingPrediction ? categories : undefined}
-              annualFixedExpenses={isViewingPrediction ? annualFixedExpenses : undefined}
-              subs={isViewingPrediction ? subs : undefined}
-            />
-          )}
-        </section>
 
               <section className="text-xs text-slate-500 pb-8">
                 <p>
@@ -1474,6 +1518,55 @@ function App() {
         onClose={() => setIsAdvancedFiscalManagerOpen(false)}
         annualIncome={annualIncome}
       />
+
+      {/* Quick Add Expense Modal */}
+      {sessionEmail && (
+        <QuickAddExpenseModal
+          isOpen={isQuickAddExpenseOpen}
+          onClose={() => setIsQuickAddExpenseOpen(false)}
+          categories={categories.length > 0 ? categories : defaultCategories}
+          bankAccounts={globalData?.bankAccounts || []}
+          currentYear={typeof year === 'number' ? year : currentYearNum}
+          onAddExpense={async (expense) => {
+            // Vérifier l'année de la dépense
+            const expenseYear = new Date(expense.date).getFullYear();
+            
+            // Si on est sur le dashboard ou si l'année ne correspond pas, naviguer vers la bonne année
+            if (year === 'dashboard' || (typeof year === 'number' && year !== expenseYear)) {
+              setYear(expenseYear);
+              // Attendre que l'année soit chargée
+              await new Promise(resolve => setTimeout(resolve, 400));
+            }
+            
+            // Ajouter la dépense (elle sera ajoutée à l'année correcte via addExpense)
+            addExpense(expense);
+            setIsQuickAddExpenseOpen(false);
+          }}
+        />
+      )}
+
+      {/* Quick Add Income Modal */}
+      {sessionEmail && globalData && (
+        <QuickAddIncomeModal
+          isOpen={isQuickAddIncomeOpen}
+          onClose={() => setIsQuickAddIncomeOpen(false)}
+          onAddIncome={async (income) => {
+            const updatedGlobalData: UserGlobalData = {
+              ...globalData,
+              temporaryIncomes: [...(globalData.temporaryIncomes || []), income],
+            };
+            await Api.putGlobalData(updatedGlobalData);
+            setGlobalData(updatedGlobalData);
+            setIsQuickAddIncomeOpen(false);
+            
+            // Régénérer les prédictions après modification
+            setTimeout(() => {
+              reloadHistoricalDataAndRegeneratePredictions();
+            }, 200);
+          }}
+        />
+      )}
+
     </div>
   );
 }

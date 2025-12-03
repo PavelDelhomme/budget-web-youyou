@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { parseAmount, today } from '../utils';
-import { Category, Expense, Subscription, AnnualFixedExpense } from '../types';
+import { parseAmount, today } from '../lib/utils';
+import { Category, Expense, Subscription, AnnualFixedExpense } from '../core/types';
 
 export function useBudgetCalculations(
   year: number,

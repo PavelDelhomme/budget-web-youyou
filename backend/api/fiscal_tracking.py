@@ -66,8 +66,8 @@ class FiscalRegulation:
     description: str
     category: str  # 'tax_rates', 'deductions', 'benefits', etc.
     effective_date: str  # Date d'entrée en vigueur
-    expiration_date: Optional[str] = None
     source: str  # Source officielle
+    expiration_date: Optional[str] = None
     impact: str = 'medium'  # 'low', 'medium', 'high'
     url: Optional[str] = None
 
@@ -81,17 +81,44 @@ class FiscalRegulationTracker:
     
     def fetch_latest_regulations(self, year: int) -> List[FiscalRegulation]:
         """
-        Récupère les dernières réglementations fiscales
+        Récupère les dernières réglementations fiscales depuis les sources officielles
         
-        Sources potentielles:
-        - Service Public API
-        - Impots.gouv.fr
-        - Legifrance API
+        Sources:
+        - Impots.gouv.fr (barème, plafonds, déductions)
+        - Service-public.fr (plafonds et seuils)
+        - Economie.gouv.fr (changements réglementaires)
         - Cache local avec mise à jour périodique
         """
-        # Pour l'instant, on utilise des données statiques
-        # À remplacer par des appels API réels
+        try:
+            # Essayer de récupérer les réglementations depuis les sources gouvernementales
+            from api.government_fiscal_regulations import GovernmentFiscalRegulationsService
+            service = GovernmentFiscalRegulationsService()
+            regulations_data = service.get_fiscal_regulations(year, use_cache=True)
+            
+            if regulations_data:
+                # Convertir les données en objets FiscalRegulation
+                regulations = []
+                for reg_data in regulations_data:
+                    regulations.append(FiscalRegulation(
+                        id=reg_data.get('id', f'regulation-{year}-{len(regulations)}'),
+                        title=reg_data.get('title', 'Réglementation fiscale'),
+                        description=reg_data.get('description', ''),
+                        category=reg_data.get('category', 'general'),
+                        effective_date=reg_data.get('effective_date', f'{year}-01-01'),
+                        source=reg_data.get('source', 'officiel'),
+                        impact=reg_data.get('impact', 'medium'),
+                        expiration_date=reg_data.get('expiration_date'),
+                        url=reg_data.get('url')
+                    ))
+                
+                if regulations:
+                    self.last_update = datetime.now()
+                    return regulations
+        except Exception as e:
+            print(f"Erreur lors de la récupération des réglementations officielles: {e}")
+            # Fallback vers les réglementations par défaut
         
+        # Réglementations par défaut si la récupération en ligne échoue
         regulations = [
             FiscalRegulation(
                 id=f'tax-brackets-{year}',
@@ -145,49 +172,68 @@ class FiscalCalendar:
         self.important_dates = self._generate_fiscal_calendar(year)
     
     def _generate_fiscal_calendar(self, year: int) -> List[Dict[str, Any]]:
-        """Génère le calendrier fiscal pour une année"""
+        """Génère le calendrier fiscal pour une année en récupérant les dates officielles"""
+        try:
+            # Essayer de récupérer les dates depuis les sources gouvernementales
+            from api.government_fiscal_calendar import GovernmentFiscalCalendarService
+            service = GovernmentFiscalCalendarService()
+            dates = service.get_fiscal_calendar(year, use_cache=True)
+            
+            if dates:
+                return dates
+        except Exception as e:
+            print(f"Erreur lors de la récupération du calendrier officiel: {e}")
+            # Fallback vers les dates par défaut
+        
+        # Dates par défaut si la récupération en ligne échoue
         dates = [
             {
                 'date': f'{year}-03-01',
                 'event': 'Ouverture de la déclaration en ligne',
                 'type': 'deadline',
                 'important': True,
-                'description': 'Début de la période de déclaration des revenus'
+                'description': 'Début de la période de déclaration des revenus',
+                'source': 'default'
             },
             {
                 'date': f'{year}-05-23',
                 'event': 'Échéance déclaration en ligne (métropole)',
                 'type': 'deadline',
                 'important': True,
-                'description': 'Date limite pour déclarer ses revenus en ligne'
+                'description': 'Date limite pour déclarer ses revenus en ligne',
+                'source': 'default'
             },
             {
                 'date': f'{year}-06-07',
                 'event': 'Échéance déclaration papier',
                 'type': 'deadline',
                 'important': True,
-                'description': 'Date limite pour déclarer ses revenus par papier'
+                'description': 'Date limite pour déclarer ses revenus par papier',
+                'source': 'default'
             },
             {
                 'date': f'{year}-08-15',
                 'event': 'Premier prélèvement à la source',
                 'type': 'payment',
                 'important': False,
-                'description': 'Premier prélèvement du solde d\'impôt'
+                'description': 'Premier prélèvement du solde d\'impôt',
+                'source': 'default'
             },
             {
                 'date': f'{year}-09-15',
                 'event': 'Deuxième prélèvement à la source',
                 'type': 'payment',
                 'important': False,
-                'description': 'Deuxième prélèvement du solde d\'impôt'
+                'description': 'Deuxième prélèvement du solde d\'impôt',
+                'source': 'default'
             },
             {
                 'date': f'{year}-01-15',
                 'event': 'Reçu fiscal disponible',
                 'type': 'information',
                 'important': False,
-                'description': 'Réception du récapitulatif fiscal'
+                'description': 'Réception du récapitulatif fiscal',
+                'source': 'default'
             },
         ]
         
@@ -372,8 +418,29 @@ class FiscalDeductionManager:
         ],
     }
     
-    def get_available_deductions(self, category: Optional[str] = None) -> List[Dict[str, Any]]:
-        """Récupère les déductions disponibles"""
+    def get_available_deductions(self, category: Optional[str] = None, year: Optional[int] = None) -> List[Dict[str, Any]]:
+        """Récupère les déductions disponibles depuis les sources officielles"""
+        if year is None:
+            from datetime import datetime
+            year = datetime.now().year
+        
+        try:
+            # Essayer de récupérer depuis le service gouvernemental
+            from api.government_deductions_service import GovernmentDeductionsService
+            service = GovernmentDeductionsService()
+            official_deductions = service.get_all_deductions(year, use_cache=True)
+            
+            if official_deductions:
+                # Filtrer par catégorie si demandé
+                if category:
+                    filtered = [d for d in official_deductions if d.get('category') == category]
+                    return filtered
+                return official_deductions
+        except Exception as e:
+            print(f"Erreur lors de la récupération des déductions officielles: {e}")
+            # Fallback vers les déductions par défaut
+        
+        # Fallback : utiliser les déductions par défaut
         if category:
             return self.COMMON_DEDUCTIONS.get(category, [])
         

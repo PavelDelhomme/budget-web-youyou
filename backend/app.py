@@ -341,10 +341,10 @@ enable_compression(app)
 
 # Initialize structured logging
 structured_logger = create_structured_logger('app', DATA_DIR / 'logs')
-structured_logger.info('Application démarrée', {
-    'version': '1.0.0',
-    'environment': os.environ.get('FLASK_ENV', 'development')
-})
+structured_logger.info('Application démarrée', 
+    version='1.0.0',
+    environment=os.environ.get('FLASK_ENV', 'development')
+)
 
 # Register all routes
 views.register_routes(app)
