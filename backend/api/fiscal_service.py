@@ -265,15 +265,18 @@ def register_fiscal_routes(app):
             if category:
                 regulations_data = [r for r in regulations_data if r.get('category') == category]
             
-            return jsonify({
+            response_data = {
                 'success': True,
                 'year': year,
                 'regulations': regulations_data or [],
-                'category': category,
                 'total_count': len(regulations_data) if regulations_data else 0,
                 'source': 'live_government_data',
                 'last_update': datetime.now().isoformat()
-            })
+            }
+            # Ne pas inclure category si None/null (aucun filtre)
+            if category:
+                response_data['category'] = category
+            return jsonify(response_data)
         except Exception as e:
             import traceback
             error_trace = traceback.format_exc()

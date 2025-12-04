@@ -52,6 +52,7 @@ interface FiscalRegulation {
   source: string;
   impact: 'low' | 'medium' | 'high';
   url?: string;
+  data?: any; // Données supplémentaires (tranches d'imposition, plafonds, etc.)
 }
 
 interface AvailableDeduction {

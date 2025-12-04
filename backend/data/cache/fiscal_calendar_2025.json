@@ -1,0 +1,14 @@
+{
+  "year": 2025,
+  "cached_at": "2025-12-04T11:34:28.622289",
+  "dates": [
+    {
+      "date": "2025-12-29",
+      "event": "Événement fiscal",
+      "type": "deadline",
+      "important": true,
+      "description": "Événement fiscal pour l'année 2025",
+      "source": "impots.gouv.fr"
+    }
+  ]
+}

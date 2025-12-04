@@ -49,3 +49,35 @@ code {
     monospace;
 }
 
+/* Styles pour la barre de défilement du ScrollableSelect */
+.scrollable-select-dropdown::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollable-select-dropdown::-webkit-scrollbar-track {
+  background: rgba(229, 231, 235, 0.3);
+  border-radius: 4px;
+}
+
+.scrollable-select-dropdown::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.8);
+  border-radius: 4px;
+}
+
+.scrollable-select-dropdown::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.9);
+}
+
+/* Mode sombre */
+.dark .scrollable-select-dropdown::-webkit-scrollbar-track {
+  background: rgba(55, 65, 81, 0.3);
+}
+
+.dark .scrollable-select-dropdown::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.6);
+}
+
+.dark .scrollable-select-dropdown::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.8);
+}
+

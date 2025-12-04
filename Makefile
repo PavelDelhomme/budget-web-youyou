@@ -1,4 +1,4 @@
-.PHONY: help install dev start restart stop down build clean docker-build docker-up docker-down docker-logs docker-ps status ports logs logs-backend logs-frontend reset reset-and-restart test test-syntax test-backend test-frontend test-api test-containers test-integration check-errors test-all test-behavior test-files test-ui-components test-endpoints test-data-structure test-features test-e2e test-e2e-install test-e2e-ui test-e2e-report test-backend-ml test-backend-ml prod prod-build prod-up prod-down prod-restart prod-logs prod-status
+.PHONY: help install dev start restart stop down build clean docker-build docker-up docker-down docker-logs docker-ps status ports logs logs-backend logs-frontend reset reset-and-restart test test-syntax test-backend test-frontend test-api test-containers test-integration check-errors test-all test-behavior test-files test-ui-components test-endpoints test-data-structure test-features test-e2e test-e2e-install test-e2e-ui test-e2e-report test-backend-ml test-backend-ml prod prod-build prod-up prod-down prod-restart prod-logs prod-status memory-monitor memory-analyze memory-test ml-validate
 
 # Variables
 BACKEND_PORT ?= 6060
@@ -1008,4 +1008,68 @@ clean-future-years: ## Supprime les années futures (2026+) des données utilisa
 		print(f'\n✅ Traitement terminé. {removed_count} fichier(s) modifié(s).'); \
 	" || echo "⚠️  Conteneur non accessible. Utilisez: make restart puis réessayez"
 	@echo "✅ Années futures supprimées !"
+
+# =============================================================================
+# 📊 MONITORING MÉMOIRE
+# =============================================================================
+
+memory-monitor: ## Démarre le monitoring mémoire (durée en minutes, défaut: 5)
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "📊 MONITORING DE LA MÉMOIRE"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@echo "💡 Usage: make memory-monitor [DURATION=5] [INTERVAL=5]"
+	@echo "   DURATION: Durée du monitoring en minutes (défaut: 5)"
+	@echo "   INTERVAL: Intervalle entre les mesures en secondes (défaut: 5)"
+	@echo ""
+	@DURATION=$${DURATION:-5}; \
+	INTERVAL=$${INTERVAL:-5}; \
+	echo "⏱️  Durée: $${DURATION} minutes"; \
+	echo "⏳ Intervalle: $${INTERVAL} secondes"; \
+	echo ""; \
+	bash scripts/monitor_memory.sh $${DURATION} $${INTERVAL}
+
+memory-analyze: ## Analyse un fichier de données mémoire (usage: make memory-analyze FILE=path/to/file.csv)
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🔍 ANALYSE DES DONNÉES MÉMOIRE"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@if [ -z "$$FILE" ]; then \
+		echo "❌ Erreur: Vous devez spécifier le fichier à analyser"; \
+		echo "   Usage: make memory-analyze FILE=memory_logs/memory_20241204_143022.csv"; \
+		echo ""; \
+		echo "📁 Fichiers disponibles dans memory_logs/:"; \
+		ls -1t memory_logs/*.csv 2>/dev/null | head -5 || echo "   Aucun fichier trouvé"; \
+		exit 1; \
+	fi; \
+	if [ ! -f "$$FILE" ]; then \
+		echo "❌ Erreur: Le fichier $$FILE n'existe pas"; \
+		exit 1; \
+	fi; \
+	python3 scripts/analyze_memory.py "$$FILE"
+
+memory-test: ## Test complet: monitoring 5 minutes puis analyse automatique
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🧪 TEST COMPLET DE MÉMOIRE"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@echo "📊 Phase 1: Monitoring de la mémoire (5 minutes)..."
+	@echo ""
+	@DURATION=$${DURATION:-5}; \
+	INTERVAL=$${INTERVAL:-5}; \
+	bash scripts/monitor_memory.sh $${DURATION} $${INTERVAL}; \
+	LAST_FILE=$$(ls -1t memory_logs/*.csv 2>/dev/null | head -1); \
+	if [ -n "$$LAST_FILE" ]; then \
+		echo ""; \
+		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
+		echo "📊 Phase 2: Analyse des données..."; \
+		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
+		echo ""; \
+		python3 scripts/analyze_memory.py "$$LAST_FILE"; \
+	else \
+		echo "❌ Aucun fichier de données trouvé"; \
+	fi
 
