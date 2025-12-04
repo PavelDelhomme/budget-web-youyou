@@ -270,17 +270,49 @@ reset-and-restart: ## Réinitialise les données ET redémarre l'application (to
 	@echo ""
 	@read -p "⚠️  Supprimer toutes les données et redémarrer ? Tapez 'oui' : " confirm && [ "$$confirm" = "oui" ] || (echo "❌ Opération annulée." && exit 1)
 	@echo ""
-	@echo "🗑️  Suppression des données utilisateur..."
+	@echo "🗑️  Suppression complète de toutes les données..."
+	@echo ""
 	@# Supprimer depuis le conteneur Docker si actif
 	@if docker ps --format "{{.Names}}" | grep -q "^budget-web-backend$$"; then \
 		echo "📦 Suppression depuis le conteneur Docker..."; \
+		echo "   • Fichiers JSON utilisateur..."; \
 		docker exec budget-web-backend sh -c "rm -f /app/data/*.json 2>/dev/null || true" || true; \
+		echo "   • Cache..."; \
+		docker exec budget-web-backend sh -c "rm -rf /app/data/cache/* 2>/dev/null || true" || true; \
+		echo "   • Fichiers fiscaux..."; \
+		docker exec budget-web-backend sh -c "rm -rf /app/data/fiscal/* 2>/dev/null || true" || true; \
+		echo "   • Cache fiscal..."; \
+		docker exec budget-web-backend sh -c "rm -rf /app/data/fiscal_cache/* 2>/dev/null || true" || true; \
+		echo "   • Logs..."; \
+		docker exec budget-web-backend sh -c "rm -rf /app/data/logs/* 2>/dev/null || true" || true; \
+		echo "   • Modèles ML..."; \
+		docker exec budget-web-backend sh -c "rm -rf /app/data/models/* 2>/dev/null || true" || true; \
+		echo "   • Fichiers de sécurité..."; \
+		docker exec budget-web-backend sh -c "rm -f /app/data/security.log 2>/dev/null || true" || true; \
+		echo "✅ Données supprimées depuis le conteneur Docker"; \
 	fi
 	@# Supprimer depuis le système de fichiers local
 	@if [ -d "backend/data" ]; then \
-		rm -f backend/data/*.json 2>/dev/null || true; \
+		echo ""; \
+		echo "📁 Suppression depuis le système de fichiers local..."; \
+		echo "   • Fichiers JSON utilisateur..."; \
+		find backend/data -maxdepth 1 -name "*.json" -type f ! -name ".gitkeep" -exec rm -f {} \; 2>/dev/null || true; \
+		echo "   • Cache..."; \
+		rm -rf backend/data/cache/* 2>/dev/null || true; \
+		echo "   • Fichiers fiscaux..."; \
+		rm -rf backend/data/fiscal/* 2>/dev/null || true; \
+		echo "   • Cache fiscal..."; \
+		rm -rf backend/data/fiscal_cache/* 2>/dev/null || true; \
+		echo "   • Logs..."; \
+		rm -rf backend/data/logs/* 2>/dev/null || true; \
+		echo "   • Modèles ML..."; \
+		rm -rf backend/data/models/* 2>/dev/null || true; \
+		echo "   • Fichiers de sécurité..."; \
+		rm -f backend/data/security.log 2>/dev/null || true; \
+		echo "✅ Fichiers supprimés dans backend/data/"; \
 	fi
-	@echo "✅ Données supprimées !"
+	@echo ""
+	@echo "✅ Toutes les données ont été supprimées !"
 	@echo ""
 	@echo "🔄 Redémarrage de l'application..."
 	@$(MAKE) restart
