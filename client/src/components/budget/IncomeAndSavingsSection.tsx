@@ -100,12 +100,52 @@ export function IncomeAndSavingsSection({
       .reduce((sum, inc) => sum + inc.amount, 0);
   }, [activeTemporaryIncomes]);
 
-  // Calculer les revenus temporaires sur plusieurs mois
+  // Calculer les revenus temporaires sur plusieurs mois (uniquement les mois actifs dans l'année)
+  // Prend en compte les ajustements mensuels si disponibles
   const temporaryMultiMonthIncomes = useMemo(() => {
+    if (!currentYear) return 0;
+    
     return activeTemporaryIncomes
       .filter(inc => inc.duration === 'months')
-      .reduce((sum, inc) => sum + (inc.amount * (inc.numberOfMonths || 1)), 0);
-  }, [activeTemporaryIncomes]);
+      .reduce((sum, inc) => {
+        const startDate = new Date(inc.startDate);
+        const endDate = inc.endDate ? new Date(inc.endDate) : null;
+        const yearStart = new Date(currentYear, 0, 1);
+        const yearEnd = new Date(currentYear, 11, 31);
+        
+        if (!endDate) return sum;
+        
+        // Calculer les mois actifs dans l'année
+        const effectiveStart = startDate < yearStart ? yearStart : startDate;
+        const effectiveEnd = endDate > yearEnd ? yearEnd : endDate;
+        
+        if (effectiveStart > effectiveEnd) return sum;
+        
+        // Calculer le revenu pour chaque mois actif dans l'année
+        let totalForYear = 0;
+        const current = new Date(effectiveStart);
+        
+        while (current <= effectiveEnd) {
+          const month = current.getMonth() + 1; // 1-12
+          
+          // Vérifier s'il y a un ajustement mensuel pour ce mois
+          const adjustment = inc.monthlyAdjustments?.find(
+            adj => adj.year === currentYear && adj.month === month
+          );
+          
+          if (adjustment) {
+            totalForYear += adjustment.amount;
+          } else {
+            totalForYear += inc.amount;
+          }
+          
+          // Passer au mois suivant
+          current.setMonth(current.getMonth() + 1);
+        }
+        
+        return sum + totalForYear;
+      }, 0);
+  }, [activeTemporaryIncomes, currentYear]);
 
   // Calculer l'épargne mensuelle moyenne
   // projectedSavings = épargne actuelle + (revenus annuels - dépenses annuelles)
@@ -359,11 +399,41 @@ export function IncomeAndSavingsSection({
               <span className="text-sm font-medium text-purple-900 dark:text-purple-300">Revenus temporaires :</span>
               <span className="text-lg font-bold text-purple-900 dark:text-purple-300">{currency(temporaryMultiMonthIncomes)}</span>
             </div>
-            <div className="text-xs text-purple-700 dark:text-purple-400 mt-1">
+            <div className="text-xs text-purple-700 dark:text-purple-400 mt-1 space-y-1">
               {activeTemporaryIncomes
                 .filter(inc => inc.duration === 'months')
-                .map(inc => `${inc.name} (${inc.numberOfMonths} mois × ${currency(inc.amount)})`)
-                .join(', ')}
+                .map(inc => {
+                  const startDate = new Date(inc.startDate);
+                  const endDate = inc.endDate ? new Date(inc.endDate) : null;
+                  const yearStart = currentYear ? new Date(currentYear, 0, 1) : null;
+                  const yearEnd = currentYear ? new Date(currentYear, 11, 31) : null;
+                  
+                  let monthsInYear = inc.numberOfMonths || 1;
+                  if (yearStart && yearEnd && endDate) {
+                    const effectiveStart = startDate < yearStart ? yearStart : startDate;
+                    const effectiveEnd = endDate > yearEnd ? yearEnd : endDate;
+                    if (effectiveStart <= effectiveEnd) {
+                      monthsInYear = (effectiveEnd.getFullYear() - effectiveStart.getFullYear()) * 12 +
+                                     (effectiveEnd.getMonth() - effectiveStart.getMonth()) + 1;
+                    } else {
+                      monthsInYear = 0;
+                    }
+                  }
+                  
+                  const typeLabel = inc.type === 'allocation' ? '🎯 Allocation' :
+                                   inc.type === 'government_aid' ? '🏛️ Aide' :
+                                   inc.type === 'bonus' ? '💰 Prime' :
+                                   inc.type === 'gift' ? '🎁 Cadeau' : '📝 Autre';
+                  
+                  return (
+                    <div key={inc.id} className="flex justify-between items-center">
+                      <span>{typeLabel} {inc.name}</span>
+                      <span className="font-medium">
+                        {monthsInYear > 0 ? `${monthsInYear} mois × ${currency(inc.amount)}` : currency(0)}
+                      </span>
+                    </div>
+                  );
+                })}
             </div>
           </div>
         )}

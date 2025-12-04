@@ -16,6 +16,7 @@ export function QuickAddIncomeModal({
 }: QuickAddIncomeModalProps) {
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
+  const [type, setType] = useState<'gift' | 'government_aid' | 'allocation' | 'bonus' | 'other'>('other');
   const [duration, setDuration] = useState<'once' | 'months' | 'permanent'>('once');
   const [startDate, setStartDate] = useState(toISODate(today));
   const [endDate, setEndDate] = useState('');
@@ -37,7 +38,7 @@ export function QuickAddIncomeModal({
     const income: TemporaryIncome = {
       id: crypto.randomUUID(),
       name: name.trim(),
-      type: 'other',
+      type,
       amount: totalAmount,
       duration,
       startDate,
@@ -51,6 +52,7 @@ export function QuickAddIncomeModal({
     // Reset form
     setName('');
     setAmount('');
+    setType('other');
     setDuration('once');
     setStartDate(toISODate(today));
     setEndDate('');
@@ -69,6 +71,25 @@ export function QuickAddIncomeModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="💰 Ajouter un revenu rapide">
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Type de revenu */}
+        <div>
+          <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">
+            Catégorie de revenu *
+          </label>
+          <select
+            value={type}
+            onChange={(e) => setType(e.target.value as typeof type)}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+            required
+          >
+            <option value="allocation">Allocation chômage / CAF</option>
+            <option value="government_aid">Aide gouvernementale</option>
+            <option value="bonus">Prime / Bonus</option>
+            <option value="gift">Cadeau</option>
+            <option value="other">Autre</option>
+          </select>
+        </div>
+
         {/* Nom */}
         <div>
           <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">
@@ -78,7 +99,7 @@ export function QuickAddIncomeModal({
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Ex: Chômage, Prime, Allocation..."
+            placeholder="Ex: Allocation chômage, Prime exceptionnelle..."
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
             autoFocus
             required
