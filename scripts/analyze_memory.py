@@ -6,7 +6,8 @@ Analyse les fichiers CSV générés par monitor_memory.sh et génère un rapport
 import sys
 import csv
 import os
-from datetime import datetime
+import time
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Tuple
 from collections import defaultdict
@@ -40,6 +41,52 @@ def parse_memory_value(value: str) -> float:
             return float(value.replace('GB', '').strip()) * 1024
         else:
             return 0.0
+
+
+def calculate_monitoring_duration(data: List[Dict]) -> Dict:
+    """Calcule la durée totale du monitoring basée sur les timestamps"""
+    if not data:
+        return {'start': None, 'end': None, 'duration': None, 'duration_formatted': 'N/A'}
+    
+    timestamps = []
+    for row in data:
+        if isinstance(row.get('timestamp'), datetime):
+            timestamps.append(row['timestamp'])
+        else:
+            try:
+                ts = datetime.strptime(str(row.get('timestamp', '')), '%Y-%m-%d %H:%M:%S')
+                timestamps.append(ts)
+            except:
+                continue
+    
+    if not timestamps:
+        return {'start': None, 'end': None, 'duration': None, 'duration_formatted': 'N/A'}
+    
+    timestamps.sort()
+    start_time = timestamps[0]
+    end_time = timestamps[-1]
+    duration = end_time - start_time
+    
+    # Formater la durée
+    total_seconds = int(duration.total_seconds())
+    hours = total_seconds // 3600
+    minutes = (total_seconds % 3600) // 60
+    seconds = total_seconds % 60
+    
+    if hours > 0:
+        duration_formatted = f"{hours}h {minutes}m {seconds}s"
+    elif minutes > 0:
+        duration_formatted = f"{minutes}m {seconds}s"
+    else:
+        duration_formatted = f"{seconds}s"
+    
+    return {
+        'start': start_time,
+        'end': end_time,
+        'duration': duration,
+        'duration_formatted': duration_formatted,
+        'total_seconds': total_seconds
+    }
 
 
 def read_csv_data(filepath: str) -> List[Dict]:
@@ -155,6 +202,9 @@ def analyze_basic(data: List[Dict]) -> Dict:
         containers[row['container']].append(row)
     
     for container, rows in containers.items():
+        # Trier par timestamp
+        rows.sort(key=lambda x: x.get('timestamp', datetime.now()))
+        
         memory_values = [r['memory_used_mb'] for r in rows]
         cpu_values = [r['cpu_percent'] for r in rows]
         memory_percent_values = [r['memory_percent'] for r in rows]
@@ -189,13 +239,33 @@ def analyze_basic(data: List[Dict]) -> Dict:
     return results
 
 
-def print_report(results: Dict, filepath: str):
+def print_report(results: Dict, filepath: str, monitoring_duration: Dict, analysis_duration: float):
     """Affiche un rapport détaillé des résultats"""
     print("=" * 80)
     print("📊 RAPPORT D'ANALYSE MÉMOIRE")
     print("=" * 80)
     print(f"📁 Fichier analysé: {filepath}")
     print(f"🕐 Date d'analyse: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    
+    # Informations sur la période de monitoring
+    if monitoring_duration.get('start') and monitoring_duration.get('end'):
+        print(f"\n⏱️  PÉRIODE DE MONITORING:")
+        print(f"   • Début:       {monitoring_duration['start'].strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"   • Fin:         {monitoring_duration['end'].strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"   • Durée totale: {monitoring_duration['duration_formatted']}")
+    
+    # Durée d'analyse
+    if analysis_duration:
+        if analysis_duration < 1:
+            analysis_time = f"{analysis_duration * 1000:.0f} ms"
+        elif analysis_duration < 60:
+            analysis_time = f"{analysis_duration:.2f} s"
+        else:
+            minutes = int(analysis_duration // 60)
+            seconds = analysis_duration % 60
+            analysis_time = f"{minutes}m {seconds:.2f}s"
+        print(f"   • Temps d'analyse: {analysis_time}")
+    
     print()
     
     if not results:
@@ -321,6 +391,9 @@ def main():
         print(f"❌ Erreur: Le fichier {filepath} n'existe pas")
         sys.exit(1)
     
+    # Mesurer le temps d'analyse
+    analysis_start_time = time.time()
+    
     print("🔍 Analyse des données mémoire en cours...")
     print()
     
@@ -334,6 +407,9 @@ def main():
     print(f"✅ {len(data)} lignes de données chargées")
     print()
     
+    # Calculer la durée du monitoring
+    monitoring_duration = calculate_monitoring_duration(data)
+    
     # Analyser les données
     if HAS_PANDAS:
         print("📊 Analyse avancée avec pandas...")
@@ -342,8 +418,11 @@ def main():
         print("📊 Analyse basique...")
         results = analyze_basic(data)
     
+    # Calculer le temps d'analyse
+    analysis_duration = time.time() - analysis_start_time
+    
     # Afficher le rapport
-    print_report(results, filepath)
+    print_report(results, filepath, monitoring_duration, analysis_duration)
     
     # Sauvegarder le rapport dans un fichier
     report_file = filepath.replace('.csv', '_report.txt')
@@ -353,7 +432,7 @@ def main():
         
         output = io.StringIO()
         with redirect_stdout(output):
-            print_report(results, filepath)
+            print_report(results, filepath, monitoring_duration, analysis_duration)
         f.write(output.getvalue())
     
     print(f"💾 Rapport sauvegardé dans: {report_file}")
@@ -361,4 +440,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
