@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { currency, parseAmount } from '../../lib/utils';
+import { currency, parseAmount, today } from '../../lib/utils';
 import { SavingsTransaction, SavingsProject, TemporaryIncome, MonthlyAdditionalIncome, MonthlyIncomeSource } from '../../core/types';
 import { VariableMonthlyIncomes } from '../income/VariableMonthlyIncomes';
 import { AdditionalMonthlyIncomes } from '../income/AdditionalMonthlyIncomes';
@@ -182,6 +182,12 @@ export function IncomeAndSavingsSection({
   const [transactionAmount, setTransactionAmount] = useState('');
   const [transactionNote, setTransactionNote] = useState('');
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
+  const [salaryEditMode, setSalaryEditMode] = useState<'keep' | 'change' | 'revaluation' | null>(null);
+
+  // Vérifier si c'est une année future
+  const isFutureYear = currentYear ? currentYear > today.getFullYear() : false;
+  // Vérifier si le salaire de cette année n'est pas encore défini (utilise le salaire global/historique)
+  const isSalaryNotDefined = yearSpecificSalary === undefined && !isFromSalaryHistory;
 
   const handleSalarySubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -189,7 +195,35 @@ export function IncomeAndSavingsSection({
     if (salary >= 0) {
       onSalaryChange(salary);
       setIsEditingSalary(false);
+      setSalaryEditMode(null);
     }
+  };
+
+  const handleKeepSameSalary = () => {
+    // Reprendre le même salaire que l'année actuelle
+    const currentSalary = monthlySalary;
+    if (currentSalary >= 0) {
+      onSalaryChange(currentSalary);
+      setIsEditingSalary(false);
+      setSalaryEditMode(null);
+    }
+  };
+
+  const handleStartEditSalary = () => {
+    if (isFutureYear && isSalaryNotDefined) {
+      // Pour les années futures sans salaire défini, proposer les options
+      setSalaryEditMode('change');
+    } else {
+      // Pour les années actuelles/passées ou avec salaire défini, mode édition directe
+      setIsEditingSalary(true);
+    }
+  };
+
+  const handleRevaluationMode = () => {
+    setSalaryEditMode('revaluation');
+    setIsEditingSalary(true);
+    // Pré-remplir avec le salaire actuel pour faciliter la modification
+    setSalaryInput(monthlySalary.toString());
   };
 
   const handleSavingsSubmit = (e: React.FormEvent) => {
@@ -275,25 +309,73 @@ export function IncomeAndSavingsSection({
                 </span>
               ) : null}
             </div>
-            {!isEditingSalary ? (
+            {!isEditingSalary && salaryEditMode === null ? (
               <div className="flex items-center gap-2">
                 <span className="text-lg font-semibold text-gray-900 dark:text-white">{currency(monthlySalary)}</span>
                 <button
-                  onClick={() => setIsEditingSalary(true)}
+                  onClick={handleStartEditSalary}
                   className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                   title="Modifier le revenu mensuel"
                 >
                   ✏️
                 </button>
               </div>
+            ) : isFutureYear && isSalaryNotDefined && salaryEditMode === null ? (
+              // Menu de sélection pour années futures sans salaire défini
+              <div className="flex flex-col gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                <p className="text-xs font-medium text-blue-900 dark:text-blue-300 mb-1">
+                  💡 Définir le revenu pour {currentYear} :
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={handleKeepSameSalary}
+                    className="px-3 py-1.5 bg-green-600 dark:bg-green-500 text-white rounded-lg text-sm hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
+                    title="Reprendre le même salaire"
+                  >
+                    ✓ Reprendre {currency(monthlySalary)}/mois
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSalaryEditMode('change');
+                      setIsEditingSalary(true);
+                      setSalaryInput(monthlySalary.toString());
+                    }}
+                    className="px-3 py-1.5 bg-blue-600 dark:bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+                    title="Changer le salaire"
+                  >
+                    ✏️ Modifier
+                  </button>
+                  <button
+                    onClick={handleRevaluationMode}
+                    className="px-3 py-1.5 bg-purple-600 dark:bg-purple-500 text-white rounded-lg text-sm hover:bg-purple-700 dark:hover:bg-purple-600 transition-colors"
+                    title="Revalorisation"
+                  >
+                    📈 Revalorisation
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSalaryEditMode(null);
+                    }}
+                    className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                    title="Annuler"
+                  >
+                    ✕ Annuler
+                  </button>
+                </div>
+              </div>
             ) : (
-              <form onSubmit={handleSalarySubmit} className="flex items-center gap-2">
+              <form onSubmit={handleSalarySubmit} className="flex items-center gap-2 relative">
+                {salaryEditMode === 'revaluation' && (
+                  <div className="text-xs text-purple-600 dark:text-purple-400 mb-1 absolute -top-6 left-0">
+                    💰 Saisissez le nouveau salaire après revalorisation
+                  </div>
+                )}
                 <input
                   type="text"
                   value={salaryInput}
                   onChange={(e) => setSalaryInput(e.target.value)}
                   className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1 w-32 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                  placeholder="Ex: 2000,00"
+                  placeholder={salaryEditMode === 'revaluation' ? `Ex: ${Math.round(monthlySalary * 1.05)}` : "Ex: 2000,00"}
                   autoFocus
                 />
                 <button
@@ -307,6 +389,7 @@ export function IncomeAndSavingsSection({
                   type="button"
                   onClick={() => {
                     setIsEditingSalary(false);
+                    setSalaryEditMode(null);
                     setSalaryInput(monthlySalary.toString());
                   }}
                   className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
