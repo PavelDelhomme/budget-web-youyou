@@ -1,32 +1,55 @@
 {
   "years": [
-    2024,
-    2025
+    2025,
+    2026
   ],
-  "datasets": {},
+  "datasets": {
+    "2025": {
+      "categories": [
+        {
+          "id": "achats",
+          "name": "Achats & Loisirs",
+          "target": 0.0,
+          "monthlyTargets": null
+        },
+        {
+          "id": "alimentation",
+          "name": "Alimentation",
+          "target": 0.0,
+          "monthlyTargets": null
+        }
+      ],
+      "expenses": [],
+      "subs": [],
+      "annualFixedExpenses": [],
+      "monthlySalary": 0.0,
+      "currentSavings": 0.0,
+      "additionalMonthlyIncomes": [],
+      "savingsTransactions": []
+    }
+  },
   "globalData": {
-    "bankAccounts": [
-      {
-        "id": "bc828672-1994-4965-bef4-6630455e1ff7",
-        "name": "Compte courant",
-        "balance": 0,
-        "type": "checking",
-        "isShared": false,
-        "sharedWith": ""
-      }
-    ],
+    "bankAccounts": [],
     "investments": [],
     "savingsGoals": [],
     "savingsProjects": [],
     "temporaryIncomes": [],
     "sharedExpensePersons": [],
     "personTransactions": [],
-    "salaryHistory": [],
-    "initializationComplete": false,
+    "salaryHistory": [
+      {
+        "id": "a7a324b6-9f5e-41ac-a152-82b4e32d5f53",
+        "amount": 900,
+        "startDate": "2025-09-01",
+        "type": "unemployment"
+      }
+    ],
+    "initializationComplete": true,
     "monthlySalary": 0,
     "monthlySalaryStartDate": null,
     "lockedYears": [],
     "excludedPredictedYears": [],
-    "maxPredictedYears": 3
+    "maxPredictedYears": 3,
+    "userProfile": {}
   }
 }
