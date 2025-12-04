@@ -586,11 +586,11 @@ export function Dashboard({
         </div>
       </div>
 
-      {/* Expenses by Category - Last 6 Months */}
-      {Object.keys(categoryExpenses).length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-5 md:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
-          <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-5 text-gray-900 dark:text-white">📊 Évolution par catégorie (12 derniers mois)</h3>
-          
+      {/* Expenses by Category - Last 12 Months */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-5 md:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+        <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-5 text-gray-900 dark:text-white">📊 Évolution par catégorie (12 derniers mois)</h3>
+        
+        {Object.keys(categoryExpenses).length > 0 ? (
           <div className="space-y-4 sm:space-y-5 md:space-y-6 w-full min-w-0">
             {Object.values(categoryExpenses)
               .filter((ce: { category: Category; months: Array<{ month: string; total: number }> }) => ce.months.some((m: { total: number }) => m.total > 0))
@@ -646,8 +646,12 @@ export function Dashboard({
                 );
               })}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+            <p className="text-sm">Aucune donnée à afficher</p>
+          </div>
+        )}
+      </div>
 
       {/* Additional Statistics */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 min-w-0 overflow-hidden">

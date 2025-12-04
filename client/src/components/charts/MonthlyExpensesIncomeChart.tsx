@@ -188,66 +188,36 @@ export function MonthlyExpensesIncomeChart({
       <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-5 px-2 sm:px-0">
         {isPrediction ? `Dépenses et revenus prévus par mois (${year})` : `Dépenses et revenus par mois (${year})`}
       </h3>
-      {/* Container avec scroll horizontal */}
-      <div 
-        className="overflow-x-auto w-full -mx-4 sm:-mx-5 md:-mx-6 px-4 sm:px-5 md:px-6" 
-        style={{ 
-          scrollbarWidth: 'thin',
-          WebkitOverflowScrolling: 'touch',
-          scrollBehavior: 'smooth',
-          minHeight: '300px'
-        }}
-      >
-        <div className="inline-block" style={{ minWidth: svgWidth }}>
+      {/* Container avec axe Y fixe et scroll horizontal uniquement sur les barres */}
+      <div className="relative w-full" style={{ minHeight: '300px' }}>
+        {/* Axe Y fixe (gauche) */}
+        <div 
+          className="absolute left-0 top-0 bottom-0 z-10 bg-white dark:bg-gray-800"
+          style={{ width: leftPadding, paddingTop: topPadding, paddingBottom: bottomPadding }}
+        >
           <svg 
-            width={svgWidth}
+            width={leftPadding}
             height={responsiveHeight}
-            viewBox={`0 0 ${svgWidth} ${responsiveHeight}`}
-            preserveAspectRatio="xMinYMin meet"
+            viewBox={`0 0 ${leftPadding} ${responsiveHeight}`}
             className="block"
-            style={{ 
-              minWidth: svgWidth,
-              maxWidth: 'none',
-              display: 'block',
-              overflow: 'visible'
-            }}
+            style={{ position: 'sticky', top: 0 }}
           >
-          {/* Axes */}
-          <line
-            x1={leftPadding}
-            y1={chartHeight + topPadding}
-            x2={chartWidth + leftPadding}
-            y2={chartHeight + topPadding}
-            stroke="currentColor"
-            strokeWidth="2"
-            className="text-gray-400 dark:text-gray-500"
-          />
-          <line
-            x1={leftPadding}
-            y1={topPadding}
-            x2={leftPadding}
-            y2={chartHeight + topPadding}
-            stroke="currentColor"
-            strokeWidth="2"
-            className="text-gray-400 dark:text-gray-500"
-          />
-
-          {/* Grid lines */}
-          {[0, 0.25, 0.5, 0.75, 1].map(ratio => {
-            const y = topPadding + chartHeight * (1 - ratio);
-            return (
-              <g key={ratio}>
-                <line
-                  x1={leftPadding}
-                  y1={y}
-                  x2={chartWidth + leftPadding}
-                  y2={y}
-                  stroke="currentColor"
-                  strokeWidth="1"
-                  strokeDasharray="4 4"
-                  className="text-gray-200 dark:text-gray-700"
-                />
+            {/* Ligne axe Y */}
+            <line
+              x1={leftPadding - 1}
+              y1={topPadding}
+              x2={leftPadding - 1}
+              y2={chartHeight + topPadding}
+              stroke="currentColor"
+              strokeWidth="2"
+              className="text-gray-400 dark:text-gray-500"
+            />
+            {/* Labels de l'axe Y */}
+            {[0, 0.25, 0.5, 0.75, 1].map(ratio => {
+              const y = topPadding + chartHeight * (1 - ratio);
+              return (
                 <text
+                  key={ratio}
                   x={leftPadding - (isMobile ? 5 : 10)}
                   y={y + 4}
                   textAnchor="end"
@@ -255,75 +225,130 @@ export function MonthlyExpensesIncomeChart({
                 >
                   {currency(data.maxValue * ratio)}
                 </text>
-              </g>
-            );
-          })}
+              );
+            })}
+          </svg>
+        </div>
 
-          {/* Bars */}
-          {data.monthlyData.map((monthData, index) => {
-            const x = leftPadding + index * (barWidth * 2 + spacing);
-            const incomeHeight = (monthData.income / data.maxValue) * chartHeight;
-            const expensesHeight = (monthData.expenses / data.maxValue) * chartHeight;
-            const incomeY = topPadding + chartHeight - incomeHeight;
-            const expensesY = topPadding + chartHeight - expensesHeight;
+        {/* Zone scrollable avec les barres */}
+        <div 
+          className="overflow-x-auto w-full"
+          style={{ 
+            marginLeft: leftPadding,
+            scrollbarWidth: 'thin',
+            WebkitOverflowScrolling: 'touch',
+            scrollBehavior: 'smooth',
+            paddingLeft: '1px' // Pour l'alignement avec l'axe Y
+          }}
+        >
+          <div className="inline-block" style={{ minWidth: chartWidth + rightPadding }}>
+            <svg 
+              width={chartWidth + rightPadding}
+              height={responsiveHeight}
+              viewBox={`0 0 ${chartWidth + rightPadding} ${responsiveHeight}`}
+              preserveAspectRatio="xMinYMin meet"
+              className="block"
+              style={{ 
+                minWidth: chartWidth + rightPadding,
+                maxWidth: 'none',
+                display: 'block'
+              }}
+            >
+              {/* Ligne axe X */}
+              <line
+                x1={0}
+                y1={chartHeight + topPadding}
+                x2={chartWidth}
+                y2={chartHeight + topPadding}
+                stroke="currentColor"
+                strokeWidth="2"
+                className="text-gray-400 dark:text-gray-500"
+              />
 
-            return (
-              <g key={monthData.month}>
-                {/* Income bar */}
-                <rect
-                  x={x}
-                  y={incomeY}
-                  width={barWidth}
-                  height={incomeHeight}
-                  fill="#10B981"
-                  className="hover:opacity-80 transition-opacity"
-                  rx="2"
-                >
-                  <title>
-                    Revenus {monthData.monthName}: {currency(monthData.income)}
-                  </title>
-                </rect>
+              {/* Lignes de grille horizontales */}
+              {[0, 0.25, 0.5, 0.75, 1].map(ratio => {
+                const y = topPadding + chartHeight * (1 - ratio);
+                return (
+                  <line
+                    key={ratio}
+                    x1={0}
+                    y1={y}
+                    x2={chartWidth}
+                    y2={y}
+                    stroke="currentColor"
+                    strokeWidth="1"
+                    strokeDasharray="4 4"
+                    className="text-gray-200 dark:text-gray-700"
+                  />
+                );
+              })}
 
-                {/* Expenses bar */}
-                <rect
-                  x={x + barWidth}
-                  y={expensesY}
-                  width={barWidth}
-                  height={expensesHeight}
-                  fill="#EF4444"
-                  className="hover:opacity-80 transition-opacity"
-                  rx="2"
-                >
-                  <title>
-                    Dépenses {monthData.monthName}: {currency(monthData.expenses)}
-                  </title>
-                </rect>
+              {/* Barres avec tooltip amélioré */}
+              {data.monthlyData.map((monthData, index) => {
+                const x = index * (barWidth * 2 + spacing);
+                const incomeHeight = (monthData.income / data.maxValue) * chartHeight;
+                const expensesHeight = (monthData.expenses / data.maxValue) * chartHeight;
+                const incomeY = topPadding + chartHeight - incomeHeight;
+                const expensesY = topPadding + chartHeight - expensesHeight;
 
-                {/* Month label */}
-                <text
-                  x={x + barWidth}
-                  y={chartHeight + topPadding + (isMobile ? 25 : isTablet ? 30 : 35)}
-                  textAnchor="middle"
-                  className={`${isMobile ? 'text-xs' : isTablet ? 'text-sm' : 'text-base'} font-semibold fill-gray-700 dark:fill-gray-300`}
-                >
-                  {monthData.monthName}
+                return (
+                  <g key={monthData.month}>
+                    {/* Income bar */}
+                    <rect
+                      x={x}
+                      y={incomeY}
+                      width={barWidth}
+                      height={incomeHeight}
+                      fill="#10B981"
+                      className="hover:opacity-80 transition-opacity cursor-pointer"
+                      rx="2"
+                    >
+                      <title>
+                        {monthData.monthName} - Revenus: {currency(monthData.income)}
+                      </title>
+                    </rect>
+
+                    {/* Expenses bar */}
+                    <rect
+                      x={x + barWidth}
+                      y={expensesY}
+                      width={barWidth}
+                      height={expensesHeight}
+                      fill="#EF4444"
+                      className="hover:opacity-80 transition-opacity cursor-pointer"
+                      rx="2"
+                    >
+                      <title>
+                        {monthData.monthName} - Dépenses: {currency(monthData.expenses)}
+                      </title>
+                    </rect>
+
+                    {/* Month label */}
+                    <text
+                      x={x + barWidth}
+                      y={chartHeight + topPadding + (isMobile ? 25 : isTablet ? 30 : 35)}
+                      textAnchor="middle"
+                      className={`${isMobile ? 'text-xs' : isTablet ? 'text-sm' : 'text-base'} font-semibold fill-gray-700 dark:fill-gray-300`}
+                    >
+                      {monthData.monthName}
+                    </text>
+                  </g>
+                );
+              })}
+
+              {/* Legend */}
+              <g transform={`translate(${chartWidth - (isMobile ? 100 : 120)}, ${topPadding + (isMobile ? 15 : 20)})`}>
+                <rect x={0} y={0} width={isMobile ? 10 : 12} height={isMobile ? 10 : 12} fill="#10B981" rx="2" />
+                <text x={isMobile ? 14 : 18} y={isMobile ? 8 : 10} className={`${isMobile ? 'text-[10px]' : 'text-xs'} fill-gray-700 dark:fill-gray-300`}>
+                  Revenus
+                </text>
+                <rect x={isMobile ? 65 : 80} y={0} width={isMobile ? 10 : 12} height={isMobile ? 10 : 12} fill="#EF4444" rx="2" />
+                <text x={isMobile ? 79 : 98} y={isMobile ? 8 : 10} className={`${isMobile ? 'text-[10px]' : 'text-xs'} fill-gray-700 dark:fill-gray-300`}>
+                  Dépenses
                 </text>
               </g>
-            );
-          })}
-
-          {/* Legend */}
-          <g transform={`translate(${leftPadding + chartWidth - (isMobile ? 100 : 120)}, ${topPadding + (isMobile ? 15 : 20)})`}>
-            <rect x={0} y={0} width={isMobile ? 10 : 12} height={isMobile ? 10 : 12} fill="#10B981" rx="2" />
-            <text x={isMobile ? 14 : 18} y={isMobile ? 8 : 10} className={`${isMobile ? 'text-[10px]' : 'text-xs'} fill-gray-700 dark:fill-gray-300`}>
-              Revenus
-            </text>
-            <rect x={isMobile ? 65 : 80} y={0} width={isMobile ? 10 : 12} height={isMobile ? 10 : 12} fill="#EF4444" rx="2" />
-            <text x={isMobile ? 79 : 98} y={isMobile ? 8 : 10} className={`${isMobile ? 'text-[10px]' : 'text-xs'} fill-gray-700 dark:fill-gray-300`}>
-              Dépenses
-            </text>
-          </g>
-          </svg>
+            </svg>
+          </div>
         </div>
       </div>
       {/* Indicateur de scroll sur mobile/tablet */}

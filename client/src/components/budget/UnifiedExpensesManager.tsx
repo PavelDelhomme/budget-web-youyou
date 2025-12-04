@@ -50,6 +50,7 @@ export function UnifiedExpensesManager({
 }: UnifiedExpensesManagerProps) {
   const [expenseType, setExpenseType] = useState<ExpenseType>('variable');
   const [isAdding, setIsAdding] = useState(false);
+  const [isSectionExpanded, setIsSectionExpanded] = useState(true);
   
   // Écouter le trigger pour ouvrir le formulaire
   useEffect(() => {
@@ -260,25 +261,37 @@ export function UnifiedExpensesManager({
 
   return (
     <section className="bg-white dark:bg-gray-800 rounded-2xl shadow p-4 md:p-6 space-y-4 border border-gray-200 dark:border-gray-700">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-semibold text-lg text-gray-900 dark:text-white">
-          {editingId ? 'Modifier une dépense' : 'Gérer mes dépenses'}
-        </h2>
+      <div className="flex items-center justify-between">
         <button
-          onClick={() => {
-            if (isAdding) {
-              handleCancel();
-            } else {
-              setIsAdding(true);
-            }
-          }}
-          className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+          onClick={() => setIsSectionExpanded(!isSectionExpanded)}
+          className="flex items-center gap-2 font-semibold text-lg text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+          title={isSectionExpanded ? "Enrouler la section" : "Dérouler la section"}
         >
-          {isAdding ? 'Annuler' : '+ Ajouter une dépense'}
+          <span className={`text-sm transition-transform duration-200 ${isSectionExpanded ? 'rotate-0' : '-rotate-90'}`}>
+            ▼
+          </span>
+          <span>{editingId ? 'Modifier une dépense' : 'Gérer mes dépenses'}</span>
         </button>
+        {isSectionExpanded && (
+          <button
+            onClick={() => {
+              if (isAdding) {
+                handleCancel();
+              } else {
+                setIsAdding(true);
+              }
+            }}
+            className="px-4 py-2 rounded-xl bg-black dark:bg-gray-700 text-white text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-600 transition-colors"
+            title={isAdding ? 'Annuler' : 'Ajouter une dépense'}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
+        )}
       </div>
 
-      {isAdding && (
+      {isSectionExpanded && isAdding && (
         <div data-expense-form className="mb-6 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/50">
           {/* Type de dépense */}
           <div className="mb-4">
@@ -565,6 +578,7 @@ export function UnifiedExpensesManager({
       )}
 
       {/* Liste des dépenses */}
+      {isSectionExpanded && (
       <div className="space-y-4">
         {/* Dépenses variables */}
         {expenses.length > 0 && (
@@ -702,6 +716,7 @@ export function UnifiedExpensesManager({
           </p>
         )}
       </div>
+      )}
     </section>
   );
 }

@@ -154,9 +154,13 @@ export function MultipleMonthlyIncomes({
         {!isAdding && (
           <button
             onClick={() => setIsAdding(true)}
-            className="px-3 py-1 text-sm border border-purple-300 dark:border-purple-600 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-800 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+            className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+            title="Ajouter une source de revenu"
+            aria-label="Ajouter une source de revenu"
           >
-            + Ajouter
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
           </button>
         )}
       </div>
