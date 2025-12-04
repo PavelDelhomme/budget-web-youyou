@@ -102,9 +102,25 @@ def save_user(email: str, data: dict) -> None:
     Note: Backup automatique peut être ajouté ici si nécessaire
     """
     file_path = get_user_file_path(email)
-    with open(file_path, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-        f.write('\n')
+    try:
+        # Créer le répertoire si nécessaire
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Écrire de manière atomique pour éviter la corruption
+        temp_path = file_path.with_suffix('.json.tmp')
+        with open(temp_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+            f.write('\n')
+        
+        # Remplacer atomiquement le fichier
+        temp_path.replace(file_path)
+        
+        print(f"✅ Données sauvegardées pour {email} dans {file_path}")
+    except Exception as e:
+        print(f"❌ Erreur lors de la sauvegarde pour {email}: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
 
 
 def get_default_year_data() -> dict:
