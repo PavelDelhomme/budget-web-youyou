@@ -36,8 +36,12 @@ class WebApplicationFirewall:
         """
         self.block_mode = block_mode
         self.blocked_ips = {}  # IP -> blocked_until timestamp
-        self.threat_log = deque(maxlen=1000)  # Derniers 1000 événements
+        self.threat_log = deque(maxlen=500)  # Optimisé: Derniers 500 événements (réduit de 1000 à 500)
         self.ip_threat_count = defaultdict(int)  # IP -> nombre de menaces détectées
+        
+        # Nettoyer périodiquement les IPs bloquées expirées (toutes les heures)
+        self._last_cleanup = time.time()
+        self._cleanup_interval = 3600  # 1 heure
         
         # Patterns de détection
         self.sql_injection_patterns = [

@@ -26,24 +26,45 @@ export function ScrollableSelect({
 }: ScrollableSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [maxHeight, setMaxHeight] = useState(450);
+  const [dropdownPosition, setDropdownPosition] = useState<'bottom' | 'top'>('bottom');
   const containerRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const selectRef = useRef<HTMLSelectElement>(null);
 
-  // Calculer la hauteur max dynamiquement
+  // Calculer la hauteur max et la position dynamiquement
   useEffect(() => {
-    const calculateMaxHeight = () => {
-      if (typeof window !== 'undefined') {
-        const viewportHeight = window.innerHeight;
-        const calculated = Math.min(viewportHeight * 0.6, 450);
-        setMaxHeight(calculated);
+    const calculatePositionAndHeight = () => {
+      if (typeof window === 'undefined' || !containerRef.current || !isOpen) return;
+
+      const rect = containerRef.current.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const spaceBelow = viewportHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      
+      // Calculer la hauteur maximale disponible
+      const maxAvailableHeight = Math.max(spaceBelow, spaceAbove);
+      const calculatedHeight = Math.min(maxAvailableHeight * 0.9, 450, viewportHeight * 0.6);
+      
+      // Décider si on affiche en haut ou en bas
+      if (spaceBelow < 200 && spaceAbove > spaceBelow) {
+        setDropdownPosition('top');
+        setMaxHeight(Math.min(spaceAbove * 0.9, 450));
+      } else {
+        setDropdownPosition('bottom');
+        setMaxHeight(calculatedHeight);
       }
     };
 
-    calculateMaxHeight();
-    window.addEventListener('resize', calculateMaxHeight);
-    return () => window.removeEventListener('resize', calculateMaxHeight);
-  }, []);
+    if (isOpen) {
+      calculatePositionAndHeight();
+      window.addEventListener('resize', calculatePositionAndHeight);
+      window.addEventListener('scroll', calculatePositionAndHeight, true);
+      return () => {
+        window.removeEventListener('resize', calculatePositionAndHeight);
+        window.removeEventListener('scroll', calculatePositionAndHeight, true);
+      };
+    }
+  }, [isOpen]);
 
   // Ajouter les styles CSS directement dans le DOM
   useEffect(() => {
@@ -56,9 +77,12 @@ export function ScrollableSelect({
           scrollbar-width: thin !important;
           scrollbar-color: rgba(156, 163, 175, 0.8) rgba(229, 231, 235, 0.3) !important;
           -webkit-overflow-scrolling: touch !important;
+          overflow-y: auto !important;
+          overflow-x: hidden !important;
         }
         .scrollable-select-dropdown::-webkit-scrollbar {
           width: 10px !important;
+          display: block !important;
         }
         .scrollable-select-dropdown::-webkit-scrollbar-track {
           background: rgba(229, 231, 235, 0.5) !important;
@@ -155,14 +179,16 @@ export function ScrollableSelect({
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="absolute z-[9999] w-full mt-1.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-2xl overflow-hidden"
+          className={`absolute z-[9999] w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-2xl overflow-hidden ${
+            dropdownPosition === 'top' ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+          }`}
           style={{
             maxHeight: `${maxHeight}px`,
             boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
           }}
         >
           <div
-            className="scrollable-select-dropdown overflow-y-auto overflow-x-hidden py-1"
+            className="scrollable-select-dropdown py-1"
             style={{
               maxHeight: `${maxHeight}px`,
               WebkitOverflowScrolling: 'touch',

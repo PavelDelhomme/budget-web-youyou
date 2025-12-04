@@ -1,6 +1,8 @@
 """
 Neural Network Model for Budget Prediction using TensorFlow/Keras
 Deep learning model with multiple layers for better predictions
+
+OPTIMIZED: Lazy loading of TensorFlow to reduce memory consumption
 """
 import os
 import pickle
@@ -8,15 +10,43 @@ import numpy as np
 from typing import Dict, List, Any, Optional, Tuple
 from pathlib import Path
 
-try:
-    import tensorflow as tf
-    from tensorflow import keras
-    from tensorflow.keras import layers, models, callbacks
-    from tensorflow.keras.optimizers import Adam
-    TF_AVAILABLE = True
-except ImportError:
-    TF_AVAILABLE = False
-    print("⚠️  TensorFlow n'est pas disponible. Utilisez le modèle scikit-learn.")
+# Lazy loading: Do NOT import TensorFlow at module level
+TF_AVAILABLE = None
+TF_MODULE = None
+
+def _lazy_import_tensorflow():
+    """Lazy import TensorFlow only when needed"""
+    global TF_AVAILABLE, TF_MODULE
+    
+    if TF_AVAILABLE is not None:
+        return TF_AVAILABLE
+    
+    try:
+        import tensorflow as tf
+        from tensorflow import keras
+        from tensorflow.keras import layers, models, callbacks
+        from tensorflow.keras.optimizers import Adam
+        
+        TF_MODULE = {
+            'tf': tf,
+            'keras': keras,
+            'layers': layers,
+            'models': models,
+            'callbacks': callbacks,
+            'Adam': Adam
+        }
+        
+        # Désactiver les warnings TensorFlow
+        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+        tf.get_logger().setLevel('ERROR')
+        
+        TF_AVAILABLE = True
+        return True
+    except ImportError:
+        TF_AVAILABLE = False
+        TF_MODULE = None
+        print("⚠️  TensorFlow n'est pas disponible. Utilisez le modèle scikit-learn.")
+        return False
 
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.model_selection import train_test_split
@@ -45,12 +75,45 @@ class NeuralNetworkBudgetPredictor:
         self.model_dir = Path(__file__).parent.parent.parent / 'data' / 'models'
         self.model_dir.mkdir(parents=True, exist_ok=True)
         
-        if not TF_AVAILABLE:
+        # Lazy load TensorFlow only when creating an instance
+        if not _lazy_import_tensorflow():
             raise ImportError("TensorFlow n'est pas installé. Installez-le avec: pip install tensorflow")
-        
-        # Désactiver les warnings TensorFlow
-        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-        tf.get_logger().setLevel('ERROR')
+    
+    @property
+    def tf(self):
+        """Lazy access to TensorFlow"""
+        _lazy_import_tensorflow()
+        return TF_MODULE['tf']
+    
+    @property
+    def keras(self):
+        """Lazy access to Keras"""
+        _lazy_import_tensorflow()
+        return TF_MODULE['keras']
+    
+    @property
+    def layers(self):
+        """Lazy access to Keras layers"""
+        _lazy_import_tensorflow()
+        return TF_MODULE['layers']
+    
+    @property
+    def models(self):
+        """Lazy access to Keras models"""
+        _lazy_import_tensorflow()
+        return TF_MODULE['models']
+    
+    @property
+    def callbacks(self):
+        """Lazy access to Keras callbacks"""
+        _lazy_import_tensorflow()
+        return TF_MODULE['callbacks']
+    
+    @property
+    def Adam(self):
+        """Lazy access to Adam optimizer"""
+        _lazy_import_tensorflow()
+        return TF_MODULE['Adam']
     
     def _get_model_path(self, model_type: str = 'neural_network') -> Path:
         """Get path to saved model file"""
@@ -62,7 +125,7 @@ class NeuralNetworkBudgetPredictor:
         safe_email = self.user_email.replace('@', '_at_').replace('.', '_')
         return self.model_dir / f"{safe_email}_{model_type}_scalers.pkl"
     
-    def _build_model(self, input_dim: int, output_dim: int = 3) -> keras.Model:
+    def _build_model(self, input_dim: int, output_dim: int = 3):
         """
         Build a deep neural network model
         
@@ -73,29 +136,32 @@ class NeuralNetworkBudgetPredictor:
         - Hidden Layer 3: 32 neurons, ReLU activation, Dropout 0.2
         - Output: output_dim neurons (no activation for regression)
         """
-        model = models.Sequential([
+        layers_module = self.layers
+        models_module = self.models
+        
+        model = models_module.Sequential([
             # Input layer
-            layers.Dense(128, activation='relu', input_shape=(input_dim,), name='hidden1'),
-            layers.BatchNormalization(name='bn1'),
-            layers.Dropout(0.3, name='dropout1'),
+            layers_module.Dense(128, activation='relu', input_shape=(input_dim,), name='hidden1'),
+            layers_module.BatchNormalization(name='bn1'),
+            layers_module.Dropout(0.3, name='dropout1'),
             
             # Hidden layer 2
-            layers.Dense(64, activation='relu', name='hidden2'),
-            layers.BatchNormalization(name='bn2'),
-            layers.Dropout(0.3, name='dropout2'),
+            layers_module.Dense(64, activation='relu', name='hidden2'),
+            layers_module.BatchNormalization(name='bn2'),
+            layers_module.Dropout(0.3, name='dropout2'),
             
             # Hidden layer 3
-            layers.Dense(32, activation='relu', name='hidden3'),
-            layers.BatchNormalization(name='bn3'),
-            layers.Dropout(0.2, name='dropout3'),
+            layers_module.Dense(32, activation='relu', name='hidden3'),
+            layers_module.BatchNormalization(name='bn3'),
+            layers_module.Dropout(0.2, name='dropout3'),
             
             # Output layer (3 outputs: expenses, income, savings)
-            layers.Dense(output_dim, activation='linear', name='output')
+            layers_module.Dense(output_dim, activation='linear', name='output')
         ])
         
         # Compile model with Adam optimizer
         model.compile(
-            optimizer=Adam(learning_rate=0.001),
+            optimizer=self.Adam(learning_rate=0.001),
             loss='mse',  # Mean Squared Error for regression
             metrics=['mae', 'mse']  # Mean Absolute Error and MSE
         )
@@ -157,7 +223,8 @@ class NeuralNetworkBudgetPredictor:
         self.model = self._build_model(input_dim=X_scaled.shape[1], output_dim=3)
         
         # Early stopping to prevent overfitting
-        early_stop = callbacks.EarlyStopping(
+        callbacks_module = self.callbacks
+        early_stop = callbacks_module.EarlyStopping(
             monitor='val_loss',
             patience=20,
             restore_best_weights=True,
@@ -165,7 +232,7 @@ class NeuralNetworkBudgetPredictor:
         )
         
         # Reduce learning rate on plateau
-        reduce_lr = callbacks.ReduceLROnPlateau(
+        reduce_lr = callbacks_module.ReduceLROnPlateau(
             monitor='val_loss',
             factor=0.5,
             patience=10,
@@ -317,7 +384,8 @@ class NeuralNetworkBudgetPredictor:
         
         try:
             # Load Keras model
-            self.model = keras.models.load_model(str(model_path))
+            keras_module = self.keras
+            self.model = keras_module.models.load_model(str(model_path))
             
             # Load scalers
             with open(scaler_path, 'rb') as f:
@@ -340,7 +408,7 @@ class NeuralNetworkBudgetPredictor:
             'training_score': self.training_score,
             'has_saved_model': self._get_model_path().exists(),
             'model_type': 'neural_network',
-            'tensorflow_available': TF_AVAILABLE,
+            'tensorflow_available': _lazy_import_tensorflow(),
         }
         
         if self.history:
@@ -355,8 +423,8 @@ class NeuralNetworkBudgetPredictor:
 
 
 def create_neural_predictor(user_email: str) -> Optional[NeuralNetworkBudgetPredictor]:
-    """Create a neural network predictor instance for a user"""
-    if not TF_AVAILABLE:
+    """Create a neural network predictor instance for a user (lazy loading)"""
+    if not _lazy_import_tensorflow():
         return None
     
     try:
@@ -366,4 +434,3 @@ def create_neural_predictor(user_email: str) -> Optional[NeuralNetworkBudgetPred
     except Exception as e:
         print(f"Error creating neural network predictor: {e}")
         return None
-
