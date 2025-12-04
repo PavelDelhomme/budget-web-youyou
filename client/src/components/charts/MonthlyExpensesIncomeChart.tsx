@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import { Expense, MonthlyAdditionalIncome, Category, Subscription, AnnualFixedExpense, TemporaryIncome } from '../../core/types';
+import { Expense, MonthlyAdditionalIncome, Category, Subscription, AnnualFixedExpense, TemporaryIncome, SalaryHistory } from '../../core/types';
 import { currency } from '../../lib/utils';
 
 interface MonthlyExpensesIncomeChartProps {
@@ -8,6 +8,7 @@ interface MonthlyExpensesIncomeChartProps {
   variableMonthlyIncomes?: number[];
   additionalMonthlyIncomes?: MonthlyAdditionalIncome[];
   temporaryIncomes?: TemporaryIncome[]; // Revenus temporaires/permanents
+  salaryHistory?: SalaryHistory[]; // Historique des salaires pour calculer le revenu mensuel en fonction des dates
   year: number;
   height?: number;
   isPrediction?: boolean;
@@ -27,6 +28,7 @@ export function MonthlyExpensesIncomeChart({
   variableMonthlyIncomes,
   additionalMonthlyIncomes = [],
   temporaryIncomes = [],
+  salaryHistory = [],
   year,
   height = 300,
   isPrediction = false,
@@ -75,9 +77,56 @@ export function MonthlyExpensesIncomeChart({
       }
 
       // Calculer le revenu pour ce mois
-      let monthIncome = variableMonthlyIncomes && variableMonthlyIncomes.length === 12
-        ? variableMonthlyIncomes[index]
-        : monthlySalary;
+      let monthIncome = 0;
+      
+      // Si variableMonthlyIncomes est défini, l'utiliser en priorité
+      if (variableMonthlyIncomes && variableMonthlyIncomes.length === 12) {
+        monthIncome = variableMonthlyIncomes[index];
+      } else {
+        // Sinon, utiliser salaryHistory si disponible pour calculer le revenu mensuel en fonction des dates
+        if (salaryHistory && salaryHistory.length > 0) {
+          const monthDate = new Date(year, month - 1, 1); // Premier jour du mois
+          const monthEndDate = new Date(year, month, 0); // Dernier jour du mois
+          
+          // Trouver le salaire actif pour ce mois
+          // Trier les salaires par date de début (du plus récent au plus ancien) pour prendre le salaire actuel
+          const sortedSalaries = [...salaryHistory].sort((a, b) => {
+            return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+          });
+          
+          for (const salary of sortedSalaries) {
+            const startDate = new Date(salary.startDate);
+            const endDate = salary.endDate ? new Date(salary.endDate) : null;
+            
+            // Vérifier si ce salaire est actif pendant ce mois
+            // Le salaire est actif si :
+            // - Il a commencé avant ou pendant ce mois
+            // - Il n'a pas de date de fin OU sa date de fin est après ou pendant ce mois
+            const startYear = startDate.getFullYear();
+            const startMonth = startDate.getMonth() + 1;
+            const endYear = endDate ? endDate.getFullYear() : null;
+            const endMonth = endDate ? endDate.getMonth() + 1 : null;
+            
+            // Vérifier si le salaire a commencé avant ou pendant ce mois
+            const startedBeforeOrDuring = startYear < year || (startYear === year && startMonth <= month);
+            
+            // Vérifier si le salaire n'a pas encore fini (pas de date de fin OU date de fin après ce mois)
+            const notEndedYet = !endDate || (endYear && (endYear > year || (endYear === year && endMonth >= month)));
+            
+            if (startedBeforeOrDuring && notEndedYet) {
+              // Ce salaire est actif pendant ce mois
+              monthIncome = salary.amount;
+              break; // Prendre le premier salaire actif trouvé (le plus récent)
+            }
+          }
+          
+          // Si aucun salaire dans l'historique n'est actif pour ce mois, ne pas utiliser monthlySalary comme fallback
+          // Laisser monthIncome à 0 pour ce mois
+        } else {
+          // Pas d'historique, utiliser monthlySalary
+          monthIncome = monthlySalary;
+        }
+      }
 
       // Ajouter les revenus supplémentaires pour ce mois
       const additionalForMonth = additionalMonthlyIncomes
@@ -137,7 +186,7 @@ export function MonthlyExpensesIncomeChart({
     );
 
     return { monthlyData, maxValue };
-  }, [expenses, monthlySalary, variableMonthlyIncomes, additionalMonthlyIncomes, temporaryIncomes, year, isPrediction, categories, annualFixedExpenses, subs]);
+  }, [expenses, monthlySalary, variableMonthlyIncomes, additionalMonthlyIncomes, temporaryIncomes, salaryHistory, year, isPrediction, categories, annualFixedExpenses, subs]);
 
   // Responsive dimensions
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);

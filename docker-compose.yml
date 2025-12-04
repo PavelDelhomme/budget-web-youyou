@@ -16,6 +16,7 @@ services:
       - ./backend/data:/app/data
       - ./backend/api:/app/api
       - ./backend/app.py:/app/app.py
+      - ./backend/scripts:/app/scripts
       - ./tests:/app/tests
     restart: unless-stopped
     healthcheck:

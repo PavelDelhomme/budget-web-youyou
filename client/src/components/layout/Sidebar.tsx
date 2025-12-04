@@ -15,6 +15,8 @@ interface SidebarProps {
   onOpenMLTraining?: () => void;
   onOpenTaxManager?: () => void;
   onOpenAdvancedFiscal?: () => void;
+  onOpenAdmin?: () => void;
+  isAdmin?: boolean;
   isOpen?: boolean;
   onToggle?: () => void;
   onClose?: () => void;
@@ -34,6 +36,8 @@ export function Sidebar({
   onOpenMLTraining,
   onOpenTaxManager,
   onOpenAdvancedFiscal,
+  onOpenAdmin,
+  isAdmin = false,
   isOpen: controlledIsOpen,
   onToggle,
   onClose,

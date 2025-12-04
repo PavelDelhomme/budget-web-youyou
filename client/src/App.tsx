@@ -39,6 +39,9 @@ import { QuickAddIncomeModal } from './components/ui/QuickAddIncomeModal';
 import { TaxManager } from './components/fiscal/TaxManager';
 import { AdvancedFiscalManager } from './components/fiscal/AdvancedFiscalManager';
 
+// Admin
+import { AdminPanel } from './components/admin/AdminPanel';
+
 // Forms
 import { AddYearModal } from './components/forms/AddYearModal';
 import { InitializationModal } from './components/forms/InitializationModal';
@@ -59,6 +62,7 @@ import {
 
 function App() {
   const [sessionEmail, setSessionEmail] = useState<string | null>(null);
+  const [isCheckingSession, setIsCheckingSession] = useState<boolean>(true); // État de vérification de la session
   const [years, setYears] = useState<number[]>(INITIAL_YEARS);
   const currentYearNum = today.getFullYear();
   const [year, setYear] = useState<number | 'dashboard'>('dashboard');
@@ -94,6 +98,7 @@ function App() {
   const [isMLTrainingOpen, setIsMLTrainingOpen] = useState(false);
   const [isTaxManagerOpen, setIsTaxManagerOpen] = useState(false);
   const [isAdvancedFiscalManagerOpen, setIsAdvancedFiscalManagerOpen] = useState(false);
+  const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
   // États pour les popups rapides depuis le FAB
   const [isQuickAddExpenseOpen, setIsQuickAddExpenseOpen] = useState(false);
   const [isQuickAddIncomeOpen, setIsQuickAddIncomeOpen] = useState(false);
@@ -155,6 +160,7 @@ function App() {
         
         if (sessionInfo.authenticated && sessionInfo.email) {
           setSessionEmail(sessionInfo.email);
+          setIsCheckingSession(false); // Session vérifiée, utilisateur connecté
           
           // User is authenticated, now load their data
           try {
@@ -237,10 +243,12 @@ function App() {
         } else {
           // User is not authenticated - clear session
           setSessionEmail(null);
+          setIsCheckingSession(false); // Session vérifiée, utilisateur non connecté
         }
       } catch (err: any) {
         // Session check failed - user is not logged in
         setSessionEmail(null);
+        setIsCheckingSession(false); // Session vérifiée (avec erreur), utilisateur non connecté
       }
     }
     
@@ -713,10 +721,12 @@ function App() {
   }
 
   async function onLogin(email: string, password: string, isSignup?: boolean, confirmPassword?: string) {
+    setIsCheckingSession(true); // Commencer la vérification
     try {
       // For now, signup is handled the same way as login - backend creates data on first connection
       const out = await Api.login(email, password);
       setSessionEmail(out.email);
+      setIsCheckingSession(false); // Connexion réussie
       
       const currentYear = today.getFullYear();
       
@@ -803,7 +813,9 @@ function App() {
       setYears(updatedYears);
       // Always select dashboard by default after login
       setYear('dashboard');
+      setIsCheckingSession(false); // Connexion réussie, vérification terminée
     } catch (err: any) {
+      setIsCheckingSession(false); // En cas d'erreur, arrêter la vérification
       alert(err.message || 'Login error');
     }
   }
@@ -1279,7 +1291,19 @@ function App() {
     projectedSavings = baseProjectedSavings + projectsContributions;
   }
 
-  // UI for login
+  // Afficher un loader pendant la vérification de la session
+  if (isCheckingSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Vérification de la session...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Afficher le formulaire de connexion seulement après vérification
   if (!sessionEmail) {
     return <LoginForm onLogin={onLogin} />;
   }

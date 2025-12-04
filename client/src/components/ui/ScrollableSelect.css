@@ -1,0 +1,55 @@
+/* Styles pour le ScrollableSelect - Fichier dédié pour garantir l'application */
+
+.scrollable-select-dropdown {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.8) rgba(229, 231, 235, 0.3);
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+}
+
+/* Webkit (Chrome, Safari, Edge) */
+.scrollable-select-dropdown::-webkit-scrollbar {
+  width: 10px !important;
+}
+
+.scrollable-select-dropdown::-webkit-scrollbar-track {
+  background: rgba(229, 231, 235, 0.5) !important;
+  border-radius: 5px !important;
+}
+
+.scrollable-select-dropdown::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.8) !important;
+  border-radius: 5px !important;
+  border: 2px solid transparent !important;
+  background-clip: padding-box !important;
+}
+
+.scrollable-select-dropdown::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 1) !important;
+  background-clip: padding-box !important;
+}
+
+/* Mode sombre */
+.dark .scrollable-select-dropdown::-webkit-scrollbar-track {
+  background: rgba(55, 65, 81, 0.5) !important;
+}
+
+.dark .scrollable-select-dropdown::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.7) !important;
+}
+
+.dark .scrollable-select-dropdown::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.9) !important;
+}
+
+/* Firefox */
+.scrollable-select-dropdown {
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(156, 163, 175, 0.8) rgba(229, 231, 235, 0.3) !important;
+}
+
+.dark .scrollable-select-dropdown {
+  scrollbar-color: rgba(156, 163, 175, 0.7) rgba(55, 65, 81, 0.5) !important;
+}
+

@@ -220,3 +220,28 @@ Avant de déployer en production, vérifier :
 - [Flask Security Best Practices](https://flask.palletsprojects.com/en/2.3.x/security/)
 - [API Impôt Particulier - Documentation](https://www.data.gouv.fr/dataservices/api-impot-particulier/)
 - [OpenFisca - Documentation](https://www.data.gouv.fr/dataservices/openfisca/)
+
+---
+
+## 🛡️ **WAF (Web Application Firewall) et DMZ**
+
+### WAF Implémenté
+
+L'application dispose maintenant d'un **Web Application Firewall (WAF)** intégré qui protège contre les attaques courantes :
+
+- **Détection SQL Injection** : Bloque les tentatives d'injection SQL
+- **Détection XSS** : Bloque les scripts malveillants
+- **Détection Command Injection** : Empêche l'exécution de commandes système
+- **Détection Path Traversal** : Protège contre l'accès aux fichiers sensibles
+- **Blocage automatique d'IP** : Bannit les attaquants après 5 menaces
+- **Logs de sécurité** : Toutes les menaces sont enregistrées dans `backend/data/waf.log`
+
+### Configuration DMZ
+
+Une architecture **DMZ (Demilitarized Zone)** est configurée pour la production :
+
+- **Zone DMZ** : Nginx reverse proxy avec WAF comme première couche
+- **Réseau privé** : Backend et frontend isolés dans un réseau privé
+- **Séparation des couches** : Défense en profondeur avec plusieurs niveaux de sécurité
+
+**Documentation complète** : Voir `docs/DMZ_WAF_CONFIGURATION.md` pour tous les détails de configuration, architecture réseau, et instructions de déploiement.

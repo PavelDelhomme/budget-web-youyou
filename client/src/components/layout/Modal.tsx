@@ -47,6 +47,12 @@ export function Modal({ isOpen, onClose, title, children, closeable = true }: Mo
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 dark:bg-black dark:bg-opacity-70"
       onClick={closeable && onClose ? onClose : undefined}
+      onKeyDown={(e) => {
+        if (!closeable && e.key === 'Escape') {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }}
     >
       <div
         ref={modalRef}

@@ -1,31 +1,51 @@
 version: '3.8'
 
 services:
+  # Zone DMZ : Nginx avec WAF
+  nginx:
+    image: nginx:alpine
+    container_name: budget-nginx-dmz
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/waf-rules:/etc/nginx/waf-rules:ro
+      - nginx_logs:/var/log/nginx
+    networks:
+      - dmz-network
+      - app-network
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Application Backend (Réseau Privé)
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile.prod
-    container_name: budget-web-backend-prod
-    ports:
-      - "${BACKEND_PORT:-6060}:6060"
+      dockerfile: Dockerfile
+    container_name: budget-web-backend
+    expose:  # expose au lieu de ports (pas accessible depuis Internet)
+      - "6060"
     environment:
       - PORT=6060
       - SECRET_KEY=${SECRET_KEY}
-      - FLASK_ENV=production
-      - DEBUG=False
       - ADMIN_EMAIL=${ADMIN_EMAIL}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
-      - GUNICORN_WORKERS=${GUNICORN_WORKERS:-4}
-      - GUNICORN_THREADS=${GUNICORN_THREADS:-2}
-      - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-30}
-      - LOG_LEVEL=${LOG_LEVEL:-info}
-      - FORCE_HTTPS=${FORCE_HTTPS:-true}
-      - CORS_ORIGINS=${CORS_ORIGINS:-}
-      - BACKUP_ENABLED=${BACKUP_ENABLED:-true}
-      - MONITORING_ENABLED=${MONITORING_ENABLED:-true}
+      - WAF_BLOCK_MODE=true
+      - FLASK_ENV=production
+      - FORCE_HTTPS=true
     volumes:
       - ./backend/data:/app/data
-      - backend_logs:/app/data/logs
+    networks:
+      - app-network  # Réseau privé uniquement
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:6060/api/health"]
@@ -33,66 +53,34 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
-    networks:
-      - budget-network
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 2G
-        reservations:
-          cpus: '1'
-          memory: 1G
 
+  # Frontend (Réseau Privé)
   frontend:
     build:
       context: ./client
-      dockerfile: Dockerfile.prod
-    container_name: budget-web-frontend-prod
-    ports:
-      - "${FRONTEND_PORT:-6061}:80"
+      dockerfile: Dockerfile
+    container_name: budget-web-frontend
+    expose:  # expose au lieu de ports (pas accessible depuis Internet)
+      - "3030"
     environment:
-      - VITE_API_URL=${VITE_API_URL}
+      - VITE_API_URL=https://${DOMAIN:-localhost}
       - VITE_PROXY_TARGET=http://backend:6060
-    volumes:
-      - budget-web-frontend_dist:/app/dist
-    depends_on:
-      backend:
-        condition: service_healthy
-    restart: unless-stopped
+      - VITE_HMR_DISABLED=true
     networks:
-      - budget-network
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 512M
-        reservations:
-          cpus: '0.5'
-          memory: 256M
-
-  nginx:
-    image: nginx:alpine
-    container_name: budget-web-nginx-prod
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
-      - nginx_logs:/var/log/nginx
+      - app-network
     depends_on:
       - backend
-      - frontend
     restart: unless-stopped
-    networks:
-      - budget-network
-
-volumes:
-  budget-web-frontend_dist:
-  backend_logs:
-  nginx_logs:
 
 networks:
-  budget-network:
+  dmz-network:
     driver: bridge
+    # Zone DMZ - accessible depuis l'extérieur via Nginx
+  app-network:
+    driver: bridge
+    internal: false  # Permet communication avec DMZ mais pas directement depuis Internet
+    # Réseau privé pour l'application
+
+volumes:
+  nginx_logs:
+    driver: local

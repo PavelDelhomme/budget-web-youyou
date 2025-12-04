@@ -22,6 +22,7 @@ from api.middleware import (
 from api.security_advanced import (
     AnomalyDetector, SecurityLogger, DataEncryption
 )
+from api.waf import get_waf, waf_protection
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
@@ -51,6 +52,119 @@ DATA_DIR.mkdir(exist_ok=True)
 anomaly_detector = AnomalyDetector()
 security_logger = SecurityLogger(DATA_DIR)
 data_encryption = DataEncryption()
+waf = get_waf()  # Initialiser le WAF
+
+# Define require_auth before WAF routes that use it
+def require_auth(f):
+    """Decorator to require authentication with security checks"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # Vérifier la session
+        if 'user_email' not in session:
+            return jsonify({'error': 'Not authenticated'}), 401
+        
+        # Vérifier que l'email de la session est valide
+        user_email = session.get('user_email')
+        if not user_email or not isinstance(user_email, str):
+            session.clear()
+            return jsonify({'error': 'Session invalide'}), 401
+        
+        # Valider le format de l'email dans la session
+        email_regex = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
+        if not re.match(email_regex, user_email):
+            session.clear()
+            return jsonify({'error': 'Session invalide'}), 401
+        
+        # Détection d'anomalies sur les requêtes authentifiées
+        client_ip = get_client_ip()
+        rate_abuse = anomaly_detector.detect_rate_limit_abuse(client_ip)
+        
+        if rate_abuse.get('suspicious'):
+            security_logger.log_security_event(
+                'RATE_LIMIT_ABUSE',
+                client_ip,
+                {'details': rate_abuse.get('reason')},
+                'WARNING'
+            )
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
+# WAF protection globale (avant toutes les requêtes)
+@app.before_request
+def waf_check():
+    """Vérification WAF sur toutes les requêtes"""
+    # Exclure les routes de santé, statiques et authentification
+    excluded_paths = [
+        '/api/health',
+        '/api/session-check',
+        '/api/csrf-token',
+        '/api/login',
+        '/static'
+    ]
+    
+    # Vérifier si la route est exclue
+    if any(request.path.startswith(path) for path in excluded_paths):
+        return None
+    
+    is_safe, threat_info = waf.check_request()
+    
+    if not is_safe:
+        if waf.block_mode:
+            return jsonify({
+                'error': 'Requête bloquée par le WAF',
+                'reason': 'Menace de sécurité détectée',
+                'threat_type': threat_info.get('threat_type', 'unknown') if threat_info else 'unknown'
+            }), 403
+    return None
+
+# Routes WAF pour les statistiques et monitoring
+@app.route('/api/waf/stats', methods=['GET'])
+@require_auth
+def waf_stats():
+    """Retourne les statistiques du WAF (réservé aux admins)"""
+    user_email = session.get('user_email', '')
+    if user_email != ADMIN_EMAIL:
+        return jsonify({'error': 'Accès refusé'}), 403
+    
+    stats = waf.get_threat_stats()
+    return jsonify(stats)
+
+@app.route('/api/waf/blocked-ips', methods=['GET'])
+@require_auth
+def waf_blocked_ips():
+    """Liste des IPs bloquées (réservé aux admins)"""
+    user_email = session.get('user_email', '')
+    if user_email != ADMIN_EMAIL:
+        return jsonify({'error': 'Accès refusé'}), 403
+    
+    blocked = {}
+    current_time = time.time()
+    for ip, until in waf.blocked_ips.items():
+        if current_time < until:
+            remaining = int(until - current_time)
+            blocked[ip] = {
+                'blocked_until': datetime.fromtimestamp(until).isoformat(),
+                'remaining_seconds': remaining
+            }
+    
+    return jsonify({'blocked_ips': blocked})
+
+@app.route('/api/waf/threats', methods=['GET'])
+@require_auth
+def waf_threats():
+    """Détails des menaces récentes (réservé aux admins)"""
+    user_email = session.get('user_email', '')
+    if user_email != ADMIN_EMAIL:
+        return jsonify({'error': 'Accès refusé'}), 403
+    
+    limit = request.args.get('limit', 50, type=int)
+    threats = list(waf.threat_log)[-limit:] if len(waf.threat_log) > limit else list(waf.threat_log)
+    
+    return jsonify({
+        'threats': threats,
+        'total': len(waf.threat_log)
+    })
 
 # Add security headers to all responses
 @app.after_request
@@ -94,42 +208,6 @@ def handle_exception(e):
     print(f"Exception: {e}")
     traceback.print_exc()
     return jsonify({'error': 'Internal Server Error', 'message': str(e)}), 500
-
-
-def require_auth(f):
-    """Decorator to require authentication with security checks"""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        # Vérifier la session
-        if 'user_email' not in session:
-            return jsonify({'error': 'Not authenticated'}), 401
-        
-        # Vérifier que l'email de la session est valide
-        user_email = session.get('user_email')
-        if not user_email or not isinstance(user_email, str):
-            session.clear()
-            return jsonify({'error': 'Session invalide'}), 401
-        
-        # Valider le format de l'email dans la session
-        email_regex = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
-        if not re.match(email_regex, user_email):
-            session.clear()
-            return jsonify({'error': 'Session invalide'}), 401
-        
-        # Détection d'anomalies sur les requêtes authentifiées
-        client_ip = get_client_ip()
-        rate_abuse = anomaly_detector.detect_rate_limit_abuse(client_ip)
-        
-        if rate_abuse.get('suspicious'):
-            security_logger.log_security_event(
-                'RATE_LIMIT_ABUSE',
-                client_ip,
-                {'details': rate_abuse.get('reason')},
-                'WARNING'
-            )
-        
-        return f(*args, **kwargs)
-    return decorated_function
 
 
 @app.route('/api/csrf-token', methods=['GET'])

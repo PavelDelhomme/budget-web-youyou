@@ -389,6 +389,7 @@ export function Dashboard({
             variableMonthlyIncomes={yearData.variableMonthlyIncomes}
             additionalMonthlyIncomes={yearData.additionalMonthlyIncomes || []}
             temporaryIncomes={temporaryIncomes}
+            salaryHistory={globalData?.salaryHistory}
             year={currentYear}
             height={400}
           />

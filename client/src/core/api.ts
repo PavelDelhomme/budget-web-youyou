@@ -208,5 +208,11 @@ export const Api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(profile),
     }, false), // Don't require CSRF token - used during signup
+  
+  // Admin routes - WAF statistics and management
+  getWAFStats: () => api("waf/stats"),
+  getWAFBlockedIPs: () => api("waf/blocked-ips"),
+  getWAFThreats: (limit?: number) => 
+    api(`waf/threats${limit ? `?limit=${limit}` : ''}`),
 };
 

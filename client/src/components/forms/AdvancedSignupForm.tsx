@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Modal } from '../layout/Modal';
 import { Api } from '../../core/api';
 import { GeographicSelector, GeographicLocation } from '../ui/GeographicSelector';
+import { ScrollableSelect } from '../ui/ScrollableSelect';
 import { UserProfile } from '../../core/types';
 
 interface AdvancedSignupFormProps {
@@ -81,16 +82,137 @@ export function AdvancedSignupForm({ isOpen, onComplete, onSkip }: AdvancedSignu
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedBudget, setGeneratedBudget] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
 
   const totalSteps = 6;
 
-  const handleNext = async () => {
+  // Validation des champs avec gestion des erreurs par champ
+  const validateFields = (currentStep: number): { isValid: boolean; errors: Record<string, string> } => {
+    const errors: Record<string, string> = {};
+    let isValid = true;
+
+    switch (currentStep) {
+      case 1: // Catégorie socio-professionnelle
+        if (!profile.csp || profile.csp.trim() === '') {
+          errors.csp = 'Ce champ est obligatoire';
+          isValid = false;
+        }
+        break;
+      
+      case 2: // Situation personnelle
+        if (!profile.situation_familiale || profile.situation_familiale.trim() === '') {
+          errors.situation_familiale = 'Ce champ est obligatoire';
+          isValid = false;
+        }
+        if (profile.nombre_enfants === undefined || profile.nombre_enfants < 0) {
+          errors.nombre_enfants = 'Ce champ est obligatoire';
+          isValid = false;
+        }
+        if (!geographicLocation || !geographicLocation.country) {
+          errors.geographicLocation = 'Ce champ est obligatoire';
+          isValid = false;
+        }
+        break;
+      
+      default:
+        break;
+    }
+
+    return { isValid, errors };
+  };
+
+  // Validation silencieuse (sans afficher d'erreur) - pour le bouton disabled
+  const isValidStep = (currentStep: number): boolean => {
+    return validateFields(currentStep).isValid;
+  };
+
+  // Validation avec message d'erreur - pour handleNext
+  const validateStep = (currentStep: number): boolean => {
+    const { isValid, errors } = validateFields(currentStep);
+    
+    if (!isValid) {
+      setFieldErrors(errors);
+      setTouchedFields(new Set(Object.keys(errors)));
+      
+      // Afficher un message d'erreur global avec la liste des champs manquants
+      const errorFields = Object.keys(errors);
+      if (errorFields.length > 0) {
+        const fieldNames = errorFields.map(field => {
+          switch(field) {
+            case 'csp': return 'Catégorie socio-professionnelle';
+            case 'situation_familiale': return 'Situation familiale';
+            case 'nombre_enfants': return 'Nombre d\'enfants';
+            case 'geographicLocation': return 'Zone géographique';
+            default: return field;
+          }
+        });
+        setError(`Veuillez remplir ${errorFields.length > 1 ? 'les champs obligatoires suivants' : 'le champ obligatoire suivant'} : ${fieldNames.join(', ')}`);
+      } else {
+        setError('Veuillez remplir tous les champs obligatoires marqués d\'un *');
+      }
+      return false;
+    }
+    
+    // Effacer les erreurs si tout est valide
+    setFieldErrors({});
+    setError(null);
+    return true;
+  };
+
+  const handleNext = async (e?: React.MouseEvent) => {
+    // Toujours valider l'étape actuelle avant de continuer
+    const { isValid, errors } = validateFields(step);
+    
+    if (!isValid) {
+      // Marquer tous les champs en erreur comme "touchés" pour afficher les erreurs
+      const allErrorFields = new Set(Object.keys(errors));
+      setTouchedFields(allErrorFields);
+      setFieldErrors(errors);
+      
+      // Afficher un message d'erreur global avec les noms des champs
+      const errorFields = Object.keys(errors);
+      if (errorFields.length > 0) {
+        const fieldNames = errorFields.map(field => {
+          switch(field) {
+            case 'csp': return 'Catégorie socio-professionnelle';
+            case 'situation_familiale': return 'Situation familiale';
+            case 'nombre_enfants': return 'Nombre d\'enfants';
+            case 'geographicLocation': return 'Zone géographique';
+            default: return field;
+          }
+        });
+        setError(`Veuillez remplir ${errorFields.length > 1 ? 'les champs obligatoires suivants' : 'le champ obligatoire suivant'} : ${fieldNames.join(', ')}`);
+      } else {
+        setError('Veuillez remplir tous les champs obligatoires marqués d\'un *');
+      }
+      
+      // Faire défiler vers le premier champ en erreur
+      setTimeout(() => {
+        const firstErrorField = Object.keys(errors)[0];
+        const errorElement = document.querySelector(`[data-field-error="${firstErrorField}"]`);
+        if (errorElement) {
+          errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Focus sur le champ en erreur si c'est un input/select
+          const inputElement = errorElement.querySelector('input, select, button');
+          if (inputElement) {
+            (inputElement as HTMLElement).focus();
+          }
+        }
+      }, 100);
+      
+      return;
+    }
+    
+    // Si validation OK, continuer
     if (step === totalSteps) {
       // Generate budget before completing
       await generateBudget();
     } else {
       setStep(step + 1);
       setError(null);
+      setFieldErrors({});
+      setTouchedFields(new Set());
     }
   };
 
@@ -127,6 +249,30 @@ export function AdvancedSignupForm({ isOpen, onComplete, onSkip }: AdvancedSignu
 
   const updateProfile = (key: keyof UserProfile, value: any) => {
     setProfile(prev => ({ ...prev, [key]: value }));
+    // Marquer le champ comme touché
+    setTouchedFields(prev => new Set(prev).add(key));
+    // Effacer l'erreur du champ s'il est maintenant valide
+    if (fieldErrors[key as string]) {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[key as string];
+        return newErrors;
+      });
+      setError(null);
+    }
+  };
+
+  const hasFieldError = (fieldName: string): boolean => {
+    // Afficher l'erreur si le champ est en erreur ET (touché OU si on a des erreurs de validation)
+    return !!(fieldErrors[fieldName] && (touchedFields.has(fieldName) || Object.keys(fieldErrors).length > 0));
+  };
+
+  const getFieldError = (fieldName: string): string | undefined => {
+    if (hasFieldError(fieldName)) {
+      // Message d'erreur personnalisé ou message par défaut
+      return fieldErrors[fieldName] || 'Ce champ est obligatoire';
+    }
+    return undefined;
   };
 
   if (!isOpen) return null;
@@ -136,7 +282,7 @@ export function AdvancedSignupForm({ isOpen, onComplete, onSkip }: AdvancedSignu
       isOpen={isOpen}
       onClose={onSkip}
       title="📋 Profil détaillé pour votre budget"
-      closeable={true}
+      closeable={false}
     >
       <div className="space-y-6">
         {/* Progress indicator */}
@@ -153,9 +299,15 @@ export function AdvancedSignupForm({ isOpen, onComplete, onSkip }: AdvancedSignu
               Étape {step} / {totalSteps}
             </div>
             <button
+              type="button"
               onClick={handleNext}
               disabled={step === totalSteps && isGenerating}
-              className="px-3 py-1 text-sm disabled:opacity-50 disabled:cursor-not-allowed enabled:hover:bg-gray-100 dark:enabled:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300"
+              className={`px-3 py-1 text-sm rounded text-gray-700 dark:text-gray-300 font-medium transition-all ${
+                !isValidStep(step)
+                  ? 'opacity-60 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer'
+                  : 'hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer'
+              }`}
+              title={!isValidStep(step) ? 'Cliquez pour voir les champs obligatoires manquants' : ''}
             >
               {step === totalSteps ? (isGenerating ? 'Génération...' : 'Générer') : 'Suivant →'}
             </button>
@@ -170,8 +322,16 @@ export function AdvancedSignupForm({ isOpen, onComplete, onSkip }: AdvancedSignu
 
         {/* Error display */}
         {error && (
-          <div className="p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
-            <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+          <div className="p-4 bg-red-50 dark:bg-red-900/30 border-2 border-red-300 dark:border-red-700 rounded-lg shadow-md animate-pulse">
+            <div className="flex items-start gap-2">
+              <span className="text-red-500 text-xl font-bold flex-shrink-0">⚠</span>
+              <div>
+                <p className="text-sm font-semibold text-red-800 dark:text-red-200 mb-1">
+                  Champs obligatoires manquants
+                </p>
+                <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+              </div>
+            </div>
           </div>
         )}
 
@@ -185,21 +345,30 @@ export function AdvancedSignupForm({ isOpen, onComplete, onSkip }: AdvancedSignu
               Cette information nous permet d'estimer vos revenus et dépenses typiques basés sur les statistiques gouvernementales.
             </p>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                Catégorie socio-professionnelle *
+            <div data-field-error="csp">
+              <label className={`block text-sm font-medium mb-2 ${
+                hasFieldError('csp')
+                  ? 'text-red-600 dark:text-red-400'
+                  : 'text-gray-900 dark:text-white'
+              }`}>
+                Catégorie socio-professionnelle <span className="text-red-500 font-bold">*</span>
               </label>
-              <select
+              <ScrollableSelect
                 value={profile.csp || ''}
-                onChange={(e) => updateProfile('csp', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                onChange={(value) => {
+                  updateProfile('csp', value);
+                }}
+                options={CSP_OPTIONS}
+                placeholder="Sélectionnez votre CSP"
                 required
-              >
-                <option value="">Sélectionnez votre CSP</option>
-                {CSP_OPTIONS.map(csp => (
-                  <option key={csp.value} value={csp.value}>{csp.label}</option>
-                ))}
-              </select>
+                error={hasFieldError('csp')}
+              />
+              {hasFieldError('csp') && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400 font-medium flex items-center gap-1">
+                  <span className="text-red-500">⚠</span>
+                  {getFieldError('csp') || 'Ce champ est obligatoire'}
+                </p>
+              )}
             </div>
 
             {profile.csp && (
@@ -241,44 +410,98 @@ export function AdvancedSignupForm({ isOpen, onComplete, onSkip }: AdvancedSignu
               Situation personnelle
             </h3>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                Situation familiale *
+            <div data-field-error="situation_familiale">
+              <label className={`block text-sm font-medium mb-2 ${
+                hasFieldError('situation_familiale')
+                  ? 'text-red-600 dark:text-red-400'
+                  : 'text-gray-900 dark:text-white'
+              }`}>
+                Situation familiale <span className="text-red-500 font-bold">*</span>
               </label>
               <select
                 value={profile.situation_familiale || 'celibataire'}
                 onChange={(e) => updateProfile('situation_familiale', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className={`w-full px-3 py-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 ${
+                  hasFieldError('situation_familiale')
+                    ? 'border-red-500 dark:border-red-600 focus:ring-red-500 dark:focus:ring-red-600 ring-2 ring-red-300 dark:ring-red-800'
+                    : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500 dark:focus:ring-blue-400'
+                }`}
               >
                 {SITUATION_FAMILIALE.map(sit => (
                   <option key={sit.value} value={sit.value}>{sit.label}</option>
                 ))}
               </select>
+              {hasFieldError('situation_familiale') && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400 font-medium flex items-center gap-1">
+                  <span className="text-red-500">⚠</span>
+                  {getFieldError('situation_familiale') || 'Ce champ est obligatoire'}
+                </p>
+              )}
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                Nombre d'enfants
+            <div data-field-error="nombre_enfants">
+              <label className={`block text-sm font-medium mb-2 ${
+                hasFieldError('nombre_enfants')
+                  ? 'text-red-600 dark:text-red-400'
+                  : 'text-gray-900 dark:text-white'
+              }`}>
+                Nombre d'enfants <span className="text-red-500 font-bold">*</span>
               </label>
               <input
                 type="number"
                 min="0"
                 max="10"
-                value={profile.nombre_enfants || 0}
-                onChange={(e) => updateProfile('nombre_enfants', parseInt(e.target.value) || 0)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                value={profile.nombre_enfants ?? 0}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value) || 0;
+                  updateProfile('nombre_enfants', val);
+                }}
+                className={`w-full px-3 py-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 ${
+                  hasFieldError('nombre_enfants')
+                    ? 'border-red-500 dark:border-red-600 focus:ring-red-500 dark:focus:ring-red-600 ring-2 ring-red-300 dark:ring-red-800'
+                    : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500 dark:focus:ring-blue-400'
+                }`}
+                required
               />
+              {hasFieldError('nombre_enfants') ? (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400 font-medium flex items-center gap-1">
+                  <span className="text-red-500">⚠</span>
+                  {getFieldError('nombre_enfants') || 'Ce champ est obligatoire'}
+                </p>
+              ) : (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Indiquez 0 si vous n'avez pas d'enfants
+                </p>
+              )}
             </div>
 
-            <GeographicSelector
-              value={geographicLocation || null}
-              onChange={(loc) => {
-                setGeographicLocation(loc);
-                updateProfile('geographic_location', loc);
-              }}
-              label="Zone géographique"
-              required={true}
-            />
+            <div data-field-error="geographicLocation">
+              <label className={`block text-sm font-medium mb-2 ${
+                hasFieldError('geographicLocation')
+                  ? 'text-red-600 dark:text-red-400'
+                  : 'text-gray-900 dark:text-white'
+              }`}>
+                Zone géographique <span className="text-red-500 font-bold">*</span>
+              </label>
+              <div className={hasFieldError('geographicLocation') ? 'ring-2 ring-red-300 dark:ring-red-800 rounded-lg p-2' : ''}>
+                <GeographicSelector
+                  value={geographicLocation || null}
+                  onChange={(loc) => {
+                    setGeographicLocation(loc);
+                    updateProfile('geographic_location', loc);
+                    setTouchedFields(prev => new Set(prev).add('geographicLocation'));
+                  }}
+                  label=""
+                  required={true}
+                />
+              </div>
+              {hasFieldError('geographicLocation') && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400 font-medium flex items-center gap-1">
+                  <span className="text-red-500">⚠</span>
+                  {getFieldError('geographicLocation') || 'Ce champ est obligatoire'}
+                </p>
+              )}
+            </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
