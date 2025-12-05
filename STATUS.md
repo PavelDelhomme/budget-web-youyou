@@ -161,11 +161,13 @@
 - **Où** : Popup "Calcul impôts" accessible depuis la sidebar
 - **Fonction** : Simuler les impôts basés sur les revenus et dépenses
 - **Intégration** : APIs gouvernementales (DGFiP, OpenFisca)
+- **APIs disponibles** : Voir [API_GOUV.md](API_GOUV.md) pour la liste complète des 12 APIs gouvernementales disponibles
 
 #### **Déclarations Fiscales**
 - **Où** : Popup "Déclarations fiscales" accessible depuis la sidebar
 - **Fonction** : Gérer les déclarations fiscales, dates importantes, déductions disponibles
 - **Calendrier fiscal** : Dates importantes récupérées depuis impots.gouv.fr
+- **Source APIs** : [data.gouv.fr - Recherche APIs Impôts](https://www.data.gouv.fr/dataservices/search?q=impots)
 
 ---
 

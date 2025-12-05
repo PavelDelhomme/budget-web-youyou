@@ -4,7 +4,105 @@
 
 Ce document décrit l'intégration des API gouvernementales françaises dans le système de budget. Ces API permettent d'accéder à des données fiscales officielles, de simuler des calculs socio-fiscaux, et d'améliorer la précision des prévisions budgétaires.
 
+**Source principale** : [data.gouv.fr - Recherche APIs Impôts](https://www.data.gouv.fr/dataservices/search?q=impots)
+
 ## 🎯 API Intégrées
+
+### Liste Complète des APIs Disponibles sur data.gouv.fr
+
+Voici la liste complète des APIs gouvernementales françaises disponibles sur [data.gouv.fr](https://www.data.gouv.fr/dataservices/search?q=impots) pour la gestion fiscale et financière :
+
+#### APIs avec Accès Restreint (Habilitation Requise)
+
+1. **API Impôt Particulier** (DGFiP)
+   - **Organisation** : Ministère de l'Économie, des Finances et de l'Industrie
+   - **Accès** : Restreint (habilitation DGFiP requise)
+   - **Mis à jour** : 4 déc. 2025
+   - **Description** : Échange d'informations fiscales entre la DGFiP et applications tierces
+   - **Utilisation** : ✅ Intégrée dans le système (en attente d'habilitation)
+
+2. **API Fichier des Comptes Bancaires et Assimilés (FICOBA)** (DGFiP)
+   - **Organisation** : Ministère de l'Économie, des Finances et de l'Industrie
+   - **Accès** : Restreint
+   - **Mis à jour** : 4 déc. 2025
+   - **Description** : Accès au fichier des comptes bancaires (déclarations fiscales)
+   - **Utilisation potentielle** : Vérification automatique des comptes bancaires déclarés pour les déclarations fiscales, réconciliation avec les données utilisateur
+
+3. **API Service Finances Publiques (SFiP)** (DGFiP)
+   - **Organisation** : Ministère de l'Économie, des Finances et de l'Industrie
+   - **Accès** : Restreint
+   - **Mis à jour** : 4 déc. 2025
+   - **Description** : Services des finances publiques
+   - **Utilisation potentielle** : Accès à des services complémentaires des finances publiques
+
+4. **API Recherche des personnes physiques (R2P)** (DGFiP)
+   - **Organisation** : Ministère de l'Économie, des Finances et de l'Industrie
+   - **Accès** : Restreint
+   - **Mis à jour** : 4 déc. 2025
+   - **Description** : Recherche d'informations sur les personnes physiques
+   - **Utilisation potentielle** : Vérification d'identité, recherche d'informations fiscales sur des personnes
+
+5. **API Tiers de prestation** (URSSAF)
+   - **Organisation** : Unions de Recouvrement des cotisations de Sécurité Sociale et d'Allocations Familiales
+   - **Accès** : Restreint
+   - **Mis à jour** : 20 oct. 2025
+   - **Description** : Gestion des tiers de prestation (cotisations sociales)
+   - **Utilisation potentielle** : Calcul automatique des cotisations sociales pour employeurs, gestion des déclarations sociales
+
+6. **API Tierce Déclaration Cesu** (URSSAF)
+   - **Organisation** : Unions de Recouvrement des cotisations de Sécurité Sociale et d'Allocations Familiales
+   - **Accès** : Restreint
+   - **Mis à jour** : 20 oct. 2025
+   - **Description** : Déclarations Cesu (Chèque Emploi Service Universel)
+   - **Utilisation potentielle** : Déclarations automatiques pour emploi à domicile, calcul des cotisations Cesu
+
+7. **RIAL (Répertoire Inter-Administratif des Locaux)** (DGFiP)
+   - **Organisation** : Ministère de l'Économie, des Finances et de l'Industrie
+   - **Accès** : Restreint
+   - **Mis à jour** : 4 déc. 2025
+   - **Description** : Répertoire des locaux à usage fiscal
+   - **Utilisation potentielle** : Identification des locaux pour calcul de taxes foncières, vérification des adresses fiscales
+
+8. **API Tierce Déclaration Pajemploi** (URSSAF)
+   - **Organisation** : Unions de Recouvrement des cotisations de Sécurité Sociale et d'Allocations Familiales
+   - **Accès** : Restreint
+   - **Mis à jour** : 20 oct. 2025
+   - **Description** : Déclarations Pajemploi (emploi à domicile)
+   - **Utilisation potentielle** : Déclarations automatiques pour employeurs à domicile, gestion des cotisations Pajemploi
+
+#### APIs en Accès Ouvert
+
+9. **API Mon entreprise** (URSSAF)
+   - **Organisation** : Unions de Recouvrement des cotisations de Sécurité Sociale et d'Allocations Familiales
+   - **Accès** : Ouvert
+   - **Mis à jour** : 7 nov. 2024
+   - **Description** : Simulateur de revenus et cotisations selon le statut professionnel
+   - **Utilisation** : ✅ Intégrée dans le système
+
+10. **OpenFisca**
+    - **Organisation** : Agence nationale de la cohésion des territoires
+    - **Accès** : Ouvert
+    - **Mis à jour** : 7 nov. 2024
+    - **Description** : Bibliothèque open-source de simulation du système socio-fiscal français
+    - **Utilisation** : ✅ Intégrée dans le système
+
+11. **API Résultats de qualité des services publics**
+    - **Organisation** : Direction Interministérielle de la Transformation Publique
+    - **Accès** : Ouvert
+    - **Mis à jour** : 7 nov. 2024
+    - **Description** : Qualité des services publics
+    - **Utilisation potentielle** : Évaluation de la qualité des services publics utilisés par l'utilisateur, informations sur les performances des services
+
+12. **API Services Publics Plus - Structures**
+    - **Organisation** : Direction Interministérielle de la Transformation Publique
+    - **Accès** : Ouvert
+    - **Mis à jour** : 7 nov. 2024
+    - **Description** : Informations sur les structures de services publics
+    - **Utilisation potentielle** : Recherche d'informations sur les services publics locaux, identification des structures compétentes
+
+---
+
+## 📚 APIs Détaillées (Intégrées dans le Système)
 
 ### 1. API Impôt Particulier (DGFiP)
 
