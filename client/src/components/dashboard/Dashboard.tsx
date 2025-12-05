@@ -60,9 +60,9 @@ export function Dashboard({
       // Total investi = valeur initiale + contributions mensuelles accumulées depuis le début
       const totalInvestedWithContributions = inv.initialAmount + (inv.monthlyContribution * monthsActive);
       
-      // Utiliser le maximum entre currentValue et totalInvested pour s'assurer que les contributions mensuelles sont prises en compte
-      // Si currentValue est inférieur à totalInvested, cela signifie que les contributions mensuelles ne sont pas encore dans currentValue
-      // Dans ce cas, on utilise totalInvested qui inclut les contributions mensuelles
+      // Le montant total des investissements pour les actifs = valeur actuelle de marché + contributions mensuelles accumulées
+      // Les contributions mensuelles représentent de l'argent investi qui doit être compté dans les actifs
+      // Si currentValue inclut déjà les contributions, on prend currentValue, sinon on ajoute les contributions
       return sum + Math.max(inv.currentValue, totalInvestedWithContributions);
     }, 0);
   }, [investments]);
