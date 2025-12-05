@@ -48,7 +48,25 @@ export function Dashboard({
   
   // Calculate statistics
   const totalBankBalance = bankAccounts.reduce((sum, acc) => sum + acc.currentBalance, 0);
-  const totalInvestments = investments.reduce((sum, inv) => sum + inv.currentValue, 0);
+  
+  // Calculer le total des investissements en incluant les contributions mensuelles accumulées
+  const totalInvestments = useMemo(() => {
+    return investments.reduce((sum, inv) => {
+      const startDate = inv.startDate ? new Date(inv.startDate) : null;
+      const monthsActive = startDate ? 
+        Math.max(0, (today.getFullYear() - startDate.getFullYear()) * 12 + 
+                   (today.getMonth() - startDate.getMonth()) + 1) : 0; // +1 pour inclure le mois en cours
+      
+      // Total investi = valeur initiale + contributions mensuelles accumulées depuis le début
+      const totalInvestedWithContributions = inv.initialAmount + (inv.monthlyContribution * monthsActive);
+      
+      // Utiliser le maximum entre currentValue et totalInvested pour s'assurer que les contributions mensuelles sont prises en compte
+      // Si currentValue est inférieur à totalInvested, cela signifie que les contributions mensuelles ne sont pas encore dans currentValue
+      // Dans ce cas, on utilise totalInvested qui inclut les contributions mensuelles
+      return sum + Math.max(inv.currentValue, totalInvestedWithContributions);
+    }, 0);
+  }, [investments]);
+  
   const totalAssets = totalBankBalance + totalInvestments;
 
   const totalSavingsGoals = savingsGoals.reduce((sum, g) => sum + g.currentAmount, 0);
@@ -621,26 +639,47 @@ export function Dashboard({
                     
                     {/* Mini chart avec scroll horizontal responsive */}
                     <div className="w-full overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
-                      <div className="flex items-end gap-1 sm:gap-2 h-20 min-w-max">
-                        {categoryData.months.map((monthData, idx) => {
-                          const height = categoryMax > 0 ? (monthData.total / categoryMax) * 100 : 0;
-                          return (
-                            <div key={idx} className="flex flex-col items-center flex-shrink-0" style={{ minWidth: 'clamp(30px, calc((100% - 1rem) / 12), 60px)', width: 'auto' }}>
-                              <div
-                                className={`w-full rounded-t transition-all duration-300 cursor-pointer ${
-                                  monthData.total > 0
-                                    ? 'bg-blue-500 dark:bg-blue-400 hover:bg-blue-600 dark:hover:bg-blue-500'
-                                    : 'bg-gray-200 dark:bg-gray-700'
-                                }`}
-                                style={{ height: `${Math.max(height, 2)}%`, minHeight: '2px' }}
-                                title={`${monthData.month}: ${currency(monthData.total)}`}
-                              />
-                              <div className="text-[9px] sm:text-[10px] md:text-xs text-gray-500 dark:text-gray-400 mt-1 whitespace-nowrap truncate max-w-full">
-                                {monthData.month.substring(0, 3)}
+                      <div className="flex items-end gap-1 sm:gap-2 h-32 sm:h-36 min-w-max relative">
+                        {/* Axe Y avec montants */}
+                        <div className="absolute left-0 top-0 bottom-0 w-12 sm:w-16 flex flex-col justify-between items-end pr-2 text-[9px] sm:text-[10px] text-gray-500 dark:text-gray-400 pointer-events-none">
+                          <div>{currency(categoryMax)}</div>
+                          <div>{currency(categoryMax * 0.75)}</div>
+                          <div>{currency(categoryMax * 0.5)}</div>
+                          <div>{currency(categoryMax * 0.25)}</div>
+                          <div>0€</div>
+                        </div>
+                        <div className="flex items-end gap-1 sm:gap-2 ml-12 sm:ml-16 flex-1">
+                          {categoryData.months.map((monthData, idx) => {
+                            const height = categoryMax > 0 ? (monthData.total / categoryMax) * 100 : 0;
+                            return (
+                              <div key={idx} className="flex flex-col items-center flex-shrink-0 relative" style={{ minWidth: 'clamp(30px, calc((100% - 1rem) / 12), 60px)', width: 'auto' }}>
+                                {/* Montant au-dessus de la barre */}
+                                {monthData.total > 0 && (
+                                  <div className="absolute bottom-full mb-1 text-[8px] sm:text-[9px] font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap pointer-events-none">
+                                    {currency(monthData.total)}
+                                  </div>
+                                )}
+                                <div
+                                  className={`w-full rounded-t transition-all duration-300 cursor-pointer relative group ${
+                                    monthData.total > 0
+                                      ? 'bg-blue-500 dark:bg-blue-400 hover:bg-blue-600 dark:hover:bg-blue-500'
+                                      : 'bg-gray-200 dark:bg-gray-700'
+                                  }`}
+                                  style={{ height: `${Math.max(height, 2)}%`, minHeight: '2px' }}
+                                  title={`${monthData.month}: ${currency(monthData.total)}`}
+                                >
+                                  {/* Tooltip au survol */}
+                                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                    {currency(monthData.total)}
+                                  </div>
+                                </div>
+                                <div className="text-[9px] sm:text-[10px] md:text-xs text-gray-500 dark:text-gray-400 mt-1 whitespace-nowrap truncate max-w-full">
+                                  {monthData.month.substring(0, 3)}
+                                </div>
                               </div>
-                            </div>
-                          );
-                        })}
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
                   </div>

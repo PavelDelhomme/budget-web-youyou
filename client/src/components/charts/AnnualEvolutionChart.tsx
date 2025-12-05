@@ -148,8 +148,17 @@ export function AnnualEvolutionChart({ historicalData, globalData }: AnnualEvolu
       </h3>
       
       <div className="w-full overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
-        <div className="min-w-full">
-          <div className="flex items-end gap-2 sm:gap-3 md:gap-4 h-64 sm:h-72 md:h-80">
+        <div className="min-w-full relative">
+          {/* Axe Y avec montants */}
+          <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-20 flex flex-col justify-between items-end pr-2 text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 pointer-events-none z-0">
+            <div className="font-medium">{currency(maxValue)}</div>
+            <div>{currency(maxValue * 0.75)}</div>
+            <div>{currency(maxValue * 0.5)}</div>
+            <div>{currency(maxValue * 0.25)}</div>
+            <div>0€</div>
+          </div>
+          
+          <div className="flex items-end gap-2 sm:gap-3 md:gap-4 h-64 sm:h-72 md:h-80 ml-16 sm:ml-20">
             {annualData.map((data, idx) => {
               const incomeHeight = maxValue > 0 ? (data.income / maxValue) * 100 : 0;
               const expenseHeight = maxValue > 0 ? (data.expenses / maxValue) * 100 : 0;
@@ -159,8 +168,20 @@ export function AnnualEvolutionChart({ historicalData, globalData }: AnnualEvolu
                   key={data.year}
                   className="flex-1 flex items-end justify-center gap-1 sm:gap-2 min-w-[60px] sm:min-w-[80px]"
                 >
-                  <div className="flex flex-col items-center gap-1 flex-1">
-                    <div className="flex flex-col items-center w-full gap-1">
+                  <div className="flex flex-col items-center gap-1 flex-1 w-full">
+                    <div className="flex flex-col items-center w-full gap-1 relative">
+                      {/* Montants au-dessus des barres */}
+                      {data.income > 0 && (
+                        <div className="absolute bottom-full mb-1 text-[9px] sm:text-[10px] font-semibold text-green-700 dark:text-green-300 whitespace-nowrap pointer-events-none">
+                          {currency(data.income)}
+                        </div>
+                      )}
+                      {data.expenses > 0 && (
+                        <div className="absolute top-full mt-1 text-[9px] sm:text-[10px] font-semibold text-red-700 dark:text-red-300 whitespace-nowrap pointer-events-none">
+                          {currency(data.expenses)}
+                        </div>
+                      )}
+                      
                       {/* Revenus (barre verte) */}
                       <div
                         className="w-full rounded-t bg-green-500 dark:bg-green-400 hover:bg-green-600 dark:hover:bg-green-500 transition-all duration-300 cursor-pointer relative group"
@@ -168,7 +189,7 @@ export function AnnualEvolutionChart({ historicalData, globalData }: AnnualEvolu
                         title={`${data.year} - Revenus: ${currency(data.income)}`}
                       >
                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                          {currency(data.income)}
+                          Revenus: {currency(data.income)}
                         </div>
                       </div>
                       
@@ -179,7 +200,7 @@ export function AnnualEvolutionChart({ historicalData, globalData }: AnnualEvolu
                         title={`${data.year} - Dépenses: ${currency(data.expenses)}`}
                       >
                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                          {currency(data.expenses)}
+                          Dépenses: {currency(data.expenses)}
                         </div>
                       </div>
                     </div>
@@ -191,7 +212,7 @@ export function AnnualEvolutionChart({ historicalData, globalData }: AnnualEvolu
                     
                     {/* Épargne */}
                     <div
-                      className={`text-[9px] sm:text-[10px] mt-1 ${
+                      className={`text-[9px] sm:text-[10px] mt-1 font-semibold ${
                         data.savings >= 0
                           ? 'text-green-600 dark:text-green-400'
                           : 'text-red-600 dark:text-red-400'

@@ -1,52 +1,254 @@
 {
   "years": [
-    2025,
-    2026
+    2024,
+    2025
   ],
   "datasets": {
     "2025": {
       "categories": [
         {
-          "id": "achats",
-          "name": "Achats & Loisirs",
-          "target": 0.0,
-          "monthlyTargets": null
+          "id": "cat_1",
+          "name": "Alimentation",
+          "target": 137.7,
+          "monthlyTargets": [
+            137.7,
+            137.7,
+            137.7,
+            137.7,
+            137.7,
+            137.7,
+            137.7,
+            137.7,
+            137.7,
+            137.7,
+            137.7,
+            137.7
+          ]
         },
         {
-          "id": "alimentation",
-          "name": "Alimentation",
-          "target": 0.0,
-          "monthlyTargets": null
+          "id": "cat_2",
+          "name": "Transport",
+          "target": 91.8,
+          "monthlyTargets": [
+            91.8,
+            91.8,
+            91.8,
+            91.8,
+            91.8,
+            91.8,
+            91.8,
+            91.8,
+            91.8,
+            91.8,
+            91.8,
+            91.8
+          ]
+        },
+        {
+          "id": "cat_3",
+          "name": "Logement",
+          "target": 229.5,
+          "monthlyTargets": [
+            229.5,
+            229.5,
+            229.5,
+            229.5,
+            229.5,
+            229.5,
+            229.5,
+            229.5,
+            229.5,
+            229.5,
+            229.5,
+            229.5
+          ]
+        },
+        {
+          "id": "cat_4",
+          "name": "Santé",
+          "target": 38.25,
+          "monthlyTargets": [
+            38.25,
+            38.25,
+            38.25,
+            38.25,
+            38.25,
+            38.25,
+            38.25,
+            38.25,
+            38.25,
+            38.25,
+            38.25,
+            38.25
+          ]
+        },
+        {
+          "id": "cat_5",
+          "name": "Loisirs",
+          "target": 61.2,
+          "monthlyTargets": [
+            61.2,
+            61.2,
+            61.2,
+            61.2,
+            61.2,
+            61.2,
+            61.2,
+            61.2,
+            61.2,
+            61.2,
+            61.2,
+            61.2
+          ]
+        },
+        {
+          "id": "cat_6",
+          "name": "Télécommunications",
+          "target": 22.95,
+          "monthlyTargets": [
+            22.95,
+            22.95,
+            22.95,
+            22.95,
+            22.95,
+            22.95,
+            22.95,
+            22.95,
+            22.95,
+            22.95,
+            22.95,
+            22.95
+          ]
+        },
+        {
+          "id": "cat_7",
+          "name": "Assurance",
+          "target": 38.25,
+          "monthlyTargets": [
+            38.25,
+            38.25,
+            38.25,
+            38.25,
+            38.25,
+            38.25,
+            38.25,
+            38.25,
+            38.25,
+            38.25,
+            38.25,
+            38.25
+          ]
+        },
+        {
+          "id": "cat_8",
+          "name": "Habillement",
+          "target": 30.6,
+          "monthlyTargets": [
+            30.6,
+            30.6,
+            30.6,
+            30.6,
+            30.6,
+            30.6,
+            30.6,
+            30.6,
+            30.6,
+            30.6,
+            30.6,
+            30.6
+          ]
+        },
+        {
+          "id": "cat_9",
+          "name": "Divers",
+          "target": 114.75,
+          "monthlyTargets": [
+            114.75,
+            114.75,
+            114.75,
+            114.75,
+            114.75,
+            114.75,
+            114.75,
+            114.75,
+            114.75,
+            114.75,
+            114.75,
+            114.75
+          ]
         }
       ],
-      "expenses": [],
+      "expenses": [
+        {
+          "id": "exp_1",
+          "amount": 12.15,
+          "date": "2025-02-01",
+          "categoryId": "cat_4",
+          "note": "",
+          "share": null
+        },
+        {
+          "id": "exp_2",
+          "amount": 23.58,
+          "date": "2025-08-18",
+          "categoryId": "cat_2",
+          "note": "",
+          "share": null
+        },
+        {
+          "id": "exp_3",
+          "amount": 26.27,
+          "date": "2025-08-01",
+          "categoryId": "cat_9",
+          "note": "",
+          "share": null
+        },
+        {
+          "id": "exp_4",
+          "amount": 23.25,
+          "date": "2025-12-15",
+          "categoryId": "cat_9",
+          "note": "",
+          "share": null
+        },
+        {
+          "id": "exp_5",
+          "amount": 31.4,
+          "date": "2025-01-21",
+          "categoryId": "cat_2",
+          "note": "",
+          "share": null
+        }
+      ],
       "subs": [],
       "annualFixedExpenses": [],
-      "monthlySalary": 0.0,
+      "monthlySalary": 900.0,
       "currentSavings": 0.0,
       "additionalMonthlyIncomes": [],
       "savingsTransactions": []
     }
   },
   "globalData": {
-    "bankAccounts": [],
+    "bankAccounts": [
+      {
+        "id": "fc9fa003-0526-4860-8f2b-f26edf11bca5",
+        "name": "Compte principal",
+        "balance": 0,
+        "type": "checking",
+        "isShared": false,
+        "sharedWith": ""
+      }
+    ],
     "investments": [],
     "savingsGoals": [],
     "savingsProjects": [],
     "temporaryIncomes": [],
     "sharedExpensePersons": [],
     "personTransactions": [],
-    "salaryHistory": [
-      {
-        "id": "a7a324b6-9f5e-41ac-a152-82b4e32d5f53",
-        "amount": 900,
-        "startDate": "2025-09-01",
-        "type": "unemployment"
-      }
-    ],
+    "salaryHistory": [],
     "initializationComplete": true,
-    "monthlySalary": 0,
-    "monthlySalaryStartDate": null,
+    "monthlySalary": 900.0,
+    "monthlySalaryStartDate": "2025-12-05",
     "lockedYears": [],
     "excludedPredictedYears": [],
     "maxPredictedYears": 3,
