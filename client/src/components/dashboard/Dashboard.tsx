@@ -8,7 +8,6 @@ import { analyzeBudget } from '../../lib/utils/budgetAnalyzer';
 import { ExpensesPieChart } from '../charts/ExpensesPieChart';
 import { MonthlyExpensesIncomeChart } from '../charts/MonthlyExpensesIncomeChart';
 import { AnnualEvolutionChart } from '../charts/AnnualEvolutionChart';
-import { AnnualChartVariantsShowcase } from '../charts/annual/AnnualChartVariantsShowcase';
 
 interface DashboardProps {
   currentYear: number;
@@ -963,11 +962,13 @@ export function Dashboard({
         </div>
       </div>
 
-      {/* Annual Evolution Chart - Showcase des 5 variantes */}
-      <AnnualChartVariantsShowcase
-        historicalData={historicalArray.length > 0 ? historicalArray : []}
-        globalData={globalData || undefined}
-      />
+      {/* Annual Evolution Chart */}
+      {historicalArray.length > 0 && (
+        <AnnualEvolutionChart
+          historicalData={historicalArray}
+          globalData={globalData || undefined}
+        />
+      )}
     </div>
   );
 }
