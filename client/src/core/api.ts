@@ -26,13 +26,22 @@ async function api(path: string, opts: RequestInit = {}, silent: boolean = false
     
     if (!res.ok) {
       // For 401 errors, always treat them as silent to avoid console pollution
-      // It's normal if user is not authenticated
+      // It's normal if user is not authenticated (especially at startup)
       if (res.status === 401) {
-        // Si c'est une requête qui nécessite une authentification, signaler que la session a expiré
         const error = new Error('Not authenticated');
         (error as any).status = 401;
         (error as any).silent = true;
         (error as any).sessionExpired = true;
+        (error as any).expected = true; // Mark as expected error (user not logged in)
+        throw error;
+      }
+      
+      // For 404 errors on endpoints that might not exist (like fiscal endpoints)
+      // Don't log them as errors if they're expected
+      if (res.status === 404) {
+        const error = new Error(`Endpoint not found: ${path}`);
+        (error as any).status = 404;
+        (error as any).silent = silent; // Only silent if requested
         throw error;
       }
       

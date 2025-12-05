@@ -31,6 +31,17 @@ const IGNORED_ERRORS = [
   'overrideMethod',
   'failed to connect',
   'connection failed',
+  'session-check',
+  'session check',
+  'could not load years',
+  'could not load global',
+  'could not load year data',
+  'get?year=',
+  'api/years',
+  'api/global',
+  'api/get',
+  'api/fiscal',
+  'uauthenticated', // Typo possible
 ];
 
 // Fonction pour vérifier si une erreur doit être ignorée
