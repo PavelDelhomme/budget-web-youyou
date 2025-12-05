@@ -142,15 +142,13 @@ export function AnnualEvolutionChart({ historicalData, globalData }: AnnualEvolu
   // Arrondir intelligemment le maxValue pour une meilleure lisibilité
   // Ex: 108000 -> 120000, 15000 -> 20000, etc.
   const roundToNiceNumber = (value: number): number => {
-    if (value <= 0) return 1;
-    const order = Math.pow(10, Math.floor(Math.log10(value)));
-    const normalized = value / order;
-    let rounded;
-    if (normalized <= 1) rounded = 1;
-    else if (normalized <= 2) rounded = 2;
-    else if (normalized <= 5) rounded = 5;
-    else rounded = 10;
-    return rounded * order * 1.1; // Ajouter 10% de marge
+    if (value <= 0) return 1000;
+    if (value < 1000) return Math.ceil(value / 100) * 100;
+    if (value < 10000) return Math.ceil(value / 1000) * 1000;
+    if (value < 100000) return Math.ceil(value / 10000) * 10000;
+    // Pour les valeurs >= 100000 (comme 108000), arrondir à la dizaine de milliers supérieure avec marge
+    // Ex: 108000 -> Math.ceil(108000/10000) = 11 -> 11*10000 = 110000 (au lieu de 120000)
+    return Math.ceil(value / 10000) * 10000 + 10000; // Ajouter une marge supplémentaire
   };
   
   const maxValue = roundToNiceNumber(rawMaxValue);
@@ -186,47 +184,52 @@ export function AnnualEvolutionChart({ historicalData, globalData }: AnnualEvolu
                   className="flex items-end justify-center gap-1 sm:gap-2 min-w-[80px] sm:min-w-[100px] md:min-w-[120px]"
                 >
                   <div className="flex flex-col items-center gap-1 w-full">
-                    {/* Container pour les barres côte à côte collées */}
-                    <div className="flex items-end justify-center w-full relative" style={{ gap: '0px' }}>
+                    {/* Container pour les barres côte à côte collées - structure simplifiée */}
+                    <div className="relative w-full" style={{ height: '100%' }}>
                       {/* Montants au-dessus des barres */}
                       {data.income > 0 && (
-                        <div className="absolute bottom-full mb-1 left-0 text-[9px] sm:text-[10px] font-semibold text-green-700 dark:text-green-300 whitespace-nowrap pointer-events-none">
+                        <div className="absolute bottom-full mb-1 left-0 text-[9px] sm:text-[10px] font-semibold text-green-700 dark:text-green-300 whitespace-nowrap pointer-events-none z-20">
                           {currency(data.income)}
                         </div>
                       )}
                       {data.expenses > 0 && (
-                        <div className="absolute bottom-full mb-1 right-0 text-[9px] sm:text-[10px] font-semibold text-red-700 dark:text-red-300 whitespace-nowrap pointer-events-none">
+                        <div className="absolute bottom-full mb-1 right-0 text-[9px] sm:text-[10px] font-semibold text-red-700 dark:text-red-300 whitespace-nowrap pointer-events-none z-20">
                           {currency(data.expenses)}
                         </div>
                       )}
                       
-                      {/* Revenus (barre verte) - côte à côte avec dépenses */}
-                      <div
-                        className="flex-1 rounded-t-l bg-green-500 dark:bg-green-400 hover:bg-green-600 dark:hover:bg-green-500 transition-all duration-300 cursor-pointer relative group"
-                        style={{ 
-                          height: `${Math.max(incomeHeight, 2)}%`, 
-                          minHeight: '2px',
-                          maxWidth: '50%'
-                        }}
-                        title={`${data.year} - Revenus: ${currency(data.income)}`}
-                      >
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                          Revenus: {currency(data.income)}
+                      {/* Container pour les deux barres collées */}
+                      <div className="flex items-end w-full" style={{ gap: '0px', height: '100%' }}>
+                        {/* Revenus (barre verte) - 50% de largeur */}
+                        <div
+                          className="bg-green-500 dark:bg-green-400 hover:bg-green-600 dark:hover:bg-green-500 transition-all duration-300 cursor-pointer relative group"
+                          style={{ 
+                            height: `${Math.max(incomeHeight, 2)}%`, 
+                            minHeight: '2px',
+                            width: '50%',
+                            borderRadius: '4px 0 0 0'
+                          }}
+                          title={`${data.year} - Revenus: ${currency(data.income)}`}
+                        >
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                            Revenus: {currency(data.income)}
+                          </div>
                         </div>
-                      </div>
-                      
-                      {/* Dépenses (barre rouge) - côte à côte avec revenus */}
-                      <div
-                        className="flex-1 rounded-t-r bg-red-500 dark:bg-red-400 hover:bg-red-600 dark:hover:bg-red-500 transition-all duration-300 cursor-pointer relative group"
-                        style={{ 
-                          height: `${Math.max(expenseHeight, 2)}%`, 
-                          minHeight: '2px',
-                          maxWidth: '50%'
-                        }}
-                        title={`${data.year} - Dépenses: ${currency(data.expenses)}`}
-                      >
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                          Dépenses: {currency(data.expenses)}
+                        
+                        {/* Dépenses (barre rouge) - 50% de largeur */}
+                        <div
+                          className="bg-red-500 dark:bg-red-400 hover:bg-red-600 dark:hover:bg-red-500 transition-all duration-300 cursor-pointer relative group"
+                          style={{ 
+                            height: `${Math.max(expenseHeight, 2)}%`, 
+                            minHeight: '2px',
+                            width: '50%',
+                            borderRadius: '0 4px 0 0'
+                          }}
+                          title={`${data.year} - Dépenses: ${currency(data.expenses)}`}
+                        >
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                            Dépenses: {currency(data.expenses)}
+                          </div>
                         </div>
                       </div>
                     </div>
