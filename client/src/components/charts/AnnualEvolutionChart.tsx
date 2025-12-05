@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { YearData } from '../../core/types';
 import { currency } from '../../lib/utils';
 import { calculateAnnualIncomeFromSalaryHistory, getActiveSalaryForYear } from '../../lib/utils/salaryHistory';
@@ -10,9 +10,10 @@ interface AnnualEvolutionChartProps {
     temporaryIncomes?: Array<{ amount: number; startDate: string; endDate?: string; duration: string }>;
     salaryHistory?: Array<{ id: string; amount: number; startDate: string; endDate?: string; type: string }>;
   };
+  height?: number;
 }
 
-export function AnnualEvolutionChart({ historicalData, globalData }: AnnualEvolutionChartProps) {
+export function AnnualEvolutionChart({ historicalData, globalData, height = 400 }: AnnualEvolutionChartProps) {
   // Calculate annual income and expenses for each year
   const annualData = useMemo(() => {
     // Filtrer les années invalides (< 2000 ou > 2100)
@@ -140,145 +141,318 @@ export function AnnualEvolutionChart({ historicalData, globalData }: AnnualEvolu
   );
   
   // Arrondir intelligemment le maxValue pour une meilleure lisibilité
-  // Ex: 108000 -> 120000, 15000 -> 20000, etc.
   const roundToNiceNumber = (value: number): number => {
     if (value <= 0) return 1000;
     if (value < 1000) return Math.ceil(value / 100) * 100;
     if (value < 10000) return Math.ceil(value / 1000) * 1000;
     if (value < 100000) return Math.ceil(value / 10000) * 10000;
     // Pour les valeurs >= 100000 (comme 108000), arrondir à la dizaine de milliers supérieure avec marge
-    // Ex: 108000 -> Math.ceil(108000/10000) = 11 -> 11*10000 = 110000 (au lieu de 120000)
-    return Math.ceil(value / 10000) * 10000 + 10000; // Ajouter une marge supplémentaire
+    return Math.ceil(value / 10000) * 10000 + 10000;
   };
   
   const maxValue = roundToNiceNumber(rawMaxValue);
+
+  // Responsive dimensions
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
   
-  const minYear = Math.min(...annualData.map(d => d.year));
-  const maxYear = Math.max(...annualData.map(d => d.year));
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const handleResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setWindowWidth(window.innerWidth);
+      }, 150);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  const isMobile = windowWidth < 640;
+  const isTablet = windowWidth >= 640 && windowWidth < 1024;
   
+  // Barres plus larges pour meilleure lisibilité
+  const barWidth = isMobile ? 28 : isTablet ? 32 : 40;
+  const spacing = isMobile ? 10 : isTablet ? 12 : 16;
+  
+  // Calculer la largeur minimale du graphique
+  const minChartWidth = isMobile ? Math.max(windowWidth - 80, 600) : isTablet ? 900 : 1200;
+  // Calculer la largeur nécessaire pour toutes les années
+  const requiredWidth = annualData.length * (barWidth * 2 + spacing);
+  const chartWidth = Math.max(requiredWidth, minChartWidth);
+  
+  // Padding plus important en haut pour les montants au-dessus des barres
+  const bottomPadding = isMobile ? 50 : isTablet ? 55 : 60;
+  const topPadding = isMobile ? 60 : isTablet ? 60 : 65;
+  const leftPadding = isMobile ? 50 : isTablet ? 50 : 55;
+  const rightPadding = isMobile ? 20 : isTablet ? 20 : 25;
+  const chartHeight = (isMobile ? height - 140 : isTablet ? height - 120 : height - 100);
+  const responsiveHeight = isMobile ? Math.max(height + 60, 340) : isTablet ? Math.max(height + 50, 390) : height + 80;
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-5 md:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
-      <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-5 text-gray-900 dark:text-white">
+      <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-5 px-2 sm:px-0">
         📈 Évolution des dépenses et revenus par année
       </h3>
       
-      <div className="w-full overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
-        <div className="min-w-full relative">
-          {/* Axe Y avec montants */}
-          <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-20 flex flex-col justify-between items-end pr-2 text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 pointer-events-none z-0">
-            <div className="font-medium">{currency(maxValue)}</div>
-            <div>{currency(maxValue * 0.75)}</div>
-            <div>{currency(maxValue * 0.5)}</div>
-            <div>{currency(maxValue * 0.25)}</div>
-            <div>0€</div>
-          </div>
-          
-          <div className="flex items-end gap-2 sm:gap-3 md:gap-4 h-64 sm:h-72 md:h-80 ml-16 sm:ml-20 relative">
-            {/* Lignes de grille horizontales pour alignement */}
-            {[0, 0.25, 0.5, 0.75, 1].map((ratio) => (
-              <div
-                key={ratio}
-                className="absolute left-0 right-0 border-t border-dashed border-gray-200 dark:border-gray-700 pointer-events-none z-0"
-                style={{
-                  bottom: `${ratio * 100}%`,
-                }}
-              />
-            ))}
-            {annualData.map((data, idx) => {
-              const incomeHeight = maxValue > 0 ? (data.income / maxValue) * 100 : 0;
-              const expenseHeight = maxValue > 0 ? (data.expenses / maxValue) * 100 : 0;
-              
+      {/* Container avec axe Y fixe et scroll horizontal uniquement sur les barres */}
+      <div className="relative w-full" style={{ minHeight: '300px' }}>
+        {/* Axe Y fixe (gauche) */}
+        <div 
+          className="absolute left-0 top-0 bottom-0 z-10 bg-white dark:bg-gray-800"
+          style={{ width: leftPadding, paddingTop: topPadding, paddingBottom: bottomPadding }}
+        >
+          <svg 
+            width={leftPadding}
+            height={responsiveHeight}
+            viewBox={`0 0 ${leftPadding} ${responsiveHeight}`}
+            className="block"
+            style={{ position: 'sticky', top: 0 }}
+          >
+            {/* Ligne axe Y */}
+            <line
+              x1={leftPadding - 1}
+              y1={topPadding}
+              x2={leftPadding - 1}
+              y2={chartHeight + topPadding}
+              stroke="currentColor"
+              strokeWidth="2"
+              className="text-gray-400 dark:text-gray-500"
+            />
+            {/* Labels de l'axe Y */}
+            {[0, 0.25, 0.5, 0.75, 1].map(ratio => {
+              const y = topPadding + chartHeight * (1 - ratio);
               return (
-                <div
-                  key={data.year}
-                  className="flex items-end justify-center gap-1 sm:gap-2 min-w-[80px] sm:min-w-[100px] md:min-w-[120px] relative z-10"
+                <text
+                  key={ratio}
+                  x={leftPadding - (isMobile ? 5 : 10)}
+                  y={y + 4}
+                  textAnchor="end"
+                  className={`${isMobile ? 'text-[10px]' : 'text-xs'} fill-gray-500 dark:fill-gray-400`}
                 >
-                  <div className="flex flex-col items-center gap-1 w-full">
-                    {/* Container pour les barres côte à côte collées - structure simplifiée */}
-                    <div className="relative w-full" style={{ height: '100%' }}>
-                      {/* Montants au-dessus des barres */}
+                  {currency(maxValue * ratio)}
+                </text>
+              );
+            })}
+          </svg>
+        </div>
+
+        {/* Zone scrollable avec les barres */}
+        <div 
+          className="overflow-x-auto w-full"
+          style={{ 
+            marginLeft: leftPadding,
+            scrollbarWidth: 'thin',
+            WebkitOverflowScrolling: 'touch',
+            scrollBehavior: 'smooth',
+            paddingLeft: '1px'
+          }}
+        >
+          <div className="inline-block" style={{ minWidth: chartWidth + rightPadding }}>
+            <svg 
+              width={chartWidth + rightPadding}
+              height={responsiveHeight}
+              viewBox={`0 0 ${chartWidth + rightPadding} ${responsiveHeight}`}
+              preserveAspectRatio="xMinYMin meet"
+              className="block"
+              style={{ 
+                minWidth: chartWidth + rightPadding,
+                maxWidth: 'none',
+                display: 'block'
+              }}
+            >
+              {/* Ligne axe X */}
+              <line
+                x1={0}
+                y1={chartHeight + topPadding}
+                x2={chartWidth}
+                y2={chartHeight + topPadding}
+                stroke="currentColor"
+                strokeWidth="2"
+                className="text-gray-400 dark:text-gray-500"
+              />
+
+              {/* Lignes de grille horizontales */}
+              {[0, 0.25, 0.5, 0.75, 1].map(ratio => {
+                const y = topPadding + chartHeight * (1 - ratio);
+                return (
+                  <line
+                    key={ratio}
+                    x1={0}
+                    y1={y}
+                    x2={chartWidth}
+                    y2={y}
+                    stroke="currentColor"
+                    strokeWidth="1"
+                    strokeDasharray="4 4"
+                    className="text-gray-200 dark:text-gray-700"
+                  />
+                );
+              })}
+
+              {/* Barres avec montants affichés et tooltip amélioré */}
+              {annualData.map((data, index) => {
+                const x = index * (barWidth * 2 + spacing);
+                const incomeHeight = (data.income / maxValue) * chartHeight;
+                const expensesHeight = (data.expenses / maxValue) * chartHeight;
+                const incomeY = topPadding + chartHeight - incomeHeight;
+                const expensesY = topPadding + chartHeight - expensesHeight;
+
+                return (
+                  <g key={data.year}>
+                    {/* Income bar */}
+                    <g className="group">
+                      <rect
+                        x={x}
+                        y={incomeY}
+                        width={barWidth}
+                        height={incomeHeight}
+                        fill="#10B981"
+                        className="hover:opacity-80 transition-opacity cursor-pointer"
+                        rx="2"
+                      >
+                        <title>
+                          {data.year} - Revenus: {currency(data.income)}
+                        </title>
+                      </rect>
+                      
+                      {/* Montant au-dessus de la barre de revenus */}
                       {data.income > 0 && (
-                        <div className="absolute bottom-full mb-1 left-0 text-[9px] sm:text-[10px] font-semibold text-green-700 dark:text-green-300 whitespace-nowrap pointer-events-none z-20">
+                        <text
+                          x={x + barWidth / 2}
+                          y={incomeY - 5}
+                          textAnchor="middle"
+                          className={`${isMobile ? 'text-[9px]' : isTablet ? 'text-[10px]' : 'text-xs'} font-semibold fill-green-700 dark:fill-green-300 pointer-events-none`}
+                        >
                           {currency(data.income)}
-                        </div>
-                      )}
-                      {data.expenses > 0 && (
-                        <div className="absolute bottom-full mb-1 right-0 text-[9px] sm:text-[10px] font-semibold text-red-700 dark:text-red-300 whitespace-nowrap pointer-events-none z-20">
-                          {currency(data.expenses)}
-                        </div>
+                        </text>
                       )}
                       
-                      {/* Container pour les deux barres collées */}
-                      <div className="flex items-end w-full" style={{ gap: '0px', height: '100%' }}>
-                        {/* Revenus (barre verte) - 50% de largeur */}
-                        <div
-                          className="bg-green-500 dark:bg-green-400 hover:bg-green-600 dark:hover:bg-green-500 transition-all duration-300 cursor-pointer relative group"
-                          style={{ 
-                            height: `${Math.max(incomeHeight, 2)}%`, 
-                            minHeight: '2px',
-                            width: '50%',
-                            borderRadius: '4px 0 0 0'
-                          }}
-                          title={`${data.year} - Revenus: ${currency(data.income)}`}
+                      {/* Tooltip au survol */}
+                      <g className="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                        <rect
+                          x={x + barWidth / 2 - 40}
+                          y={incomeY - 30}
+                          width={80}
+                          height={20}
+                          fill="rgba(0, 0, 0, 0.8)"
+                          rx="4"
+                          className="dark:fill-gray-100"
+                        />
+                        <text
+                          x={x + barWidth / 2}
+                          y={incomeY - 15}
+                          textAnchor="middle"
+                          className="text-[10px] fill-white dark:fill-gray-900 font-semibold"
                         >
-                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                            Revenus: {currency(data.income)}
-                          </div>
-                        </div>
-                        
-                        {/* Dépenses (barre rouge) - 50% de largeur */}
-                        <div
-                          className="bg-red-500 dark:bg-red-400 hover:bg-red-600 dark:hover:bg-red-500 transition-all duration-300 cursor-pointer relative group"
-                          style={{ 
-                            height: `${Math.max(expenseHeight, 2)}%`, 
-                            minHeight: '2px',
-                            width: '50%',
-                            borderRadius: '0 4px 0 0'
-                          }}
-                          title={`${data.year} - Dépenses: ${currency(data.expenses)}`}
+                          Revenus: {currency(data.income)}
+                        </text>
+                      </g>
+                    </g>
+
+                    {/* Expenses bar */}
+                    <g className="group">
+                      <rect
+                        x={x + barWidth}
+                        y={expensesY}
+                        width={barWidth}
+                        height={expensesHeight}
+                        fill="#EF4444"
+                        className="hover:opacity-80 transition-opacity cursor-pointer"
+                        rx="2"
+                      >
+                        <title>
+                          {data.year} - Dépenses: {currency(data.expenses)}
+                        </title>
+                      </rect>
+                      
+                      {/* Montant au-dessus de la barre de dépenses */}
+                      {data.expenses > 0 && (
+                        <text
+                          x={x + barWidth + barWidth / 2}
+                          y={expensesY - 5}
+                          textAnchor="middle"
+                          className={`${isMobile ? 'text-[9px]' : isTablet ? 'text-[10px]' : 'text-xs'} font-semibold fill-red-700 dark:fill-red-300 pointer-events-none`}
                         >
-                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                            Dépenses: {currency(data.expenses)}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Label année */}
-                    <div className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mt-2">
+                          {currency(data.expenses)}
+                        </text>
+                      )}
+                      
+                      {/* Tooltip au survol */}
+                      <g className="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                        <rect
+                          x={x + barWidth + barWidth / 2 - 40}
+                          y={expensesY - 30}
+                          width={80}
+                          height={20}
+                          fill="rgba(0, 0, 0, 0.8)"
+                          rx="4"
+                          className="dark:fill-gray-100"
+                        />
+                        <text
+                          x={x + barWidth + barWidth / 2}
+                          y={expensesY - 15}
+                          textAnchor="middle"
+                          className="text-[10px] fill-white dark:fill-gray-900 font-semibold"
+                        >
+                          Dépenses: {currency(data.expenses)}
+                        </text>
+                      </g>
+                    </g>
+
+                    {/* Year label - centré entre les deux barres */}
+                    <text
+                      x={x + barWidth + barWidth / 2}
+                      y={chartHeight + topPadding + (isMobile ? 25 : isTablet ? 30 : 35)}
+                      textAnchor="middle"
+                      className={`${isMobile ? 'text-xs' : isTablet ? 'text-sm' : 'text-base'} font-semibold fill-gray-700 dark:fill-gray-300`}
+                    >
                       {data.year}
-                    </div>
+                    </text>
                     
-                    {/* Épargne */}
-                    <div
-                      className={`text-[9px] sm:text-[10px] mt-1 font-semibold ${
+                    {/* Épargne sous l'année */}
+                    <text
+                      x={x + barWidth + barWidth / 2}
+                      y={chartHeight + topPadding + (isMobile ? 40 : isTablet ? 45 : 50)}
+                      textAnchor="middle"
+                      className={`${isMobile ? 'text-[9px]' : isTablet ? 'text-[10px]' : 'text-xs'} font-semibold ${
                         data.savings >= 0
-                          ? 'text-green-600 dark:text-green-400'
-                          : 'text-red-600 dark:text-red-400'
+                          ? 'fill-green-600 dark:fill-green-400'
+                          : 'fill-red-600 dark:fill-red-400'
                       }`}
                     >
                       {data.savings >= 0 ? '+' : ''}{currency(data.savings)}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+                    </text>
+                  </g>
+                );
+              })}
+
+              {/* Legend */}
+              <g transform={`translate(${chartWidth - (isMobile ? 100 : 120)}, ${topPadding + (isMobile ? 15 : 20)})`}>
+                <rect x={0} y={0} width={isMobile ? 10 : 12} height={isMobile ? 10 : 12} fill="#10B981" rx="2" />
+                <text x={isMobile ? 14 : 18} y={isMobile ? 8 : 10} className={`${isMobile ? 'text-[10px]' : 'text-xs'} fill-gray-700 dark:fill-gray-300`}>
+                  Revenus
+                </text>
+                <rect x={isMobile ? 65 : 80} y={0} width={isMobile ? 10 : 12} height={isMobile ? 10 : 12} fill="#EF4444" rx="2" />
+                <text x={isMobile ? 79 : 98} y={isMobile ? 8 : 10} className={`${isMobile ? 'text-[10px]' : 'text-xs'} fill-gray-700 dark:fill-gray-300`}>
+                  Dépenses
+                </text>
+              </g>
+            </svg>
           </div>
         </div>
       </div>
       
-      {/* Légende */}
-      <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-green-500 dark:bg-green-400"></div>
-          <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Revenus</span>
+      {/* Indicateur de scroll sur mobile/tablet */}
+      {(isMobile || isTablet) && (
+        <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
+          ← Faites glisser pour voir toutes les années →
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-red-500 dark:bg-red-400"></div>
-          <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Dépenses</span>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
-
