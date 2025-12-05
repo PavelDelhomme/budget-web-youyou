@@ -1309,10 +1309,25 @@ function App() {
   }
 
   // UI when logged in
+  // Détecter si un modal est ouvert pour cacher le FAB
+  const isAnyModalOpen = 
+    isInitializationModalOpen ||
+    isAdvancedSignupOpen ||
+    isAddYearModalOpen ||
+    isGlobalDataManagerOpen ||
+    isRevenusManagerOpen ||
+    isMLTrainingOpen ||
+    isTaxManagerOpen ||
+    isAdvancedFiscalManagerOpen ||
+    isAdminPanelOpen ||
+    isQuickAddExpenseOpen ||
+    isQuickAddIncomeOpen;
+
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-gray-900 w-full overflow-x-hidden">
-      {/* Floating Action Button - Toujours affiché si connecté */}
+      {/* Floating Action Button - Caché si un modal est ouvert */}
       <FloatingActionButton
+        hidden={isAnyModalOpen}
         onAddExpense={() => {
           setIsQuickAddExpenseOpen(true);
         }}

@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 interface FloatingActionButtonProps {
   onAddExpense: () => void;
   onAddIncome: () => void;
+  hidden?: boolean; // Si true, cache le bouton
 }
 
 // Créer le container Portal globalement, hors du composant React
@@ -32,11 +33,23 @@ function getOrCreatePortalContainer(): HTMLDivElement {
   return container;
 }
 
-export function FloatingActionButton({ onAddExpense, onAddIncome }: FloatingActionButtonProps) {
+export function FloatingActionButton({ onAddExpense, onAddIncome, hidden = false }: FloatingActionButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [containerReady, setContainerReady] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
+
+  // Fermer le menu si le bouton est caché
+  useEffect(() => {
+    if (hidden && isOpen) {
+      setIsOpen(false);
+    }
+  }, [hidden, isOpen]);
+
+  // Ne rien rendre si le bouton est caché
+  if (hidden) {
+    return null;
+  }
 
   // Initialiser le Portal - TOUJOURS, même si React se remonte
   useEffect(() => {
