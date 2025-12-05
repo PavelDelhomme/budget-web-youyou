@@ -42,9 +42,10 @@ export function AnnualChartVariantsShowcase({ historicalData, globalData }: Annu
           {historicalData.length > 0 ? (
             <AnnualEvolutionChart historicalData={historicalData} globalData={globalData} />
           ) : (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-              <p className="text-sm">Aucune donnée historique disponible</p>
-              <p className="text-xs mt-2">Le graphique s'affichera ici une fois que vous aurez des données d'années précédentes</p>
+            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+              <div className="text-4xl mb-4">📊</div>
+              <p className="text-lg font-semibold mb-2">Variante 1 : Barres Groupées</p>
+              <p className="text-sm">Le graphique s'affichera ici une fois que vous aurez des données d'années précédentes</p>
             </div>
           )}
         </div>
