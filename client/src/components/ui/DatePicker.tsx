@@ -65,11 +65,22 @@ export function DatePicker({
     }
 
     const inputRect = inputRef.current.getBoundingClientRect();
+    const calendarHeight = 320; // Hauteur approximative du calendrier
     
-    // Positionner au-dessus de l'input
-    const top = inputRect.top + window.scrollY - 320; // 320px de hauteur pour le calendrier
+    // Positionner au-dessus de l'input avec un petit espace
+    let top = inputRect.top + window.scrollY - calendarHeight - 8; // 8px d'espace
+    
+    // Si pas assez de place au-dessus, vérifier l'espace disponible
+    const spaceAbove = inputRect.top;
+    const spaceBelow = window.innerHeight - inputRect.bottom;
+    
+    // Si pas assez de place au-dessus mais plus de place en dessous, afficher en dessous
+    if (spaceAbove < calendarHeight && spaceBelow > spaceAbove) {
+      top = inputRect.bottom + window.scrollY + 8;
+    }
+    
     const left = inputRect.left + window.scrollX;
-    const width = inputRect.width;
+    const width = Math.max(inputRect.width, 280); // Largeur minimum pour le calendrier
 
     setCalendarPosition({ top, left, width });
   };
