@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Modal } from '../layout/Modal';
 import { BankAccount, Investment, SavingsGoal, TemporaryIncome } from '../../core/types';
 import { currency, toISODate, today, parseAmount } from '../../lib/utils';
+import { DatePicker } from '../ui/DatePicker';
 
 interface InitializationModalProps {
   isOpen: boolean;
@@ -484,16 +485,15 @@ export function InitializationModal({ isOpen, onComplete, canSkip = false, initi
               />
 
               <label className="block text-sm font-medium text-gray-900 dark:text-white">Date de début d'investissement</label>
-              <input
-                type="date"
+              <DatePicker
                 value={currentInvestment.startDate}
-                onChange={(e) =>
+                onChange={(date) =>
                   setCurrentInvestment({
                     ...currentInvestment,
-                    startDate: e.target.value,
+                    startDate: date,
                   })
                 }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                placeholder="Sélectionner la date de début"
               />
 
               <button
