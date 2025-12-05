@@ -34,6 +34,7 @@ function getOrCreatePortalContainer(): HTMLDivElement {
 }
 
 export function FloatingActionButton({ onAddExpense, onAddIncome, hidden = false }: FloatingActionButtonProps) {
+  // TOUS LES HOOKS DOIVENT ÊTRE APPELÉS AVANT TOUT RETURN CONDITIONNEL
   const [isOpen, setIsOpen] = useState(false);
   const [containerReady, setContainerReady] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -46,29 +47,7 @@ export function FloatingActionButton({ onAddExpense, onAddIncome, hidden = false
     }
   }, [hidden, isOpen]);
 
-  // Cacher le container portal si le bouton est caché
-  useEffect(() => {
-    if (containerRef.current) {
-      if (hidden) {
-        containerRef.current.style.display = 'none';
-        containerRef.current.style.visibility = 'hidden';
-        containerRef.current.style.opacity = '0';
-        containerRef.current.style.pointerEvents = 'none';
-      } else {
-        containerRef.current.style.display = 'block';
-        containerRef.current.style.visibility = 'visible';
-        containerRef.current.style.opacity = '1';
-        containerRef.current.style.pointerEvents = 'auto';
-      }
-    }
-  }, [hidden]);
-
-  // Ne rien rendre si le bouton est caché
-  if (hidden) {
-    return null;
-  }
-
-  // Initialiser le Portal - TOUJOURS, même si React se remonte
+  // Initialiser le Portal - TOUJOURS appelé
   useEffect(() => {
     console.log('🔧 FloatingActionButton - Montage du composant...');
     
@@ -85,9 +64,9 @@ export function FloatingActionButton({ onAddExpense, onAddIncome, hidden = false
         
         // Forcer les styles
         container.style.pointerEvents = 'auto';
-        container.style.display = 'block';
-        container.style.visibility = 'visible';
-        container.style.opacity = '1';
+        container.style.display = hidden ? 'none' : 'block';
+        container.style.visibility = hidden ? 'hidden' : 'visible';
+        container.style.opacity = hidden ? '0' : '1';
         
         console.log('✅ Container Portal prêt !', container);
         return true;
@@ -133,9 +112,26 @@ export function FloatingActionButton({ onAddExpense, onAddIncome, hidden = false
     };
   }, []); // Une seule fois
 
+  // Cacher/afficher le container portal selon l'état hidden
+  useEffect(() => {
+    if (!containerRef.current) return;
+    
+    if (hidden) {
+      containerRef.current.style.display = 'none';
+      containerRef.current.style.visibility = 'hidden';
+      containerRef.current.style.opacity = '0';
+      containerRef.current.style.pointerEvents = 'none';
+    } else {
+      containerRef.current.style.display = 'block';
+      containerRef.current.style.visibility = 'visible';
+      containerRef.current.style.opacity = '1';
+      containerRef.current.style.pointerEvents = 'auto';
+    }
+  }, [hidden, containerReady]);
+
   // Vérification périodique de visibilité
   useEffect(() => {
-    if (!containerReady) return;
+    if (!containerReady || hidden) return;
     
     const checkVisibility = () => {
       const container = containerRef.current;
@@ -151,17 +147,19 @@ export function FloatingActionButton({ onAddExpense, onAddIncome, hidden = false
         return;
       }
       
-      // Forcer la visibilité
-      container.style.cssText = `
-        position: fixed !important;
-        bottom: 24px !important;
-        right: 24px !important;
-        z-index: 999999 !important;
-        pointer-events: auto !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        display: block !important;
-      `;
+      // Forcer la visibilité seulement si pas caché
+      if (!hidden) {
+        container.style.cssText = `
+          position: fixed !important;
+          bottom: 24px !important;
+          right: 24px !important;
+          z-index: 999999 !important;
+          pointer-events: auto !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          display: block !important;
+        `;
+      }
       
       if (button) {
         const buttonRect = button.getBoundingClientRect();
@@ -187,7 +185,12 @@ export function FloatingActionButton({ onAddExpense, onAddIncome, hidden = false
       timeouts.forEach(clearTimeout);
       clearInterval(interval);
     };
-  }, [containerReady]);
+  }, [containerReady, hidden]);
+
+  // Ne rien rendre si le bouton est caché (APRÈS tous les hooks)
+  if (hidden) {
+    return null;
+  }
 
   // Si le container n'est pas prêt, essayer de le créer immédiatement
   if (!containerReady || !containerRef.current) {
@@ -400,5 +403,9 @@ export function FloatingActionButton({ onAddExpense, onAddIncome, hidden = false
   );
 
   // Utiliser createPortal pour rendre directement dans le body
+  if (!containerRef.current) {
+    return null;
+  }
+  
   return createPortal(buttonContent, containerRef.current);
 }
