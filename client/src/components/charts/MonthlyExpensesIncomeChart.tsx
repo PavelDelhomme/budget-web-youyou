@@ -233,7 +233,7 @@ export function MonthlyExpensesIncomeChart({
   const requiredWidth = 12 * (barWidth * 2 + spacing);
   const chartWidth = Math.max(requiredWidth, minChartWidth);
   // Padding plus important en haut pour les montants au-dessus des barres
-  const bottomPadding = isMobile ? 50 : isTablet ? 55 : 60;
+  const bottomPadding = isMobile ? 50 : isTablet ? 55 : 60; // Espace pour les labels des mois sous l'axe X
   const topPadding = isMobile ? 60 : isTablet ? 60 : 65; // Augmenté pour laisser place aux montants
   const leftPadding = isMobile ? 50 : isTablet ? 50 : 55;
   const rightPadding = isMobile ? 20 : isTablet ? 20 : 25;
@@ -454,12 +454,13 @@ export function MonthlyExpensesIncomeChart({
                       </g>
                     </g>
 
-                    {/* Month label - centré entre les deux barres */}
+                    {/* Month label - centré entre les deux barres, aligné sur l'axe X (niveau 0) */}
                     <text
                       x={x + barWidth + barWidth / 2}
-                      y={chartHeight + topPadding + (isMobile ? 25 : isTablet ? 30 : 35)}
+                      y={chartHeight + topPadding + 18}
                       textAnchor="middle"
                       className={`${isMobile ? 'text-xs' : isTablet ? 'text-sm' : 'text-base'} font-semibold fill-gray-700 dark:fill-gray-300`}
+                      dominantBaseline="hanging"
                     >
                       {monthData.monthName}
                     </text>
