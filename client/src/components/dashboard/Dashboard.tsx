@@ -9,7 +9,6 @@ import { ExpensesPieChart } from '../charts/ExpensesPieChart';
 import { MonthlyExpensesIncomeChart } from '../charts/MonthlyExpensesIncomeChart';
 import { AnnualEvolutionChart } from '../charts/AnnualEvolutionChart';
 import { AnnualChartVariantsShowcase } from '../charts/annual/AnnualChartVariantsShowcase';
-import { AnnualChartVariantsShowcase } from '../charts/annual/AnnualChartVariantsShowcase';
 
 interface DashboardProps {
   currentYear: number;
@@ -964,9 +963,9 @@ export function Dashboard({
         </div>
       </div>
 
-      {/* Annual Evolution Chart */}
+      {/* Annual Evolution Chart - Temporairement remplacé par le showcase des variantes */}
       {historicalArray.length > 0 && (
-        <AnnualEvolutionChart
+        <AnnualChartVariantsShowcase
           historicalData={historicalArray}
           globalData={globalData || undefined}
         />
