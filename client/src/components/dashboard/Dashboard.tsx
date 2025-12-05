@@ -963,13 +963,11 @@ export function Dashboard({
         </div>
       </div>
 
-      {/* Annual Evolution Chart - Temporairement remplacé par le showcase des variantes */}
-      {historicalArray.length > 0 && (
-        <AnnualChartVariantsShowcase
-          historicalData={historicalArray}
-          globalData={globalData || undefined}
-        />
-      )}
+      {/* Annual Evolution Chart - Showcase des 5 variantes */}
+      <AnnualChartVariantsShowcase
+        historicalData={historicalArray.length > 0 ? historicalArray : []}
+        globalData={globalData || undefined}
+      />
     </div>
   );
 }
