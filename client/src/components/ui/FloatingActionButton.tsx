@@ -46,6 +46,23 @@ export function FloatingActionButton({ onAddExpense, onAddIncome, hidden = false
     }
   }, [hidden, isOpen]);
 
+  // Cacher le container portal si le bouton est caché
+  useEffect(() => {
+    if (containerRef.current) {
+      if (hidden) {
+        containerRef.current.style.display = 'none';
+        containerRef.current.style.visibility = 'hidden';
+        containerRef.current.style.opacity = '0';
+        containerRef.current.style.pointerEvents = 'none';
+      } else {
+        containerRef.current.style.display = 'block';
+        containerRef.current.style.visibility = 'visible';
+        containerRef.current.style.opacity = '1';
+        containerRef.current.style.pointerEvents = 'auto';
+      }
+    }
+  }, [hidden, containerRef.current]);
+
   // Ne rien rendre si le bouton est caché
   if (hidden) {
     return null;
