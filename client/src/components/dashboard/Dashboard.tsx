@@ -582,23 +582,23 @@ export function Dashboard({
           </div>
         </div>
 
-        {/* Statistics */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="min-w-0">
+        {/* Statistics - Affichage horizontal avec fallback vertical sur petits écrans */}
+        <div className="flex flex-row flex-wrap sm:flex-nowrap items-center justify-between sm:justify-around gap-3 sm:gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex-1 min-w-[120px] sm:min-w-0">
             <div className="text-xs text-gray-500 dark:text-gray-400 truncate">Moyenne</div>
             <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">
               {currency(monthlyExpenses.reduce((sum, m) => sum + m.total, 0) / monthlyExpenses.length || 0)}
             </div>
           </div>
-          <div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">Total</div>
-            <div className="text-sm font-semibold text-gray-900 dark:text-white">
+          <div className="flex-1 min-w-[120px] sm:min-w-0">
+            <div className="text-xs text-gray-500 dark:text-gray-400 truncate">Total</div>
+            <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">
               {currency(monthlyExpenses.reduce((sum, m) => sum + m.total, 0))}
             </div>
           </div>
-          <div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">Max</div>
-            <div className="text-sm font-semibold text-red-600 dark:text-red-400">
+          <div className="flex-1 min-w-[120px] sm:min-w-0">
+            <div className="text-xs text-gray-500 dark:text-gray-400 truncate">Max</div>
+            <div className="text-sm font-semibold text-red-600 dark:text-red-400 truncate">
               {currency(maxMonthlyExpense)}
             </div>
           </div>

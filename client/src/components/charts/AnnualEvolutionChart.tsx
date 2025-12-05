@@ -133,10 +133,27 @@ export function AnnualEvolutionChart({ historicalData, globalData }: AnnualEvolu
     return null;
   }
   
-  const maxValue = Math.max(
+  // Calculer maxValue avec arrondi intelligent pour une meilleure échelle
+  const rawMaxValue = Math.max(
     ...annualData.map(d => Math.max(d.income, d.expenses)),
     1
   );
+  
+  // Arrondir intelligemment le maxValue pour une meilleure lisibilité
+  // Ex: 108000 -> 120000, 15000 -> 20000, etc.
+  const roundToNiceNumber = (value: number): number => {
+    if (value <= 0) return 1;
+    const order = Math.pow(10, Math.floor(Math.log10(value)));
+    const normalized = value / order;
+    let rounded;
+    if (normalized <= 1) rounded = 1;
+    else if (normalized <= 2) rounded = 2;
+    else if (normalized <= 5) rounded = 5;
+    else rounded = 10;
+    return rounded * order * 1.1; // Ajouter 10% de marge
+  };
+  
+  const maxValue = roundToNiceNumber(rawMaxValue);
   
   const minYear = Math.min(...annualData.map(d => d.year));
   const maxYear = Math.max(...annualData.map(d => d.year));
@@ -166,26 +183,31 @@ export function AnnualEvolutionChart({ historicalData, globalData }: AnnualEvolu
               return (
                 <div
                   key={data.year}
-                  className="flex-1 flex items-end justify-center gap-1 sm:gap-2 min-w-[60px] sm:min-w-[80px]"
+                  className="flex items-end justify-center gap-1 sm:gap-2 min-w-[80px] sm:min-w-[100px] md:min-w-[120px]"
                 >
-                  <div className="flex flex-col items-center gap-1 flex-1 w-full">
-                    <div className="flex flex-col items-center w-full gap-1 relative">
+                  <div className="flex flex-col items-center gap-1 w-full">
+                    {/* Container pour les barres côte à côte collées */}
+                    <div className="flex items-end justify-center w-full relative" style={{ gap: '0px' }}>
                       {/* Montants au-dessus des barres */}
                       {data.income > 0 && (
-                        <div className="absolute bottom-full mb-1 text-[9px] sm:text-[10px] font-semibold text-green-700 dark:text-green-300 whitespace-nowrap pointer-events-none">
+                        <div className="absolute bottom-full mb-1 left-0 text-[9px] sm:text-[10px] font-semibold text-green-700 dark:text-green-300 whitespace-nowrap pointer-events-none">
                           {currency(data.income)}
                         </div>
                       )}
                       {data.expenses > 0 && (
-                        <div className="absolute top-full mt-1 text-[9px] sm:text-[10px] font-semibold text-red-700 dark:text-red-300 whitespace-nowrap pointer-events-none">
+                        <div className="absolute bottom-full mb-1 right-0 text-[9px] sm:text-[10px] font-semibold text-red-700 dark:text-red-300 whitespace-nowrap pointer-events-none">
                           {currency(data.expenses)}
                         </div>
                       )}
                       
-                      {/* Revenus (barre verte) */}
+                      {/* Revenus (barre verte) - côte à côte avec dépenses */}
                       <div
-                        className="w-full rounded-t bg-green-500 dark:bg-green-400 hover:bg-green-600 dark:hover:bg-green-500 transition-all duration-300 cursor-pointer relative group"
-                        style={{ height: `${Math.max(incomeHeight, 2)}%`, minHeight: '2px' }}
+                        className="flex-1 rounded-t-l bg-green-500 dark:bg-green-400 hover:bg-green-600 dark:hover:bg-green-500 transition-all duration-300 cursor-pointer relative group"
+                        style={{ 
+                          height: `${Math.max(incomeHeight, 2)}%`, 
+                          minHeight: '2px',
+                          maxWidth: '50%'
+                        }}
                         title={`${data.year} - Revenus: ${currency(data.income)}`}
                       >
                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs px-2 py-1 rounded whitespace-nowrap z-10">
@@ -193,10 +215,14 @@ export function AnnualEvolutionChart({ historicalData, globalData }: AnnualEvolu
                         </div>
                       </div>
                       
-                      {/* Dépenses (barre rouge) */}
+                      {/* Dépenses (barre rouge) - côte à côte avec revenus */}
                       <div
-                        className="w-full rounded-t bg-red-500 dark:bg-red-400 hover:bg-red-600 dark:hover:bg-red-500 transition-all duration-300 cursor-pointer relative group"
-                        style={{ height: `${Math.max(expenseHeight, 2)}%`, minHeight: '2px' }}
+                        className="flex-1 rounded-t-r bg-red-500 dark:bg-red-400 hover:bg-red-600 dark:hover:bg-red-500 transition-all duration-300 cursor-pointer relative group"
+                        style={{ 
+                          height: `${Math.max(expenseHeight, 2)}%`, 
+                          minHeight: '2px',
+                          maxWidth: '50%'
+                        }}
                         title={`${data.year} - Dépenses: ${currency(data.expenses)}`}
                       >
                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs px-2 py-1 rounded whitespace-nowrap z-10">

@@ -220,14 +220,14 @@ export function MonthlyExpensesIncomeChart({
   // Calculer la largeur nécessaire pour 12 mois avec les nouvelles barres
   const requiredWidth = 12 * (barWidth * 2 + spacing);
   const chartWidth = Math.max(requiredWidth, minChartWidth);
-  // Padding plus important en bas pour les labels des mois
+  // Padding plus important en haut pour les montants au-dessus des barres
   const bottomPadding = isMobile ? 50 : isTablet ? 55 : 60;
-  const topPadding = isMobile ? 45 : isTablet ? 45 : 50;
+  const topPadding = isMobile ? 60 : isTablet ? 60 : 65; // Augmenté pour laisser place aux montants
   const leftPadding = isMobile ? 50 : isTablet ? 50 : 55;
   const rightPadding = isMobile ? 20 : isTablet ? 20 : 25;
   const padding = topPadding; // Pour compatibilité
   const chartHeight = (isMobile ? height - 140 : isTablet ? height - 120 : height - 100);
-  const responsiveHeight = isMobile ? Math.max(height + 40, 320) : isTablet ? Math.max(height + 30, 370) : height + 60;
+  const responsiveHeight = isMobile ? Math.max(height + 60, 340) : isTablet ? Math.max(height + 50, 390) : height + 80;
   
   // Largeur totale du SVG (avec padding)
   const svgWidth = chartWidth + leftPadding + rightPadding;
@@ -332,7 +332,7 @@ export function MonthlyExpensesIncomeChart({
                 );
               })}
 
-              {/* Barres avec tooltip amélioré */}
+              {/* Barres avec montants affichés et tooltip amélioré */}
               {data.monthlyData.map((monthData, index) => {
                 const x = index * (barWidth * 2 + spacing);
                 const incomeHeight = (monthData.income / data.maxValue) * chartHeight;
@@ -343,34 +343,104 @@ export function MonthlyExpensesIncomeChart({
                 return (
                   <g key={monthData.month}>
                     {/* Income bar */}
-                    <rect
-                      x={x}
-                      y={incomeY}
-                      width={barWidth}
-                      height={incomeHeight}
-                      fill="#10B981"
-                      className="hover:opacity-80 transition-opacity cursor-pointer"
-                      rx="2"
-                    >
-                      <title>
-                        {monthData.monthName} - Revenus: {currency(monthData.income)}
-                      </title>
-                    </rect>
+                    <g className="group">
+                      <rect
+                        x={x}
+                        y={incomeY}
+                        width={barWidth}
+                        height={incomeHeight}
+                        fill="#10B981"
+                        className="hover:opacity-80 transition-opacity cursor-pointer"
+                        rx="2"
+                      >
+                        <title>
+                          {monthData.monthName} - Revenus: {currency(monthData.income)}
+                        </title>
+                      </rect>
+                      
+                      {/* Montant au-dessus de la barre de revenus */}
+                      {monthData.income > 0 && (
+                        <text
+                          x={x + barWidth / 2}
+                          y={incomeY - 5}
+                          textAnchor="middle"
+                          className={`${isMobile ? 'text-[9px]' : isTablet ? 'text-[10px]' : 'text-xs'} font-semibold fill-green-700 dark:fill-green-300 pointer-events-none`}
+                        >
+                          {currency(monthData.income)}
+                        </text>
+                      )}
+                      
+                      {/* Tooltip au survol */}
+                      <g className="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                        <rect
+                          x={x + barWidth / 2 - 40}
+                          y={incomeY - 30}
+                          width={80}
+                          height={20}
+                          fill="rgba(0, 0, 0, 0.8)"
+                          rx="4"
+                          className="dark:fill-gray-100"
+                        />
+                        <text
+                          x={x + barWidth / 2}
+                          y={incomeY - 15}
+                          textAnchor="middle"
+                          className="text-[10px] fill-white dark:fill-gray-900 font-semibold"
+                        >
+                          Revenus: {currency(monthData.income)}
+                        </text>
+                      </g>
+                    </g>
 
                     {/* Expenses bar */}
-                    <rect
-                      x={x + barWidth}
-                      y={expensesY}
-                      width={barWidth}
-                      height={expensesHeight}
-                      fill="#EF4444"
-                      className="hover:opacity-80 transition-opacity cursor-pointer"
-                      rx="2"
-                    >
-                      <title>
-                        {monthData.monthName} - Dépenses: {currency(monthData.expenses)}
-                      </title>
-                    </rect>
+                    <g className="group">
+                      <rect
+                        x={x + barWidth}
+                        y={expensesY}
+                        width={barWidth}
+                        height={expensesHeight}
+                        fill="#EF4444"
+                        className="hover:opacity-80 transition-opacity cursor-pointer"
+                        rx="2"
+                      >
+                        <title>
+                          {monthData.monthName} - Dépenses: {currency(monthData.expenses)}
+                        </title>
+                      </rect>
+                      
+                      {/* Montant au-dessus de la barre de dépenses */}
+                      {monthData.expenses > 0 && (
+                        <text
+                          x={x + barWidth + barWidth / 2}
+                          y={expensesY - 5}
+                          textAnchor="middle"
+                          className={`${isMobile ? 'text-[9px]' : isTablet ? 'text-[10px]' : 'text-xs'} font-semibold fill-red-700 dark:fill-red-300 pointer-events-none`}
+                        >
+                          {currency(monthData.expenses)}
+                        </text>
+                      )}
+                      
+                      {/* Tooltip au survol */}
+                      <g className="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                        <rect
+                          x={x + barWidth + barWidth / 2 - 40}
+                          y={expensesY - 30}
+                          width={80}
+                          height={20}
+                          fill="rgba(0, 0, 0, 0.8)"
+                          rx="4"
+                          className="dark:fill-gray-100"
+                        />
+                        <text
+                          x={x + barWidth + barWidth / 2}
+                          y={expensesY - 15}
+                          textAnchor="middle"
+                          className="text-[10px] fill-white dark:fill-gray-900 font-semibold"
+                        >
+                          Dépenses: {currency(monthData.expenses)}
+                        </text>
+                      </g>
+                    </g>
 
                     {/* Month label */}
                     <text
