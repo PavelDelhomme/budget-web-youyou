@@ -3,6 +3,7 @@ import { Modal } from '../layout/Modal';
 import { Api } from '../../core/api';
 import { GeographicSelector, GeographicLocation } from '../ui/GeographicSelector';
 import { ScrollableSelect } from '../ui/ScrollableSelect';
+import { AutocompleteSelect } from '../ui/AutocompleteSelect';
 import { UserProfile } from '../../core/types';
 
 interface AdvancedSignupFormProps {
@@ -353,13 +354,13 @@ export function AdvancedSignupForm({ isOpen, onComplete, onSkip }: AdvancedSignu
               }`}>
                 Catégorie socio-professionnelle <span className="text-red-500 font-bold">*</span>
               </label>
-              <ScrollableSelect
+              <AutocompleteSelect
                 value={profile.csp || ''}
                 onChange={(value) => {
                   updateProfile('csp', value);
                 }}
                 options={CSP_OPTIONS}
-                placeholder="Sélectionnez votre CSP"
+                placeholder="Rechercher votre catégorie socio-professionnelle..."
                 required
                 error={hasFieldError('csp')}
               />
