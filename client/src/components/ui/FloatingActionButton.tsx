@@ -61,7 +61,7 @@ export function FloatingActionButton({ onAddExpense, onAddIncome, hidden = false
         containerRef.current.style.pointerEvents = 'auto';
       }
     }
-  }, [hidden, containerRef.current]);
+  }, [hidden]);
 
   // Ne rien rendre si le bouton est caché
   if (hidden) {
