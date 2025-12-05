@@ -276,13 +276,16 @@ export function MonthlyExpensesIncomeChart({
             {/* Labels de l'axe Y */}
             {[0, 0.25, 0.5, 0.75, 1].map(ratio => {
               const y = topPadding + chartHeight * (1 - ratio);
+              // Pour le label 0,00€, l'aligner exactement avec l'axe X (sans décalage)
+              const labelY = ratio === 0 ? y : y + 4;
               return (
                 <text
                   key={ratio}
                   x={leftPadding - (isMobile ? 5 : 10)}
-                  y={y + 4}
+                  y={labelY}
                   textAnchor="end"
                   className={`${isMobile ? 'text-[10px]' : 'text-xs'} fill-gray-500 dark:fill-gray-400`}
+                  dominantBaseline={ratio === 0 ? 'middle' : 'auto'}
                 >
                   {currency(data.maxValue * ratio)}
                 </text>
@@ -315,12 +318,12 @@ export function MonthlyExpensesIncomeChart({
                 display: 'block'
               }}
             >
-              {/* Ligne axe X */}
+              {/* Ligne axe X (niveau 0,00€) - alignée exactement avec le 0 de l'axe Y */}
               <line
                 x1={0}
-                y1={chartHeight + topPadding}
+                y1={topPadding + chartHeight}
                 x2={chartWidth}
-                y2={chartHeight + topPadding}
+                y2={topPadding + chartHeight}
                 stroke="currentColor"
                 strokeWidth="2"
                 className="text-gray-400 dark:text-gray-500"
@@ -457,7 +460,7 @@ export function MonthlyExpensesIncomeChart({
                     {/* Month label - centré entre les deux barres, aligné juste sous l'axe X (niveau 0) */}
                     <text
                       x={x + barWidth + barWidth / 2}
-                      y={chartHeight + topPadding + 5}
+                      y={topPadding + chartHeight + (isMobile ? 8 : 10)}
                       textAnchor="middle"
                       className={`${isMobile ? 'text-xs' : isTablet ? 'text-sm' : 'text-base'} font-semibold fill-gray-700 dark:fill-gray-300`}
                       dominantBaseline="hanging"

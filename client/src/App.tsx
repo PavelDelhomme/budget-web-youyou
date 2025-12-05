@@ -12,6 +12,9 @@ import { LoginForm } from './components/auth/LoginForm';
 import { Dashboard } from './components/dashboard/Dashboard';
 import { SummaryCard } from './components/dashboard/SummaryCard';
 
+// Test
+import { ChartsTestInterface } from './components/test/ChartsTestInterface';
+
 // Budget
 import { CategoriesSection } from './components/budget/CategoriesSection';
 import { UnifiedExpensesManager } from './components/budget/UnifiedExpensesManager';
@@ -65,7 +68,7 @@ function App() {
   const [isCheckingSession, setIsCheckingSession] = useState<boolean>(true); // État de vérification de la session
   const [years, setYears] = useState<number[]>(INITIAL_YEARS);
   const currentYearNum = today.getFullYear();
-  const [year, setYear] = useState<number | 'dashboard'>('dashboard');
+  const [year, setYear] = useState<number | 'dashboard' | 'charts-test'>('dashboard');
   const [isAddYearModalOpen, setIsAddYearModalOpen] = useState(false);
 
   // Data for the selected year
@@ -458,8 +461,8 @@ function App() {
   useEffect(() => {
     if (!sessionEmail || !year) return;
     
-    // Don't load year data if we're on the dashboard
-    if (year === 'dashboard') {
+    // Don't load year data if we're on the dashboard or charts test page
+    if (year === 'dashboard' || year === 'charts-test') {
       return;
     }
     
@@ -481,7 +484,7 @@ function App() {
     
     setIsViewingPrediction(false);
     async function load() {
-      if (year === 'dashboard') return;
+      if (year === 'dashboard' || year === 'charts-test') return;
       // Vérifier que l'année est valide (entre 2000 et 2100)
       if (typeof year === 'number' && (year < 2000 || year > 2100)) {
         console.warn(`⚠️ Année invalide ignorée: ${year}`);
@@ -557,7 +560,7 @@ function App() {
   // Save data when categories, expenses, subs, salary, savings change, with debounce
   // Don't save if viewing a prediction or if we're on the dashboard
   useEffect(() => {
-    if (!sessionEmail || !year || year === 'dashboard' || isViewingPrediction) return;
+    if (!sessionEmail || !year || year === 'dashboard' || year === 'charts-test' || isViewingPrediction) return;
     
     // Check if year is locked
     const lockedYears = globalData?.lockedYears || [];
@@ -1438,8 +1441,42 @@ function App() {
             </>
           )}
 
+          {/* Charts Test View */}
+          {year === 'charts-test' && (
+            <>
+              {globalData !== null ? (
+                <ChartsTestInterface
+                  currentYear={currentYearNum}
+                  yearData={(() => {
+                    const currentYearData = historicalData.get(currentYearNum);
+                    if (currentYearData) {
+                      return currentYearData;
+                    }
+                    return {
+                      categories: defaultCategories,
+                      expenses: [],
+                      subs: [],
+                      annualFixedExpenses: [],
+                      monthlySalary: globalData?.monthlySalary || 0,
+                      currentSavings: 0,
+                      savingsTransactions: [],
+                    };
+                  })()}
+                  historicalData={historicalData}
+                  globalData={globalData}
+                  predictedYears={predictedYears}
+                />
+              ) : (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Chargement des données...</p>
+                </div>
+              )}
+            </>
+          )}
+
           {/* Year View */}
-          {year !== 'dashboard' && (
+          {year !== 'dashboard' && year !== 'charts-test' && (
             <>
               {/* Header */}
               <header>
@@ -1717,7 +1754,7 @@ function App() {
             const expenseYear = new Date(expense.date).getFullYear();
             
             // Si on est sur le dashboard ou si l'année ne correspond pas, naviguer vers la bonne année
-            if (year === 'dashboard' || (typeof year === 'number' && year !== expenseYear)) {
+            if (year === 'dashboard' || year === 'charts-test' || (typeof year === 'number' && year !== expenseYear)) {
               setYear(expenseYear);
               // Attendre que l'année soit chargée
               await new Promise(resolve => setTimeout(resolve, 400));

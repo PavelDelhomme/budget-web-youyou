@@ -3,8 +3,8 @@ import { ThemeToggle } from '../ui/ThemeToggle';
 
 interface SidebarProps {
   years: number[];
-  currentYear: number | 'dashboard';
-  onYearSelect: (year: number | 'dashboard') => void;
+  currentYear: number | 'dashboard' | 'charts-test';
+  onYearSelect: (year: number | 'dashboard' | 'charts-test') => void;
   onAddYear: () => void;
   onLogout: () => void;
   sessionEmail: string;
@@ -66,7 +66,7 @@ export function Sidebar({
   };
 
   // Fermer le drawer quand on sélectionne une année sur mobile
-  const handleYearSelect = (year: number | 'dashboard') => {
+  const handleYearSelect = (year: number | 'dashboard' | 'charts-test') => {
     onYearSelect(year);
     // Fermer le drawer après sélection sur mobile
     if (window.innerWidth < 1024) {
@@ -168,7 +168,7 @@ export function Sidebar({
         {/* Years Navigation */}
         <div className="flex-1 overflow-y-auto p-4">
           {/* Dashboard Button */}
-          <div className="mb-4">
+          <div className="mb-2">
             <button
               onClick={() => handleYearSelect('dashboard')}
               className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
@@ -180,6 +180,23 @@ export function Sidebar({
               <span className="flex items-center gap-2">
                 <span>📊</span>
                 Dashboard
+              </span>
+            </button>
+          </div>
+
+          {/* Charts Test Button */}
+          <div className="mb-4">
+            <button
+              onClick={() => handleYearSelect('charts-test')}
+              className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
+                currentYear === 'charts-test'
+                  ? 'bg-purple-600 dark:bg-purple-500 text-white font-medium'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <span>🧪</span>
+                Test Graphiques
               </span>
             </button>
           </div>
