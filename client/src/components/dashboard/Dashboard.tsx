@@ -8,6 +8,8 @@ import { analyzeBudget } from '../../lib/utils/budgetAnalyzer';
 import { ExpensesPieChart } from '../charts/ExpensesPieChart';
 import { MonthlyExpensesIncomeChart } from '../charts/MonthlyExpensesIncomeChart';
 import { AnnualEvolutionChart } from '../charts/AnnualEvolutionChart';
+import { AnnualChartVariantsShowcase } from '../charts/annual/AnnualChartVariantsShowcase';
+import { AnnualChartVariantsShowcase } from '../charts/annual/AnnualChartVariantsShowcase';
 
 interface DashboardProps {
   currentYear: number;
