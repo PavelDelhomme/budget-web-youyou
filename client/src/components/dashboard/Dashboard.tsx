@@ -620,7 +620,16 @@ export function Dashboard({
               })
               .slice(0, 8)
               .map((categoryData: { category: Category; months: Array<{ month: string; total: number }> }) => {
-                const categoryMax = Math.max(...categoryData.months.map((m: { total: number }) => m.total), 1);
+                const rawCategoryMax = Math.max(...categoryData.months.map((m: { total: number }) => m.total), 1);
+                // Arrondir intelligemment pour une échelle cohérente
+                const roundToNiceNumber = (value: number): number => {
+                  if (value <= 0) return 1000;
+                  if (value < 1000) return Math.ceil(value / 100) * 100;
+                  if (value < 10000) return Math.ceil(value / 1000) * 1000;
+                  if (value < 100000) return Math.ceil(value / 10000) * 10000;
+                  return Math.ceil(value / 10000) * 10000 + 10000;
+                };
+                const categoryMax = roundToNiceNumber(rawCategoryMax);
                 const categoryTotal = categoryData.months.reduce((sum: number, m: { total: number }) => sum + m.total, 0);
                 const categoryAvg = categoryTotal / categoryData.months.length;
                 
@@ -648,11 +657,23 @@ export function Dashboard({
                           <div>{currency(categoryMax * 0.25)}</div>
                           <div>0€</div>
                         </div>
-                        <div className="flex items-end gap-1 sm:gap-2 ml-12 sm:ml-16 flex-1">
+                        {/* Zone des barres avec lignes de grille */}
+                        <div className="flex items-end gap-1 sm:gap-2 ml-12 sm:ml-16 flex-1 relative" style={{ height: '100%' }}>
+                          {/* Lignes de grille horizontales pour alignement */}
+                          {[0, 0.25, 0.5, 0.75, 1].map((ratio) => (
+                            <div
+                              key={ratio}
+                              className="absolute left-0 right-0 border-t border-dashed border-gray-200 dark:border-gray-700 pointer-events-none"
+                              style={{
+                                bottom: `${ratio * 100}%`,
+                              }}
+                            />
+                          ))}
+                          {/* Barres */}
                           {categoryData.months.map((monthData, idx) => {
                             const height = categoryMax > 0 ? (monthData.total / categoryMax) * 100 : 0;
                             return (
-                              <div key={idx} className="flex flex-col items-center flex-shrink-0 relative" style={{ minWidth: 'clamp(30px, calc((100% - 1rem) / 12), 60px)', width: 'auto' }}>
+                              <div key={idx} className="flex flex-col items-center flex-shrink-0 relative z-10" style={{ minWidth: 'clamp(30px, calc((100% - 1rem) / 12), 60px)', width: 'auto', height: '100%' }}>
                                 {/* Montant au-dessus de la barre */}
                                 {monthData.total > 0 && (
                                   <div className="absolute bottom-full mb-1 text-[8px] sm:text-[9px] font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap pointer-events-none">
@@ -665,7 +686,11 @@ export function Dashboard({
                                       ? 'bg-blue-500 dark:bg-blue-400 hover:bg-blue-600 dark:hover:bg-blue-500'
                                       : 'bg-gray-200 dark:bg-gray-700'
                                   }`}
-                                  style={{ height: `${Math.max(height, 2)}%`, minHeight: '2px' }}
+                                  style={{ 
+                                    height: `${Math.max(height, 2)}%`, 
+                                    minHeight: '2px',
+                                    alignSelf: 'flex-end'
+                                  }}
                                   title={`${monthData.month}: ${currency(monthData.total)}`}
                                 >
                                   {/* Tooltip au survol */}

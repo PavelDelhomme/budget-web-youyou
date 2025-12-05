@@ -180,10 +180,22 @@ export function MonthlyExpensesIncomeChart({
       };
     });
 
-    const maxValue = Math.max(
+    const rawMaxValue = Math.max(
       ...monthlyData.map(d => Math.max(d.expenses, d.income)),
       1
     );
+    
+    // Arrondir intelligemment le maxValue pour une échelle cohérente
+    const roundToNiceNumber = (value: number): number => {
+      if (value <= 0) return 1000;
+      if (value < 1000) return Math.ceil(value / 100) * 100;
+      if (value < 10000) return Math.ceil(value / 1000) * 1000;
+      if (value < 100000) return Math.ceil(value / 10000) * 10000;
+      // Pour les valeurs >= 100000, arrondir à la dizaine de milliers supérieure avec marge
+      return Math.ceil(value / 10000) * 10000 + 10000;
+    };
+    
+    const maxValue = roundToNiceNumber(rawMaxValue);
 
     return { monthlyData, maxValue };
   }, [expenses, monthlySalary, variableMonthlyIncomes, additionalMonthlyIncomes, temporaryIncomes, salaryHistory, year, isPrediction, categories, annualFixedExpenses, subs]);
@@ -442,9 +454,9 @@ export function MonthlyExpensesIncomeChart({
                       </g>
                     </g>
 
-                    {/* Month label */}
+                    {/* Month label - centré entre les deux barres */}
                     <text
-                      x={x + barWidth}
+                      x={x + barWidth + barWidth / 2}
                       y={chartHeight + topPadding + (isMobile ? 25 : isTablet ? 30 : 35)}
                       textAnchor="middle"
                       className={`${isMobile ? 'text-xs' : isTablet ? 'text-sm' : 'text-base'} font-semibold fill-gray-700 dark:fill-gray-300`}

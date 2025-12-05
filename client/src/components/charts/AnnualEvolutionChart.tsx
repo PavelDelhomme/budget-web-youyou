@@ -173,7 +173,17 @@ export function AnnualEvolutionChart({ historicalData, globalData }: AnnualEvolu
             <div>0€</div>
           </div>
           
-          <div className="flex items-end gap-2 sm:gap-3 md:gap-4 h-64 sm:h-72 md:h-80 ml-16 sm:ml-20">
+          <div className="flex items-end gap-2 sm:gap-3 md:gap-4 h-64 sm:h-72 md:h-80 ml-16 sm:ml-20 relative">
+            {/* Lignes de grille horizontales pour alignement */}
+            {[0, 0.25, 0.5, 0.75, 1].map((ratio) => (
+              <div
+                key={ratio}
+                className="absolute left-0 right-0 border-t border-dashed border-gray-200 dark:border-gray-700 pointer-events-none z-0"
+                style={{
+                  bottom: `${ratio * 100}%`,
+                }}
+              />
+            ))}
             {annualData.map((data, idx) => {
               const incomeHeight = maxValue > 0 ? (data.income / maxValue) * 100 : 0;
               const expenseHeight = maxValue > 0 ? (data.expenses / maxValue) * 100 : 0;
@@ -181,7 +191,7 @@ export function AnnualEvolutionChart({ historicalData, globalData }: AnnualEvolu
               return (
                 <div
                   key={data.year}
-                  className="flex items-end justify-center gap-1 sm:gap-2 min-w-[80px] sm:min-w-[100px] md:min-w-[120px]"
+                  className="flex items-end justify-center gap-1 sm:gap-2 min-w-[80px] sm:min-w-[100px] md:min-w-[120px] relative z-10"
                 >
                   <div className="flex flex-col items-center gap-1 w-full">
                     {/* Container pour les barres côte à côte collées - structure simplifiée */}
