@@ -102,14 +102,17 @@ class StatisticalBudgetGenerator:
         # Generate categories with targets
         categories = self._generate_categories(annual_income, profile)
         
-        # Generate typical expenses
-        expenses = self._generate_typical_expenses(annual_income, profile)
+        # Ne PAS générer de dépenses variables automatiquement
+        # L'utilisateur doit les ajouter manuellement
+        expenses = []
         
-        # Generate subscriptions
-        subscriptions = self._generate_subscriptions(profile)
+        # Ne PAS générer d'abonnements automatiquement
+        # L'utilisateur doit les ajouter manuellement
+        subscriptions = []
         
-        # Generate fixed annual expenses
-        fixed_expenses = self._generate_fixed_expenses(profile)
+        # Ne PAS générer de dépenses fixes annuelles automatiquement
+        # L'utilisateur doit les ajouter manuellement
+        fixed_expenses = []
         
         return {
             'monthlySalary': monthly_income,
