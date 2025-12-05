@@ -454,10 +454,10 @@ export function MonthlyExpensesIncomeChart({
                       </g>
                     </g>
 
-                    {/* Month label - centré entre les deux barres, aligné sur l'axe X (niveau 0) */}
+                    {/* Month label - centré entre les deux barres, aligné juste sous l'axe X (niveau 0) */}
                     <text
                       x={x + barWidth + barWidth / 2}
-                      y={chartHeight + topPadding + 18}
+                      y={chartHeight + topPadding + 5}
                       textAnchor="middle"
                       className={`${isMobile ? 'text-xs' : isTablet ? 'text-sm' : 'text-base'} font-semibold fill-gray-700 dark:fill-gray-300`}
                       dominantBaseline="hanging"
