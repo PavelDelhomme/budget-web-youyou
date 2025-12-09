@@ -6,11 +6,15 @@ from flask import request, jsonify, session
 from functools import wraps
 import os
 
-from api.utils import load_user
+from api.utils import load_user, CACHE_DIR
 from api.ml.model import create_predictor
 from api.ml.neural_network import create_neural_predictor
 from api.ml.recommendations import AIRecommendationEngine
 from api.ml.data_validator import DataValidator
+from api.ml.cache import create_ml_cache
+
+# Initialize ML cache
+ml_cache = create_ml_cache(CACHE_DIR)
 
 
 def require_auth(f):

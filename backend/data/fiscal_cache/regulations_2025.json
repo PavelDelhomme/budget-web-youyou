@@ -1,0 +1,174 @@
+[
+  {
+    "id": "tax_bracket_2025_0",
+    "title": "Tranche d'imposition 1 - 2025",
+    "description": "Revenu imposable entre 0€ et 11294€: taux de 0.0%",
+    "category": "tax_rates",
+    "effective_date": "2025-01-01",
+    "expiration_date": null,
+    "source": "impots.gouv.fr",
+    "url": "https://www.impots.gouv.fr/particulier/actualites/barème-impôt-sur-le-revenu-2025",
+    "impact": "high",
+    "data": {
+      "min": 0,
+      "max": 11294,
+      "rate": 0.0
+    },
+    "last_updated": "2025-12-08T13:02:03.849011"
+  },
+  {
+    "id": "tax_bracket_2025_1",
+    "title": "Tranche d'imposition 2 - 2025",
+    "description": "Revenu imposable entre 11294€ et 28797€: taux de 11.0%",
+    "category": "tax_rates",
+    "effective_date": "2025-01-01",
+    "expiration_date": null,
+    "source": "impots.gouv.fr",
+    "url": "https://www.impots.gouv.fr/particulier/actualites/barème-impôt-sur-le-revenu-2025",
+    "impact": "high",
+    "data": {
+      "min": 11294,
+      "max": 28797,
+      "rate": 0.11
+    },
+    "last_updated": "2025-12-08T13:02:03.849027"
+  },
+  {
+    "id": "tax_bracket_2025_2",
+    "title": "Tranche d'imposition 3 - 2025",
+    "description": "Revenu imposable entre 28797€ et 82341€: taux de 30.0%",
+    "category": "tax_rates",
+    "effective_date": "2025-01-01",
+    "expiration_date": null,
+    "source": "impots.gouv.fr",
+    "url": "https://www.impots.gouv.fr/particulier/actualites/barème-impôt-sur-le-revenu-2025",
+    "impact": "high",
+    "data": {
+      "min": 28797,
+      "max": 82341,
+      "rate": 0.3
+    },
+    "last_updated": "2025-12-08T13:02:03.849033"
+  },
+  {
+    "id": "tax_bracket_2025_3",
+    "title": "Tranche d'imposition 4 - 2025",
+    "description": "Revenu imposable entre 82341€ et 177106€: taux de 41.0%",
+    "category": "tax_rates",
+    "effective_date": "2025-01-01",
+    "expiration_date": null,
+    "source": "impots.gouv.fr",
+    "url": "https://www.impots.gouv.fr/particulier/actualites/barème-impôt-sur-le-revenu-2025",
+    "impact": "high",
+    "data": {
+      "min": 82341,
+      "max": 177106,
+      "rate": 0.41
+    },
+    "last_updated": "2025-12-08T13:02:03.849039"
+  },
+  {
+    "id": "tax_bracket_2025_4",
+    "title": "Tranche d'imposition 5 - 2025",
+    "description": "Revenu imposable entre 177106€ et ∞: taux de 45.0%",
+    "category": "tax_rates",
+    "effective_date": "2025-01-01",
+    "expiration_date": null,
+    "source": "impots.gouv.fr",
+    "url": "https://www.impots.gouv.fr/particulier/actualites/barème-impôt-sur-le-revenu-2025",
+    "impact": "high",
+    "data": {
+      "min": 177106,
+      "max": null,
+      "rate": 0.45
+    },
+    "last_updated": "2025-12-08T13:02:03.849044"
+  },
+  {
+    "id": "deduction_limit_revenue_2025",
+    "title": "Plafond déduction frais réels - 2025",
+    "description": "Plafond pour la déduction forfaitaire des frais réels (10% du revenu imposable, plafonné)",
+    "category": "thresholds",
+    "effective_date": "2025-01-01",
+    "source": "impots.gouv.fr",
+    "url": "https://www.impots.gouv.fr/particulier/actualites/plafonds-2025",
+    "impact": "medium",
+    "data": {
+      "type": "deduction_limit",
+      "value": 15000
+    },
+    "last_updated": "2025-12-08T13:02:03.849066"
+  },
+  {
+    "id": "pinel_limit_2025",
+    "title": "Plafond Pinel - 2025",
+    "description": "Plafond de loyer pour les investissements locatifs Pinel",
+    "category": "thresholds",
+    "effective_date": "2025-01-01",
+    "expiration_date": "2025-12-31",
+    "source": "economie.gouv.fr",
+    "url": "https://www.economie.gouv.fr/particuliers/dispositif-pinel",
+    "impact": "medium",
+    "data": {
+      "type": "pinel_limit",
+      "value": 55000
+    },
+    "last_updated": "2025-12-08T13:02:03.849072"
+  },
+  {
+    "id": "donation_deduction_2025",
+    "title": "Déduction dons aux œuvres",
+    "description": "66% des dons aux organismes d'intérêt général (plafonné à 20% du revenu imposable)",
+    "category": "deductions",
+    "effective_date": "2025-01-01",
+    "source": "impots.gouv.fr",
+    "url": "https://www.impots.gouv.fr/particulier/actualites/reduction-dons-2025",
+    "impact": "medium",
+    "data": {
+      "rate": 0.66,
+      "limit_percent": 0.2
+    },
+    "last_updated": "2025-12-08T13:02:03.849078"
+  },
+  {
+    "id": "energy_credit_2025",
+    "title": "Crédit d'impôt transition énergétique",
+    "description": "30% des dépenses de travaux d'économie d'énergie (plafonné à 8000€ pour célibataire, 16000€ pour couple)",
+    "category": "credits",
+    "effective_date": "2025-01-01",
+    "source": "impots.gouv.fr",
+    "url": "https://www.impots.gouv.fr/particulier/actualites/credit-impot-transition-energetique-2025",
+    "impact": "medium",
+    "data": {
+      "rate": 0.3,
+      "limit_single": 8000,
+      "limit_couple": 16000
+    },
+    "last_updated": "2025-12-08T13:02:03.849083"
+  },
+  {
+    "id": "real_expenses_2025",
+    "title": "Frais réels",
+    "description": "Déduction forfaitaire de 10% du revenu imposable (plafonné) ou frais réels avec justificatifs",
+    "category": "deductions",
+    "effective_date": "2025-01-01",
+    "source": "impots.gouv.fr",
+    "url": "https://www.impots.gouv.fr/particulier/actualites/frais-reels-2025",
+    "impact": "medium",
+    "data": {
+      "rate": 0.1
+    },
+    "last_updated": "2025-12-08T13:02:03.849087"
+  },
+  {
+    "id": "regulation_change_2025_1",
+    "title": "Mise à jour barème 2025",
+    "description": "Revalorisation de 4,8% des tranches du barème de l'impôt sur le revenu",
+    "category": "regulatory_changes",
+    "effective_date": "2025-01-01",
+    "source": "impots.gouv.fr",
+    "url": "https://www.impots.gouv.fr/particulier/actualites/actualites-2025",
+    "impact": "high",
+    "last_updated": "2025-12-08T13:02:03.849093"
+  }
+]

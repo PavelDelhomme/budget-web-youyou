@@ -27,10 +27,11 @@ class GovernmentFiscalCalendarService:
         'economie_gouv': 'https://www.economie.gouv.fr'
     }
     
-    CACHE_DIR = Path(__file__).parent.parent / 'data' / 'cache'
     CACHE_DURATION_HOURS = 24  # Cache les données pendant 24h
     
     def __init__(self):
+        from api.utils import CACHE_DIR
+        self.CACHE_DIR = CACHE_DIR
         self.CACHE_DIR.mkdir(parents=True, exist_ok=True)
     
     def _get_cache_path(self, year: int) -> Path:

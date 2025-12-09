@@ -6,7 +6,7 @@ import { getActiveSalaryForYear, calculateAnnualIncomeFromSalaryHistory } from '
 import { BudgetSuggestions } from '../ai/BudgetSuggestions';
 import { analyzeBudget } from '../../lib/utils/budgetAnalyzer';
 import { ExpensesPieChart } from '../charts/ExpensesPieChart';
-import { MonthlyExpensesIncomeChart } from '../charts/MonthlyExpensesIncomeChart';
+import { MonthlyExpensesIncomeChartChartJS } from '../charts/MonthlyExpensesIncomeChartChartJS';
 import { AnnualEvolutionChart } from '../charts/AnnualEvolutionChart';
 import { SimpleBarChart } from '../charts/SimpleBarChart';
 import { CategoryEvolutionChart } from '../charts/CategoryEvolutionChart';
@@ -402,9 +402,9 @@ export function Dashboard({
           size={400}
         /> */}
 
-        {/* Dépenses et revenus par mois - Pleine largeur avec scroll horizontal */}
-        <div className="w-full">
-          <MonthlyExpensesIncomeChart
+        {/* Dépenses et revenus par mois - Pleine largeur avec scroll horizontal - Configuration Graphique 1 */}
+        <div className="w-full min-w-0 overflow-hidden">
+          <MonthlyExpensesIncomeChartChartJS
             expenses={yearData.expenses || []}
             monthlySalary={monthlySalary}
             variableMonthlyIncomes={yearData.variableMonthlyIncomes}

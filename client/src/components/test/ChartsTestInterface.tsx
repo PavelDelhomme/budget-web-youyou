@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
 import { UserGlobalData, YearData, Category, Expense } from '../../core/types';
-import { MonthlyExpensesIncomeChart } from '../charts/MonthlyExpensesIncomeChart';
+import { MonthlyExpensesIncomeChartChartJS } from '../charts/MonthlyExpensesIncomeChartChartJS';
 import { CategoryEvolutionChart } from '../charts/CategoryEvolutionChart';
 import { ExpensesPieChart } from '../charts/ExpensesPieChart';
 import { SimpleBarChart } from '../charts/SimpleBarChart';
 import { AnnualEvolutionChart } from '../charts/AnnualEvolutionChart';
+import { SimpleChartJSTest } from './SimpleChartJSTest';
 import { currency } from '../../lib/utils';
 
 interface ChartsTestInterfaceProps {
@@ -233,13 +234,38 @@ export function ChartsTestInterface({
         </div>
       </div>
 
-      {/* 1. Graphique Dépenses et revenus par mois */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
-        <h2 className="text-lg sm:text-xl font-bold mb-4 text-gray-900 dark:text-white">
-          1️⃣ Dépenses et revenus par mois
+      {/* Test Simple Chart.js - Comparaison */}
+      <div className="bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg shadow-lg p-4 sm:p-6 text-white mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold mb-2">
+          🧪 Test Simple Chart.js - Comparaison
         </h2>
+        <p className="text-yellow-100 text-sm sm:text-base">
+          Graphiques Chart.js très simples pour vérifier que beginAtZero fonctionne correctement
+        </p>
+      </div>
+
+      <SimpleChartJSTest />
+
+      {/* 1-10. 10 Variantes du Graphique Dépenses et revenus par mois */}
+      <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg shadow-lg p-4 sm:p-6 text-white mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold mb-2">
+          📊 10 Variantes - Dépenses et revenus par mois
+        </h2>
+        <p className="text-purple-100 text-sm sm:text-base">
+          Testez différentes configurations de style, couleurs, espacements et tailles
+        </p>
+      </div>
+
+      {/* Variante 1 : Standard (par défaut) - Chart.js */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+        <h3 className="text-base sm:text-lg font-bold mb-2 text-gray-900 dark:text-white">
+          1️⃣ Standard (Par défaut) - Chart.js
+        </h3>
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3">
+          Type : <strong>Barres groupées verticales</strong> - Chart.js, configuration standard avec barres côte à côte (barres partent de 0€)
+        </p>
         <div className="w-full min-w-0">
-          <MonthlyExpensesIncomeChart
+          <MonthlyExpensesIncomeChartChartJS
             expenses={testYearData.expenses || []}
             monthlySalary={monthlySalary}
             variableMonthlyIncomes={testYearData.variableMonthlyIncomes}
@@ -248,6 +274,222 @@ export function ChartsTestInterface({
             salaryHistory={globalData?.salaryHistory}
             year={currentYear}
             height={400}
+            variant="Standard - Barres groupées verticales"
+          />
+        </div>
+      </div>
+
+      {/* Variante 2 : Compacte (barres fines, espacement réduit) - Chart.js */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+        <h3 className="text-base sm:text-lg font-bold mb-2 text-gray-900 dark:text-white">
+          2️⃣ Compacte - Chart.js
+        </h3>
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3">
+          Type : <strong>Barres groupées verticales compactes</strong> - Chart.js, hauteur réduite 350px
+        </p>
+        <div className="w-full min-w-0">
+          <MonthlyExpensesIncomeChartChartJS
+            expenses={testYearData.expenses || []}
+            monthlySalary={monthlySalary}
+            variableMonthlyIncomes={testYearData.variableMonthlyIncomes}
+            additionalMonthlyIncomes={testYearData.additionalMonthlyIncomes || []}
+            temporaryIncomes={temporaryIncomes}
+            salaryHistory={globalData?.salaryHistory}
+            year={currentYear}
+            height={350}
+            variant="Compacte - Barres groupées verticales compactes"
+          />
+        </div>
+      </div>
+
+      {/* Variante 3 : Large (hauteur augmentée) - Chart.js */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+        <h3 className="text-base sm:text-lg font-bold mb-2 text-gray-900 dark:text-white">
+          3️⃣ Large - Chart.js
+        </h3>
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3">
+          Type : <strong>Barres groupées verticales larges</strong> - Chart.js, hauteur 450px pour meilleure visibilité
+        </p>
+        <div className="w-full min-w-0">
+          <MonthlyExpensesIncomeChartChartJS
+            expenses={testYearData.expenses || []}
+            monthlySalary={monthlySalary}
+            variableMonthlyIncomes={testYearData.variableMonthlyIncomes}
+            additionalMonthlyIncomes={testYearData.additionalMonthlyIncomes || []}
+            temporaryIncomes={temporaryIncomes}
+            salaryHistory={globalData?.salaryHistory}
+            year={currentYear}
+            height={450}
+            variant="Large - Barres groupées verticales larges"
+          />
+        </div>
+      </div>
+
+      {/* Variante 4 : Couleurs bleues/violettes - Chart.js */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+        <h3 className="text-base sm:text-lg font-bold mb-2 text-gray-900 dark:text-white">
+          4️⃣ Couleurs bleues/violettes - Chart.js
+        </h3>
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3">
+          Type : <strong>Barres groupées verticales</strong> - Chart.js, Revenus bleu (#3B82F6), Dépenses violet (#8B5CF6)
+        </p>
+        <div className="w-full min-w-0">
+          <MonthlyExpensesIncomeChartChartJS
+            expenses={testYearData.expenses || []}
+            monthlySalary={monthlySalary}
+            variableMonthlyIncomes={testYearData.variableMonthlyIncomes}
+            additionalMonthlyIncomes={testYearData.additionalMonthlyIncomes || []}
+            temporaryIncomes={temporaryIncomes}
+            salaryHistory={globalData?.salaryHistory}
+            year={currentYear}
+            height={400}
+            variant="Bleu/Violet - Barres groupées verticales"
+            incomeColor="#3B82F6"
+            expenseColor="#8B5CF6"
+          />
+        </div>
+      </div>
+
+      {/* Variante 5 : Couleurs orange/rouge - Chart.js */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+        <h3 className="text-base sm:text-lg font-bold mb-2 text-gray-900 dark:text-white">
+          5️⃣ Couleurs orange/rouge - Chart.js
+        </h3>
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3">
+          Type : <strong>Barres groupées verticales</strong> - Chart.js, Revenus orange (#F59E0B), Dépenses rouge (#DC2626)
+        </p>
+        <div className="w-full min-w-0">
+          <MonthlyExpensesIncomeChartChartJS
+            expenses={testYearData.expenses || []}
+            monthlySalary={monthlySalary}
+            variableMonthlyIncomes={testYearData.variableMonthlyIncomes}
+            additionalMonthlyIncomes={testYearData.additionalMonthlyIncomes || []}
+            temporaryIncomes={temporaryIncomes}
+            salaryHistory={globalData?.salaryHistory}
+            year={currentYear}
+            height={400}
+            variant="Orange/Rouge - Barres groupées verticales"
+            incomeColor="#F59E0B"
+            expenseColor="#DC2626"
+          />
+        </div>
+      </div>
+
+      {/* Variante 6 : Minimaliste - Chart.js */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+        <h3 className="text-base sm:text-lg font-bold mb-2 text-gray-900 dark:text-white">
+          6️⃣ Minimaliste - Chart.js
+        </h3>
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3">
+          Type : <strong>Barres groupées verticales minimalistes</strong> - Chart.js, hauteur 350px
+        </p>
+        <div className="w-full min-w-0">
+          <MonthlyExpensesIncomeChartChartJS
+            expenses={testYearData.expenses || []}
+            monthlySalary={monthlySalary}
+            variableMonthlyIncomes={testYearData.variableMonthlyIncomes}
+            additionalMonthlyIncomes={testYearData.additionalMonthlyIncomes || []}
+            temporaryIncomes={temporaryIncomes}
+            salaryHistory={globalData?.salaryHistory}
+            year={currentYear}
+            height={350}
+            variant="Minimaliste - Barres groupées verticales minimalistes"
+          />
+        </div>
+      </div>
+
+      {/* Variante 7 : Couleurs sombres - Chart.js */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+        <h3 className="text-base sm:text-lg font-bold mb-2 text-gray-900 dark:text-white">
+          7️⃣ Sombre - Chart.js
+        </h3>
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3">
+          Type : <strong>Barres groupées verticales sombres</strong> - Chart.js, couleurs assombries
+        </p>
+        <div className="w-full min-w-0">
+          <MonthlyExpensesIncomeChartChartJS
+            expenses={testYearData.expenses || []}
+            monthlySalary={monthlySalary}
+            variableMonthlyIncomes={testYearData.variableMonthlyIncomes}
+            additionalMonthlyIncomes={testYearData.additionalMonthlyIncomes || []}
+            temporaryIncomes={temporaryIncomes}
+            salaryHistory={globalData?.salaryHistory}
+            year={currentYear}
+            height={400}
+            variant="Sombre - Barres groupées verticales sombres"
+            incomeColor="#059669"
+            expenseColor="#B91C1C"
+          />
+        </div>
+      </div>
+
+      {/* Variante 8 : Hauteur réduite - Chart.js */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+        <h3 className="text-base sm:text-lg font-bold mb-2 text-gray-900 dark:text-white">
+          8️⃣ Hauteur réduite (300px) - Chart.js
+        </h3>
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3">
+          Type : <strong>Barres groupées verticales</strong> - Chart.js, hauteur 300px pour affichage compact
+        </p>
+        <div className="w-full min-w-0">
+          <MonthlyExpensesIncomeChartChartJS
+            expenses={testYearData.expenses || []}
+            monthlySalary={monthlySalary}
+            variableMonthlyIncomes={testYearData.variableMonthlyIncomes}
+            additionalMonthlyIncomes={testYearData.additionalMonthlyIncomes || []}
+            temporaryIncomes={temporaryIncomes}
+            salaryHistory={globalData?.salaryHistory}
+            year={currentYear}
+            height={300}
+            variant="Hauteur réduite - Barres groupées verticales"
+          />
+        </div>
+      </div>
+
+      {/* Variante 9 : Hauteur augmentée - Chart.js */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+        <h3 className="text-base sm:text-lg font-bold mb-2 text-gray-900 dark:text-white">
+          9️⃣ Hauteur augmentée (500px) - Chart.js
+        </h3>
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3">
+          Type : <strong>Barres groupées verticales</strong> - Chart.js, hauteur 500px pour meilleure visibilité des détails
+        </p>
+        <div className="w-full min-w-0">
+          <MonthlyExpensesIncomeChartChartJS
+            expenses={testYearData.expenses || []}
+            monthlySalary={monthlySalary}
+            variableMonthlyIncomes={testYearData.variableMonthlyIncomes}
+            additionalMonthlyIncomes={testYearData.additionalMonthlyIncomes || []}
+            temporaryIncomes={temporaryIncomes}
+            salaryHistory={globalData?.salaryHistory}
+            year={currentYear}
+            height={500}
+            variant="Hauteur augmentée - Barres groupées verticales"
+          />
+        </div>
+      </div>
+
+      {/* Variante 10 : Mix (couleurs personnalisées) - Chart.js */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+        <h3 className="text-base sm:text-lg font-bold mb-2 text-gray-900 dark:text-white">
+          🔟 Mix - Chart.js
+        </h3>
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3">
+          Type : <strong>Barres groupées verticales mix</strong> - Chart.js, couleurs personnalisées, hauteur 380px
+        </p>
+        <div className="w-full min-w-0">
+          <MonthlyExpensesIncomeChartChartJS
+            expenses={testYearData.expenses || []}
+            monthlySalary={monthlySalary}
+            variableMonthlyIncomes={testYearData.variableMonthlyIncomes}
+            additionalMonthlyIncomes={testYearData.additionalMonthlyIncomes || []}
+            temporaryIncomes={temporaryIncomes}
+            salaryHistory={globalData?.salaryHistory}
+            year={currentYear}
+            height={380}
+            variant="Mix - Barres groupées verticales mix"
+            incomeColor="#10B981"
+            expenseColor="#EF4444"
           />
         </div>
       </div>
@@ -375,11 +617,24 @@ export function ChartsTestInterface({
         </div>
       </div>
 
-      {/* 7. Graphique de tendances (Ligne) */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
-        <h2 className="text-lg sm:text-xl font-bold mb-4 text-gray-900 dark:text-white">
-          7️⃣ Tendance des dépenses (12 derniers mois)
-        </h2>
+      {/* 7. Graphique de tendances (Ligne) - VALIDÉ ET INTÉGRÉ */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border-2 border-green-500 dark:border-green-600 w-full min-w-0 overflow-hidden">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+            7️⃣ Tendance des dépenses (12 derniers mois)
+          </h2>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 bg-green-500 text-white text-xs sm:text-sm font-semibold rounded-full flex items-center gap-1">
+              <span>✅</span>
+              <span>VALIDÉ - DÉJÀ INTÉGRÉ</span>
+            </span>
+          </div>
+        </div>
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 p-2 bg-green-50 dark:bg-green-900/20 rounded">
+          <strong>Statut :</strong> Ce graphique a été validé et est déjà intégré dans l'application. 
+          Il affiche les tendances des dépenses sur les 12 derniers mois avec un graphique en ligne SVG personnalisé, 
+          partant de 0€ sur l'axe Y et avec scroll horizontal pour mobile.
+        </p>
         <div className="w-full min-w-0 overflow-x-auto">
           <div className="inline-block min-w-full">
             <svg width="100%" height="300" className="w-full">
@@ -389,12 +644,49 @@ export function ChartsTestInterface({
                   <stop offset="100%" stopColor="rgba(239, 68, 68, 0.05)" />
                 </linearGradient>
               </defs>
-              {/* Ligne de tendance des dépenses */}
+              {/* Ligne horizontale à y=250 pour représenter 0€ */}
+              <line
+                x1={50}
+                y1={250}
+                x2={850}
+                y2={250}
+                stroke="#9CA3AF"
+                strokeWidth="2"
+                strokeDasharray="4 4"
+              />
+              {/* Labels de l'axe Y */}
+              {(() => {
+                const maxExpense = Math.max(...monthlyExpenses.map(m => m.total), 1);
+                const minExpense = 0; // Toujours partir de 0€
+                const range = maxExpense - minExpense || 1;
+                const chartHeight = 200; // Hauteur utilisable pour le graphique
+                const topY = 50; // Position Y du haut du graphique
+                
+                return [0, 0.25, 0.5, 0.75, 1].map(ratio => {
+                  const value = minExpense + (range * ratio);
+                  const y = 250 - (chartHeight * ratio);
+                  return (
+                    <text
+                      key={ratio}
+                      x={45}
+                      y={y + 4}
+                      textAnchor="end"
+                      className="text-xs fill-gray-600 dark:fill-gray-400"
+                    >
+                      {currency(value)}
+                    </text>
+                  );
+                });
+              })()}
+              {/* Ligne de tendance des dépenses - CORRIGÉ pour partir de 0€ */}
               <polyline
                 points={monthlyExpenses.map((m, i) => {
                   const x = (i / (monthlyExpenses.length - 1 || 1)) * 800 + 50;
                   const maxExpense = Math.max(...monthlyExpenses.map(m => m.total), 1);
-                  const y = 250 - (m.total / maxExpense) * 200;
+                  const minExpense = 0; // Toujours partir de 0€
+                  const range = maxExpense - minExpense || 1;
+                  // y = 250 (0€) - (valeur / range) * 200 (hauteur du graphique)
+                  const y = 250 - ((m.total - minExpense) / range) * 200;
                   return `${x},${y}`;
                 }).join(' ')}
                 fill="none"
@@ -403,21 +695,25 @@ export function ChartsTestInterface({
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
-              {/* Zone remplie sous la ligne */}
+              {/* Zone remplie sous la ligne - CORRIGÉ pour partir de 0€ */}
               <polygon
                 points={`50,250 ${monthlyExpenses.map((m, i) => {
                   const x = (i / (monthlyExpenses.length - 1 || 1)) * 800 + 50;
                   const maxExpense = Math.max(...monthlyExpenses.map(m => m.total), 1);
-                  const y = 250 - (m.total / maxExpense) * 200;
+                  const minExpense = 0; // Toujours partir de 0€
+                  const range = maxExpense - minExpense || 1;
+                  const y = 250 - ((m.total - minExpense) / range) * 200;
                   return `${x},${y}`;
                 }).join(' ')} ${(monthlyExpenses.length - 1 ? 850 : 50)},250`}
                 fill="url(#expenseGradient)"
               />
-              {/* Points sur la ligne */}
+              {/* Points sur la ligne - CORRIGÉ pour partir de 0€ */}
               {monthlyExpenses.map((m, i) => {
                 const x = (i / (monthlyExpenses.length - 1 || 1)) * 800 + 50;
                 const maxExpense = Math.max(...monthlyExpenses.map(m => m.total), 1);
-                const y = 250 - (m.total / maxExpense) * 200;
+                const minExpense = 0; // Toujours partir de 0€
+                const range = maxExpense - minExpense || 1;
+                const y = 250 - ((m.total - minExpense) / range) * 200;
                 return (
                   <g key={i}>
                     <circle cx={x} cy={y} r="5" fill="#EF4444" stroke="white" strokeWidth="2" />

@@ -25,10 +25,11 @@ class INSEEStatisticsService:
         'data_gouv': 'https://www.data.gouv.fr',
     }
     
-    CACHE_DIR = Path(__file__).parent.parent / 'data' / 'cache'
     CACHE_DURATION_DAYS = 30  # Cache les données pendant 30 jours
     
     def __init__(self):
+        from api.utils import CACHE_DIR
+        self.CACHE_DIR = CACHE_DIR
         self.CACHE_DIR.mkdir(parents=True, exist_ok=True)
     
     def _get_cache_path(self, stat_type: str) -> Path:

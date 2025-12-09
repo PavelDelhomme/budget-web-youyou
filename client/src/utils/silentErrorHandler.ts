@@ -19,6 +19,7 @@ const IGNORED_ERRORS = [
   'webpack',
   'vite',
   'ws://',
+  'wss://',
   'websocket connection',
   'websocket connection to',
   'setupwebsocket',
@@ -31,8 +32,12 @@ const IGNORED_ERRORS = [
   'overrideMethod',
   'failed to connect',
   'connection failed',
+  'err_connection_refused',
+  'connection refused',
+  'failed to fetch',
   'session-check',
   'session check',
+  'api/session-check',
   'could not load years',
   'could not load global',
   'could not load year data',
@@ -41,6 +46,11 @@ const IGNORED_ERRORS = [
   'api/global',
   'api/get',
   'api/fiscal',
+  'serviceworker',
+  'service worker',
+  'failed to update a serviceworker',
+  'sw.js',
+  'failed to fetch the script',
   'uauthenticated', // Typo possible
 ];
 

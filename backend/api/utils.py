@@ -14,6 +14,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / 'data'
 DATA_DIR.mkdir(exist_ok=True)
 
+# Cache directories - Centralized cache paths
+CACHE_DIR = DATA_DIR / 'cache'
+CACHE_DIR.mkdir(exist_ok=True)
+
+FISCAL_CACHE_DIR = DATA_DIR / 'fiscal_cache'
+FISCAL_CACHE_DIR.mkdir(exist_ok=True)
+
+MODELS_DIR = DATA_DIR / 'models'
+MODELS_DIR.mkdir(exist_ok=True)
+
+LOGS_DIR = DATA_DIR / 'logs'
+LOGS_DIR.mkdir(exist_ok=True)
+
 
 def sanitize_email(email: str) -> str:
     """Sanitize email for filename"""

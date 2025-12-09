@@ -18,11 +18,27 @@ async function api(path: string, opts: RequestInit = {}, silent: boolean = false
       }
     }
     
-    const res = await fetch(`/api/${path}`, {
-      credentials: "include",
-      ...opts,
-      headers,
-    });
+    let res: Response;
+    try {
+      res = await fetch(`/api/${path}`, {
+        credentials: "include",
+        ...opts,
+        headers,
+      });
+    } catch (fetchError: any) {
+      // Intercepter les erreurs de fetch avant qu'elles soient loggées
+      const isConnectionError = fetchError?.message?.includes("Failed to fetch") || 
+                                fetchError?.message?.includes("ERR_CONNECTION_REFUSED") ||
+                                fetchError?.name === "TypeError" ||
+                                fetchError?.message?.includes("NetworkError");
+      
+      if (isConnectionError && path === "session-check") {
+        // Pour session-check, retourner une réponse silencieuse
+        fetchError.silent = true;
+        fetchError.expected = true;
+      }
+      throw fetchError;
+    }
     
     if (!res.ok) {
       // For 401 errors, always treat them as silent to avoid console pollution
@@ -89,10 +105,23 @@ async function api(path: string, opts: RequestInit = {}, silent: boolean = false
       throw error;
     }
     
-    // If network error or connection refused, throw a more meaningful error
-    if (error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError')) {
-      throw new Error('Le serveur backend n\'est pas disponible. Assurez-vous qu\'il est démarré.');
+    // Ne pas logger les erreurs de connexion répétées (ERR_CONNECTION_REFUSED)
+    // pour éviter la pollution de la console
+    const isConnectionError = error?.message?.includes("Failed to fetch") || 
+                              error?.message?.includes("ERR_CONNECTION_REFUSED") ||
+                              error?.name === "TypeError" ||
+                              error?.message?.includes("NetworkError");
+    
+    // Pour les erreurs de connexion sur session-check, marquer comme silencieuse
+    if (isConnectionError && path === "session-check") {
+      error.silent = true;
     }
+    
+    // Log errors only if they're not expected, silent, or connection errors
+    if (!error?.silent && !error?.expected && !isConnectionError) {
+      console.error(`API Error [${path}]:`, error.message || error);
+    }
+    
     throw error;
   }
 }

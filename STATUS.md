@@ -257,17 +257,64 @@
 ### 📄 **Documentation à la Racine**
 - **STATUS.md** : Ce fichier - Statut actuel et explications concrètes
 - **README.md** : Documentation principale du projet
+
+### 📁 **Documentation organisée dans /docs/**
+
+#### 📁 **/docs/api/** - APIs et Intégrations
+- **API_GOUV.md** : Intégration des APIs gouvernementales (12 APIs documentées)
+
+#### 📁 **/docs/deployment/** - Déploiement
+- **DEPLOYMENT.md** : Guide de déploiement en production
+
+#### 📁 **/docs/features/** - Fonctionnalités
 - **FEATURES.md** : Liste des fonctionnalités principales
-- **API_GOUV.md** : Intégration des APIs gouvernementales
+
+#### 📁 **/docs/fiscal/** - Gestion Fiscale
 - **FISCAL_MANAGEMENT.md** : Système de gestion fiscale avancée
+- **TAX_PLANNING.md** : Planification fiscale
+- **FISCAL_COUNTRY_MANAGEMENT.md** : Gestion fiscale par pays
+- **FISCAL_REGULATIONS_IMPROVEMENTS.md** : Améliorations réglementations fiscales
+
+#### 📁 **/docs/ai/** - Intelligence Artificielle
 - **INTEGRATION_IA.md** : Vue d'ensemble des intégrations IA
 - **ML_AI.md** : Documentation complète du système ML/AI
-- **MORE_IMPROVEMENTS.md** : Backup, cache, monitoring
+
+#### 📁 **/docs/improvements/** - Améliorations
 - **EXTRA_IMPROVEMENTS.md** : JSON Schema, retry logic, PWA
+- **MORE_IMPROVEMENTS.md** : Backup, cache, monitoring
 - **RESPONSIVE_PLAN.md** : Plan de responsivité mobile
+- **IMPROVEMENTS.md** : Réseau neuronal TensorFlow/Keras et sécurité
+- **FINAL_IMPROVEMENTS.md** : Améliorations finales prévues
+- **FINAL_IMPROVEMENTS_COMPLETED.md** : Améliorations finales réalisées
+- **AMELIORATIONS_POTENTIELLES.md** : Liste des améliorations futures
+
+#### 📁 **/docs/technical/** - Technique
 - **SECURITY.md** : Toutes les mesures de sécurité
-- **TAX_PLANNING.md** : Planification fiscale
-- **DEPLOYMENT.md** : Guide de déploiement en production
+- **DMZ_WAF_CONFIGURATION.md** : Configuration WAF et DMZ
+- **PRODUCTION_CHECKLIST.md** : Checklist pour la production
+- **LOGIN_INFO.md** : Informations sur le système de login
+- **ERROR_HANDLING.md** : Gestion des erreurs
+- **WEBSOCKET_ERRORS.md** : Explication des erreurs WebSocket
+
+#### 📁 **/docs/** - Divers
+- **COMPONENTS_RESTRUCTURE.md** : Plan de restructuration des composants React
+- **RESTRUCTURE_PLAN.md** : Plan de restructuration global
+- **INSCRIPTION_AVANCEE.md** : Processus d'inscription avancé
+- **MIGRATION.md** : Migration vers Flask
+- **MIGRATION_DJANGO.md** : Migration depuis Django
+- **ADMIN_INTERFACE.md** : Interface d'administration
+- **ADMIN_PANEL_INTEGRATION.md** : Intégration du panneau admin
+- **ANNUAL_CHART_VARIANTS.md** : Variantes de graphiques annuels
+- **BACKEND_MEMORY_OPTIMIZATION.md** : Optimisation mémoire backend
+- **MEMORY_OPTIMIZATION.md** : Optimisation mémoire
+- **MEMORY_MONITORING.md** : Monitoring mémoire
+- **MEMORY_ANALYSIS_REPORT.md** : Rapport d'analyse mémoire
+- **ANALYSE_MEMOIRE_COMPLETE.md** : Analyse mémoire complète
+- **DATA_SAVE_FIX.md** : Correction sauvegarde données
+- **PERMISSIONS_FIX.md** : Correction permissions
+- **SCROLLABLESELECT_FIX.md** : Correction ScrollableSelect
+- **SCROLLABLESELECT_VIEWPORT_FIX.md** : Correction viewport ScrollableSelect
+- **CORRECTIONS_503_WAF.md** : Corrections erreurs 503 WAF
 
 ---
 

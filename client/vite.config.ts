@@ -17,10 +17,11 @@ console.log(`🔗 Proxy target: ${proxyTarget}`)
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 3030,
-    strictPort: true, // Fail if port is already in use instead of trying another port
-    host: true,
-    hmr: false, // HMR complètement désactivé pour éviter les problèmes WebSocket
+    port: 3030, // Port INTERNE dans le conteneur Docker (mappé vers 6061 externe dans docker-compose.yml)
+    strictPort: false, // Permettre d'utiliser un autre port si 3030 est occupé
+    host: '0.0.0.0', // Écouter sur toutes les interfaces réseau (accessible depuis IP locale via docker-compose)
+    // HMR désactivé car ws: false
+    hmr: false,
     watch: {
       usePolling: false,
       ignored: ['**/node_modules/**', '**/.git/**'],

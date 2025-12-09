@@ -185,7 +185,7 @@ export function AdditionalMonthlyIncomes({
               const monthTotal = incomes.reduce((sum, inc) => sum + inc.amount, 0);
               return (
                 <div
-                  key={month}
+                  key={`month-${month}`}
                   className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-green-200 dark:border-green-700"
                 >
                   <div className="flex items-center justify-between mb-2">

@@ -39,7 +39,8 @@ class GovernmentFiscalRegulationsService:
     """
     
     def __init__(self):
-        self.cache_dir = Path(__file__).parent.parent / 'data' / 'fiscal_cache'
+        from api.utils import FISCAL_CACHE_DIR
+        self.cache_dir = FISCAL_CACHE_DIR
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.cache_duration = timedelta(hours=24)  # Cache pour 24h
         

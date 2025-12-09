@@ -33,6 +33,7 @@
         'not authenticated',
         'websocket',
         'ws://',
+        'wss://',
         'hmr',
         'vite',
         'webpack',
@@ -47,7 +48,17 @@
         'check out your vite',
         'network configuration',
         'server-options',
-        'overrideMethod'
+        'overrideMethod',
+        'err_connection_refused',
+        'connection refused',
+        'failed to fetch',
+        'session-check',
+        'api/session-check',
+        'serviceworker',
+        'service worker',
+        'failed to update a serviceworker',
+        'sw.js',
+        'failed to fetch the script'
       ];
       
       function shouldIgnore(...args) {
@@ -105,7 +116,18 @@
         const messageStr = String(message || '').toLowerCase();
         const sourceStr = String(source || '').toLowerCase();
         
-        // Vérifier plus agressivement les erreurs WebSocket
+        // Vérifier plus agressivement les erreurs WebSocket et connexion
+        const isWebSocketError = msg.includes('WebSocket') || 
+                                 msg.includes('ws://') || 
+                                 msg.includes('wss://') ||
+                                 msg.includes('setupWebSocket');
+        const isConnectionError = msg.includes('ERR_CONNECTION_REFUSED') || 
+                                  msg.includes('Failed to fetch') ||
+                                  (msg.includes('api.ts') && msg.includes('session-check'));
+        
+        if (isWebSocketError || isConnectionError) {
+          return; // Ne pas logger
+        }
         if (shouldIgnore(messageStr, sourceStr, error) ||
             messageStr.includes('setupwebsocket') ||
             messageStr.includes('client:536') ||

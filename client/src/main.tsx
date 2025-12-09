@@ -52,17 +52,47 @@ if (typeof document !== 'undefined') {
   }
 }
 
-// Enregistrer le Service Worker pour PWA
-if ('serviceWorker' in navigator) {
+// Enregistrer le Service Worker pour PWA (uniquement en production)
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
+    navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
       .then((registration) => {
         console.log('Service Worker enregistré:', registration.scope);
+        // Forcer la vérification de mise à jour immédiate
+        registration.update().catch(() => {
+          // Ignorer silencieusement les erreurs d'update
+        });
+        
+        // Vérifier les mises à jour toutes les heures
+        setInterval(() => {
+          registration.update().catch(() => {
+            // Ignorer silencieusement les erreurs d'update
+          });
+        }, 60 * 60 * 1000);
       })
       .catch((error) => {
+        // Ne logger que les erreurs critiques en production
         console.error('Erreur d\'enregistrement du Service Worker:', error);
       });
   });
+  
+  // Forcer la mise à jour au focus de la fenêtre (uniquement en production)
+  if (import.meta.env.PROD) {
+    window.addEventListener('focus', () => {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistration().then((registration) => {
+          if (registration) {
+            registration.update().catch((err) => {
+              // Ignorer silencieusement les erreurs
+              if (import.meta.env.DEV) {
+                console.warn('⚠️ Service Worker update error (ignored in dev):', err);
+              }
+            });
+          }
+        });
+      }
+    });
+  }
 }
 
 const rootElement = document.getElementById('root');

@@ -3,7 +3,7 @@
  * Cache des assets statiques pour fonctionnement hors ligne
  */
 
-const CACHE_NAME = 'budget-app-v2';
+const CACHE_NAME = 'budget-app-v3';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -29,11 +29,16 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames
           .filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name))
+          .map((name) => {
+            console.log('🗑️ Suppression du cache obsolète:', name);
+            return caches.delete(name);
+          })
       );
+    }).then(() => {
+      console.log('✅ Service Worker activé avec cache:', CACHE_NAME);
+      return self.clients.claim();
     })
   );
-  self.clients.claim();
 });
 
 // Interception des requêtes

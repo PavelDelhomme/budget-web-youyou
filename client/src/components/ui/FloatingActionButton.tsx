@@ -8,12 +8,14 @@ interface FloatingActionButtonProps {
 }
 
 // Créer le container Portal globalement, hors du composant React
-// Cela garantit qu'il persiste même si React ne remonte pas le composant
-function getOrCreatePortalContainer(): HTMLDivElement {
+function getOrCreatePortalContainer(): HTMLDivElement | null {
+  if (typeof document === 'undefined' || !document.body) {
+    return null;
+  }
+  
   let container = document.getElementById('fab-portal-container') as HTMLDivElement;
   
-  if (!container && document.body) {
-    console.log('📦 Création globale du container Portal...');
+  if (!container) {
     container = document.createElement('div');
     container.id = 'fab-portal-container';
     container.style.cssText = `
@@ -27,92 +29,56 @@ function getOrCreatePortalContainer(): HTMLDivElement {
       display: block !important;
     `;
     document.body.appendChild(container);
-    console.log('✅ Container Portal créé globalement !', container);
   }
   
   return container;
 }
 
 export function FloatingActionButton({ onAddExpense, onAddIncome, hidden = false }: FloatingActionButtonProps) {
-  // TOUS LES HOOKS DOIVENT ÊTRE APPELÉS AVANT TOUT RETURN CONDITIONNEL
+  // TOUS LES HOOKS DOIVENT ÊTRE APPELÉS TOUJOURS DANS LE MÊME ORDRE
+  // AUCUN RETURN CONDITIONNEL AVANT LA FIN DE TOUS LES HOOKS
+  
   const [isOpen, setIsOpen] = useState(false);
-  const [containerReady, setContainerReady] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
 
-  // Fermer le menu si le bouton est caché
+  // Hook 1: Fermer le menu si le bouton est caché
   useEffect(() => {
     if (hidden && isOpen) {
       setIsOpen(false);
     }
   }, [hidden, isOpen]);
 
-  // Initialiser le Portal - TOUJOURS appelé
+  // Hook 2: Initialiser et gérer le container Portal
   useEffect(() => {
-    console.log('🔧 FloatingActionButton - Montage du composant...');
-    
-    const initPortal = () => {
-      if (!document.body) {
-        console.log('⏳ Attente de document.body...');
-        return false;
-      }
-      
-      const container = getOrCreatePortalContainer();
-      if (container) {
-        containerRef.current = container;
-        setContainerReady(true);
-        
-        // Forcer les styles
-        container.style.pointerEvents = 'auto';
-        container.style.display = hidden ? 'none' : 'block';
-        container.style.visibility = hidden ? 'hidden' : 'visible';
-        container.style.opacity = hidden ? '0' : '1';
-        
-        console.log('✅ Container Portal prêt !', container);
-        return true;
-      }
-      
-      return false;
-    };
-    
-    // Essayer immédiatement
-    if (!initPortal()) {
-      // Attendre document.body
-      const waitInterval = setInterval(() => {
-        if (initPortal()) {
-          clearInterval(waitInterval);
-        }
-      }, 50);
-      
-      return () => clearInterval(waitInterval);
+    // Vérifier si on est côté client
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return;
     }
     
-    // Vérification périodique que le container existe toujours
-    const checkInterval = setInterval(() => {
-      if (document.body) {
-        const existing = document.getElementById('fab-portal-container');
-        if (!existing) {
-          console.warn('⚠️ Container Portal supprimé ! Recréation...');
-          const container = getOrCreatePortalContainer();
-          if (container) {
-            containerRef.current = container;
-            setContainerReady(true);
-          }
-        } else if (containerRef.current !== existing) {
-          // Container existe mais ref pas synchronisée
-          containerRef.current = existing as HTMLDivElement;
-          setContainerReady(true);
-        }
+    // Initialiser le container
+    const container = getOrCreatePortalContainer();
+    if (container) {
+      containerRef.current = container;
+      
+      // Appliquer les styles selon l'état hidden
+      if (hidden) {
+        container.style.display = 'none';
+        container.style.visibility = 'hidden';
+        container.style.opacity = '0';
+        container.style.pointerEvents = 'none';
+      } else {
+        container.style.display = 'block';
+        container.style.visibility = 'visible';
+        container.style.opacity = '1';
+        container.style.pointerEvents = 'auto';
       }
-    }, 500);
+    }
     
-    return () => {
-      clearInterval(checkInterval);
-      // NE PAS supprimer le container au démontage
-    };
-  }, []); // Une seule fois
+    // Pas de cleanup nécessaire car le container doit persister
+  }, [hidden]);
 
-  // Cacher/afficher le container portal selon l'état hidden
+  // Hook 3: Mettre à jour les styles du container quand hidden change
   useEffect(() => {
     if (!containerRef.current) return;
     
@@ -127,85 +93,25 @@ export function FloatingActionButton({ onAddExpense, onAddIncome, hidden = false
       containerRef.current.style.opacity = '1';
       containerRef.current.style.pointerEvents = 'auto';
     }
-  }, [hidden, containerReady]);
+  }, [hidden]);
 
-  // Vérification périodique de visibilité
-  useEffect(() => {
-    if (!containerReady || hidden) return;
-    
-    const checkVisibility = () => {
-      const container = containerRef.current;
-      const button = buttonRef.current;
-      
-      if (!container || !document.body.contains(container)) {
-        console.error('❌ Container absent du DOM !');
-        const newContainer = getOrCreatePortalContainer();
-        if (newContainer) {
-          containerRef.current = newContainer;
-          setContainerReady(true);
-        }
-        return;
-      }
-      
-      // Forcer la visibilité seulement si pas caché
-      if (!hidden) {
-        container.style.cssText = `
-          position: fixed !important;
-          bottom: 24px !important;
-          right: 24px !important;
-          z-index: 999999 !important;
-          pointer-events: auto !important;
-          visibility: visible !important;
-          opacity: 1 !important;
-          display: block !important;
-        `;
-      }
-      
-      if (button) {
-        const buttonRect = button.getBoundingClientRect();
-        if (buttonRect.width === 0 || buttonRect.height === 0) {
-          button.style.width = '64px';
-          button.style.height = '64px';
-          button.style.display = 'flex';
-        }
-      }
-    };
-    
-    // Vérifications immédiates et périodiques
-    const timeouts = [
-      setTimeout(checkVisibility, 50),
-      setTimeout(checkVisibility, 200),
-      setTimeout(checkVisibility, 500),
-      setTimeout(checkVisibility, 1000),
-    ];
-    
-    const interval = setInterval(checkVisibility, 2000);
-    
-    return () => {
-      timeouts.forEach(clearTimeout);
-      clearInterval(interval);
-    };
-  }, [containerReady, hidden]);
-
-  // Ne rien rendre si le bouton est caché (APRÈS tous les hooks)
+  // MAINTENANT, APRÈS TOUS LES HOOKS, on peut faire des returns conditionnels
+  // Si caché, ne rien rendre
   if (hidden) {
     return null;
   }
 
-  // Si le container n'est pas prêt, essayer de le créer immédiatement
-  if (!containerReady || !containerRef.current) {
-    // Essayer une dernière fois de créer le container
-    if (document.body) {
-      const container = getOrCreatePortalContainer();
-      if (container) {
-        containerRef.current = container;
-        setContainerReady(true);
-      }
+  // Vérifier si le container existe, sinon essayer de le créer
+  if (!containerRef.current && typeof document !== 'undefined' && document.body) {
+    const container = getOrCreatePortalContainer();
+    if (container) {
+      containerRef.current = container;
     }
-    // Si toujours pas prêt, retourner null mais continuer à essayer
-    if (!containerReady || !containerRef.current) {
-      return null;
-    }
+  }
+
+  // Si toujours pas de container, ne rien rendre
+  if (!containerRef.current) {
+    return null;
   }
 
   const buttonContent = (
@@ -328,7 +234,6 @@ export function FloatingActionButton({ onAddExpense, onAddIncome, hidden = false
         onClick={(e) => {
           e.stopPropagation();
           e.preventDefault();
-          console.log('🎯 Bouton cliqué !', isOpen);
           setIsOpen(!isOpen);
         }}
         style={{
@@ -403,9 +308,5 @@ export function FloatingActionButton({ onAddExpense, onAddIncome, hidden = false
   );
 
   // Utiliser createPortal pour rendre directement dans le body
-  if (!containerRef.current) {
-    return null;
-  }
-  
   return createPortal(buttonContent, containerRef.current);
 }

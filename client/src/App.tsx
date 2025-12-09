@@ -155,11 +155,15 @@ function App() {
   // Vérifier la session au démarrage et périodiquement
   useEffect(() => {
     let sessionCheckInterval: ReturnType<typeof setInterval> | null = null;
+    let isMounted = true; // Flag pour éviter les mises à jour sur un composant démonté
     
     async function checkSession() {
       try {
         // First check if user is authenticated without generating 401 errors
         const sessionInfo = await Api.checkSession();
+        
+        // Ne pas mettre à jour l'état si le composant est démonté
+        if (!isMounted) return;
         
         if (sessionInfo.authenticated && sessionInfo.email) {
           setSessionEmail(sessionInfo.email);
@@ -250,6 +254,15 @@ function App() {
         }
       } catch (err: any) {
         // Session check failed - user is not logged in
+        // Ne pas logger les erreurs de connexion répétées
+        const isConnectionError = err?.message?.includes("Failed to fetch") || 
+                                  err?.message?.includes("ERR_CONNECTION_REFUSED") ||
+                                  err?.name === "TypeError";
+        
+        if (!isConnectionError) {
+          console.error("Erreur lors de la vérification de session:", err);
+        }
+        
         setSessionEmail(null);
         setIsCheckingSession(false); // Session vérifiée (avec erreur), utilisateur non connecté
       }
@@ -1349,6 +1362,8 @@ function App() {
         onYearSelect={(y) => {
           if (y === 'dashboard') {
             setYear('dashboard');
+          } else if (y === 'charts-test') {
+            setYear('charts-test');
           } else {
             setYear(y);
           }
