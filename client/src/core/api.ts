@@ -45,11 +45,28 @@ async function api(path: string, opts: RequestInit = {}, silent: boolean = false
       // Those might return 401 if the year doesn't exist yet (normal for predicted years)
       if (res.status === 401) {
         const isYearDataRequest = path.startsWith('get?year=');
+        // Vérifier si c'est une année future qui n'existe probablement pas
+        if (isYearDataRequest) {
+          const yearMatch = path.match(/year=(\d+)/);
+          if (yearMatch) {
+            const year = parseInt(yearMatch[1]);
+            const currentYear = new Date().getFullYear();
+            // Si année > currentYear + 3, elle n'existe probablement pas
+            if (year > currentYear + 3) {
+              const error = new Error('Year does not exist');
+              (error as any).status = 401;
+              (error as any).silent = true;
+              (error as any).expected = true;
+              throw error;
+            }
+          }
+        }
+        // Pour les autres 401, c'est une vraie erreur d'authentification
         const error = new Error('Not authenticated');
         (error as any).status = 401;
-        (error as any).silent = isYearDataRequest; // Silent for year data requests (might be future years)
-        (error as any).sessionExpired = !isYearDataRequest; // Only session expired if not a year data request
-        (error as any).expected = isYearDataRequest; // Expected for year data requests (future years don't exist)
+        (error as any).silent = false; // Ne pas silencer les vraies erreurs d'auth
+        (error as any).sessionExpired = true;
+        (error as any).expected = false;
         throw error;
       }
       

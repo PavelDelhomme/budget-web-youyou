@@ -1245,23 +1245,25 @@ function App() {
       
           // Load global data after login (with retry if session not ready)
           try {
-            // Wait a bit for session cookie to be available
-            await new Promise(resolve => setTimeout(resolve, 300));
+            // Wait longer for session cookie to be available and processed by browser
+            await new Promise(resolve => setTimeout(resolve, 800));
             
             let global = null;
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < 8; i++) {
               try {
                 global = await Api.getGlobalData();
                 break;
               } catch (err: any) {
-                if (err?.status === 401 && i < 4) {
-                  // Wait a bit and retry if session not ready yet
-                  await new Promise(resolve => setTimeout(resolve, 300));
+                if (err?.status === 401 && i < 7) {
+                  // Wait progressively longer between retries
+                  const delay = Math.min(300 * (i + 1), 1000);
+                  console.debug(`Tentative ${i + 1}/8 pour charger global data, attente ${delay}ms...`);
+                  await new Promise(resolve => setTimeout(resolve, delay));
                   continue;
                 }
                 // If still 401 after retries, don't throw - just skip loading global data
                 if (err?.status === 401) {
-                  console.warn('Impossible de charger les données globales après connexion');
+                  console.warn('Impossible de charger les données globales après connexion après plusieurs tentatives');
                   break;
                 }
                 throw err;

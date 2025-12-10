@@ -372,6 +372,12 @@ def login():
         'csrf_token': session['csrf_token']
     })
     
+    # Explicitly set CORS headers for credentials
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    response.headers.add('Access-Control-Allow-Origin', request.headers.get('Origin', 'http://localhost:6061'))
+    response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type, X-CSRF-Token, Authorization')
+    
     return response
 
 

@@ -58,7 +58,7 @@ export default defineConfig({
           });
           // Log proxy requests for debugging
           proxy.on('proxyReq', (proxyReq, req, res) => {
-            // Transmettre les cookies de la requête originale
+            // CRITICAL: Transmettre les cookies de la requête originale
             if (req.headers.cookie) {
               proxyReq.setHeader('Cookie', req.headers.cookie);
             }
@@ -66,9 +66,18 @@ export default defineConfig({
             proxyReq.setHeader('Connection', 'keep-alive');
           });
           proxy.on('proxyRes', (proxyRes, req, res) => {
-            // Log pour debug
+            // CRITICAL: Transmettre les cookies Set-Cookie du backend vers le client
+            // Le proxy doit préserver les headers Set-Cookie tels quels
             if (proxyRes.headers['set-cookie']) {
-              console.log('Cookies reçus du backend:', proxyRes.headers['set-cookie']);
+              // Les headers Set-Cookie sont automatiquement transmis par http-proxy-middleware
+              // Mais on peut les logger pour debug
+              if (process.env.NODE_ENV === 'development') {
+                console.log('✅ Cookies Set-Cookie reçus du backend:', proxyRes.headers['set-cookie']);
+              }
+            }
+            // S'assurer que Access-Control-Allow-Credentials est présent
+            if (!proxyRes.headers['access-control-allow-credentials']) {
+              proxyRes.headers['access-control-allow-credentials'] = 'true';
             }
           });
         },
