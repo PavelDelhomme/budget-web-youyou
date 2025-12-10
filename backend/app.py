@@ -42,7 +42,9 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Protection CSRF (Lax pour perme
 app.config['SESSION_COOKIE_SECURE'] = os.environ.get('FLASK_ENV') == 'production' or os.environ.get('FORCE_HTTPS', '').lower() == 'true'  # HTTPS en production
 app.config['SESSION_COOKIE_NAME'] = 'budget_session'  # Nom personnalisé pour éviter les collisions
 app.config['SESSION_COOKIE_PATH'] = '/'  # Restreindre le chemin
-app.config['SESSION_COOKIE_DOMAIN'] = None  # Ne pas partager entre sous-domaines
+# Pour Docker avec proxy, ne pas définir de domaine spécifique
+# Le cookie sera envoyé pour le domaine de la requête (localhost)
+app.config['SESSION_COOKIE_DOMAIN'] = None
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
 app.config['SESSION_COOKIE_SAMESITE_FORCE_ALL'] = True
 

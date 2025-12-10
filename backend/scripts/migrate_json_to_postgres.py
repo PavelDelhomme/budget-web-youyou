@@ -52,11 +52,19 @@ def migrate_all_json_files():
                 # In production, you might want to store email mapping separately
                 email_from_file = json_file.stem.replace('_', '.').replace('at', '@')
                 
-                # For migration, we'll create a user with the sanitized email
-                # You might need to manually map these
-                print(f"   Email déduit: {email_from_file}")
+                # Correction : dev.delhomme.ovh devrait être dev@delhomme.ovh
+                # Le fichier est dev_delhomme.ovh.json qui correspond à dev.delhomme.ovh
+                # Mais l'utilisateur se connecte avec dev@delhomme.ovh
+                # On utilise l'email ADMIN_EMAIL si c'est le fichier dev_delhomme.ovh.json
+                import os
+                admin_email = os.getenv('ADMIN_EMAIL', 'dev@delhomme.ovh')
+                if email_from_file == 'dev.delhomme.ovh' or 'dev' in email_from_file.lower():
+                    email_from_file = admin_email
+                    print(f"   Email corrigé vers: {email_from_file}")
+                else:
+                    print(f"   Email déduit: {email_from_file}")
                 
-                # Save to PostgreSQL
+                # Save to PostgreSQL (va mettre à jour si l'utilisateur existe déjà)
                 save_user(db, email_from_file, data)
                 migrated_count += 1
                 print(f"   ✅ Migré avec succès")

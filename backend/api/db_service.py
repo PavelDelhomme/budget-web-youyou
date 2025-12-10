@@ -138,30 +138,51 @@ def save_user(db: Session, email: str, data: Dict[str, Any]) -> None:
     
     # Add new years
     for year in new_years - existing_years:
-        user_year = UserYear(user_id=user.id, year=year)
-        db.add(user_year)
-        db.flush()  # Get the ID
+        # Check if UserYear already exists (shouldn't happen but just in case)
+        existing_user_year = db.query(UserYear).filter(
+            UserYear.user_id == user.id,
+            UserYear.year == year
+        ).first()
         
-        # Initialize year data with defaults
-        default_year_data = get_default_year_data()
-        year_data = YearData(
-            user_year_id=user_year.id,
-            categories=default_year_data['categories'],
-            expenses=default_year_data['expenses'],
-            subs=default_year_data['subs'],
-            annual_fixed_expenses=default_year_data['annualFixedExpenses'],
-            monthly_salary=default_year_data['monthlySalary'],
-            variable_monthly_incomes=default_year_data.get('variableMonthlyIncomes'),
-            additional_monthly_incomes=default_year_data['additionalMonthlyIncomes'],
-            monthly_income_sources=default_year_data.get('monthlyIncomeSources', []),
-            current_savings=default_year_data['currentSavings'],
-            savings_transactions=default_year_data['savingsTransactions'],
-        )
-        db.add(year_data)
+        if existing_user_year:
+            user_year = existing_user_year
+        else:
+            user_year = UserYear(user_id=user.id, year=year)
+            db.add(user_year)
+            db.flush()  # Get the ID
+        
+        # Check if YearData already exists
+        if not user_year.year_data:
+            # Initialize year data with defaults
+            default_year_data = get_default_year_data()
+            year_data = YearData(
+                user_year_id=user_year.id,
+                categories=default_year_data['categories'],
+                expenses=default_year_data['expenses'],
+                subs=default_year_data['subs'],
+                annual_fixed_expenses=default_year_data['annualFixedExpenses'],
+                monthly_salary=default_year_data['monthlySalary'],
+                variable_monthly_incomes=default_year_data.get('variableMonthlyIncomes'),
+                additional_monthly_incomes=default_year_data['additionalMonthlyIncomes'],
+                monthly_income_sources=default_year_data.get('monthlyIncomeSources', []),
+                current_savings=default_year_data['currentSavings'],
+                savings_transactions=default_year_data['savingsTransactions'],
+            )
+            db.add(year_data)
     
-    # Remove deleted years
+    # Remove deleted years (only if they don't have important data)
     for year in existing_years - new_years:
         user_year = current_years[year]
+        # Only delete if year_data is empty or doesn't exist
+        if user_year.year_data:
+            has_data = (
+                (user_year.year_data.expenses and len(user_year.year_data.expenses) > 0) or
+                (user_year.year_data.subs and len(user_year.year_data.subs) > 0) or
+                user_year.year_data.monthly_salary > 0
+            )
+            if has_data:
+                # Don't delete years with data
+                continue
         db.delete(user_year)
     
     # Update year data
