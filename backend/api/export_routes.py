@@ -4,7 +4,8 @@ Routes API pour l'export de données
 from flask import request, jsonify, session, Response
 from datetime import datetime
 from api.export_service import create_exporter
-from api.utils import load_user
+from api.database import get_db
+from api.db_service import load_user
 from datetime import datetime
 
 
@@ -29,74 +30,90 @@ def register_export_routes(app):
     def export_json():
         """Exporter toutes les données en JSON"""
         user_email = session['user_email']
-        user_data = load_user(user_email)
-        global_data = user_data.get('globalData', {})
-        
-        json_data = exporter.export_json(user_data, global_data)
-        
-        return Response(
-            json_data,
-            mimetype='application/json',
-            headers={
-                'Content-Disposition': f'attachment; filename=budget_export_{user_email.replace("@", "_")}_{datetime.now().strftime("%Y%m%d")}.json'
-            }
-        )
+        db = next(get_db())
+        try:
+            user_data = load_user(db, user_email)
+            global_data = user_data.get('globalData', {})
+            
+            json_data = exporter.export_json(user_data, global_data)
+            
+            return Response(
+                json_data,
+                mimetype='application/json',
+                headers={
+                    'Content-Disposition': f'attachment; filename=budget_export_{user_email.replace("@", "_")}_{datetime.now().strftime("%Y%m%d")}.json'
+                }
+            )
+        finally:
+            db.close()
     
     @app.route('/api/export/csv/budget', methods=['GET'])
     @require_auth
     def export_csv_budget():
         """Exporter le budget en CSV"""
         user_email = session['user_email']
-        user_data = load_user(user_email)
-        year = request.args.get('year', type=int)
-        
-        csv_data = exporter.export_csv_budget(user_data.get('datasets', {}), year)
-        
-        filename = f'budget_export_{datetime.now().strftime("%Y%m%d")}.csv'
-        if year:
-            filename = f'budget_{year}_export_{datetime.now().strftime("%Y%m%d")}.csv'
-        
-        return Response(
-            csv_data,
-            mimetype='text/csv',
-            headers={
-                'Content-Disposition': f'attachment; filename={filename}'
-            }
-        )
+        db = next(get_db())
+        try:
+            user_data = load_user(db, user_email)
+            year = request.args.get('year', type=int)
+            
+            csv_data = exporter.export_csv_budget(user_data.get('datasets', {}), year)
+            
+            filename = f'budget_export_{datetime.now().strftime("%Y%m%d")}.csv'
+            if year:
+                filename = f'budget_{year}_export_{datetime.now().strftime("%Y%m%d")}.csv'
+            
+            return Response(
+                csv_data,
+                mimetype='text/csv',
+                headers={
+                    'Content-Disposition': f'attachment; filename={filename}'
+                }
+            )
+        finally:
+            db.close()
     
     @app.route('/api/export/csv/transactions', methods=['GET'])
     @require_auth
     def export_csv_transactions():
         """Exporter les transactions en CSV"""
         user_email = session['user_email']
-        user_data = load_user(user_email)
-        global_data = user_data.get('globalData', {})
-        
-        csv_data = exporter.export_csv_transactions(global_data)
-        
-        return Response(
-            csv_data,
-            mimetype='text/csv',
-            headers={
-                'Content-Disposition': f'attachment; filename=transactions_export_{datetime.now().strftime("%Y%m%d")}.csv'
-            }
-        )
+        db = next(get_db())
+        try:
+            user_data = load_user(db, user_email)
+            global_data = user_data.get('globalData', {})
+            
+            csv_data = exporter.export_csv_transactions(global_data)
+            
+            return Response(
+                csv_data,
+                mimetype='text/csv',
+                headers={
+                    'Content-Disposition': f'attachment; filename=transactions_export_{datetime.now().strftime("%Y%m%d")}.csv'
+                }
+            )
+        finally:
+            db.close()
     
     @app.route('/api/export/summary', methods=['GET'])
     @require_auth
     def export_summary():
         """Exporter un résumé textuel"""
         user_email = session['user_email']
-        user_data = load_user(user_email)
-        global_data = user_data.get('globalData', {})
-        
-        summary = exporter.export_summary(user_data, global_data)
-        
-        return Response(
-            summary,
-            mimetype='text/plain',
-            headers={
-                'Content-Disposition': f'attachment; filename=budget_summary_{datetime.now().strftime("%Y%m%d")}.txt'
-            }
-        )
+        db = next(get_db())
+        try:
+            user_data = load_user(db, user_email)
+            global_data = user_data.get('globalData', {})
+            
+            summary = exporter.export_summary(user_data, global_data)
+            
+            return Response(
+                summary,
+                mimetype='text/plain',
+                headers={
+                    'Content-Disposition': f'attachment; filename=budget_summary_{datetime.now().strftime("%Y%m%d")}.txt'
+                }
+            )
+        finally:
+            db.close()
 

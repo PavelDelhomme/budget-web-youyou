@@ -1,4 +1,22 @@
 services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: budget-web-postgres
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-budget_db}
+      - POSTGRES_USER=${POSTGRES_USER:-budget_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-budget_password_change_in_production}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-budget_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   backend:
     build:
       context: ./backend
@@ -12,6 +30,10 @@ services:
       - DEBUG=${DEBUG:-False}
       - ADMIN_EMAIL=${ADMIN_EMAIL:-dev@delhomme.ovh}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-5n!B@#c*ymgEBYXrWdKE}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-budget_user}:${POSTGRES_PASSWORD:-budget_password_change_in_production}@postgres:5432/${POSTGRES_DB:-budget_db}
+    depends_on:
+      postgres:
+        condition: service_healthy
     volumes:
       - ./backend/data:/app/data
       - ./backend/api:/app/api
@@ -49,4 +71,5 @@ services:
 volumes:
   budget-web-frontend_node_modules:
   budget-web-frontend_dist:
+  postgres_data:
 

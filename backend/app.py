@@ -13,7 +13,9 @@ from pathlib import Path
 
 # Import structured logger after DATA_DIR is defined
 
-from api.utils import load_user, save_user, get_default_year_data
+from api.utils import get_default_year_data
+from api.database import init_db, get_db
+from api.db_service import load_user, save_user
 from api.middleware import (
     add_security_headers, get_client_ip, rate_limit,
     require_csrf, prevent_session_fixation, log_security_event,
@@ -351,7 +353,11 @@ def login():
     )
     
     # Ensure user data exists
-    user_data = load_user(ADMIN_EMAIL)
+    db = next(get_db())
+    try:
+        user_data = load_user(db, ADMIN_EMAIL)
+    finally:
+        db.close()
     
     # Create response - Flask will automatically send session cookie
     response = jsonify({
@@ -427,6 +433,14 @@ structured_logger.info('Application démarrée',
     version='1.0.0',
     environment=os.environ.get('FLASK_ENV', 'development')
 )
+
+# Initialize PostgreSQL database
+try:
+    init_db()
+    structured_logger.info('Base de données PostgreSQL initialisée')
+except Exception as e:
+    structured_logger.error('Erreur lors de l\'initialisation de la base de données', error=str(e))
+    print(f"⚠️ Erreur lors de l'initialisation de la base de données: {e}")
 
 # Register all routes
 views.register_routes(app)

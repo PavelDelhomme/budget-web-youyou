@@ -5,7 +5,9 @@ from flask import request, jsonify, session
 from functools import wraps
 import re
 
-from .utils import load_user, save_user, get_default_year_data
+from .utils import get_default_year_data
+from .database import get_db
+from .db_service import load_user, save_user
 from .security import (
     sanitize_email, validate_email, validate_year, 
     validate_year_data, validate_string
@@ -33,11 +35,15 @@ def register_routes(app):
     def get_years():
         """Get all years for authenticated user"""
         user_email = session['user_email']
-        data = load_user(user_email)
-        return jsonify({
-            'email': user_email,
-            'years': data['years']
-        })
+        db = next(get_db())
+        try:
+            data = load_user(db, user_email)
+            return jsonify({
+                'email': user_email,
+                'years': data['years']
+            })
+        finally:
+            db.close()
     
     @app.route('/api/years', methods=['POST'])
     @require_auth
@@ -58,16 +64,20 @@ def register_routes(app):
         if year_num < current_year - 10 or year_num > current_year + 10:
             return jsonify({'error': 'Année trop éloignée'}), 400
         
-        user_data = load_user(user_email)
-        if year_num in user_data['years']:
-            return jsonify({'error': 'Cette année existe déjà'}), 400
-        
-        if year_num not in user_data['years']:
-            user_data['years'].append(year_num)
-            user_data['years'].sort()
-            save_user(user_email, user_data)
-        
-        return jsonify({'years': user_data['years']})
+        db = next(get_db())
+        try:
+            user_data = load_user(db, user_email)
+            if year_num in user_data['years']:
+                return jsonify({'error': 'Cette année existe déjà'}), 400
+            
+            if year_num not in user_data['years']:
+                user_data['years'].append(year_num)
+                user_data['years'].sort()
+                save_user(db, user_email, user_data)
+            
+            return jsonify({'years': user_data['years']})
+        finally:
+            db.close()
     
     @app.route('/api/years', methods=['DELETE'])
     @require_auth
@@ -84,18 +94,22 @@ def register_routes(app):
         if year_num is None:
             return jsonify({'error': 'Année invalide'}), 400
         
-        user_data = load_user(user_email)
-        
-        # Remove from years array
-        user_data['years'] = [y for y in user_data['years'] if y != year_num]
-        
-        # Remove dataset if exists
-        year_key = str(year_num)
-        if year_key in user_data['datasets']:
-            del user_data['datasets'][year_key]
-        
-        save_user(user_email, user_data)
-        return jsonify({'years': user_data['years']})
+        db = next(get_db())
+        try:
+            user_data = load_user(db, user_email)
+            
+            # Remove from years array
+            user_data['years'] = [y for y in user_data['years'] if y != year_num]
+            
+            # Remove dataset if exists
+            year_key = str(year_num)
+            if year_key in user_data['datasets']:
+                del user_data['datasets'][year_key]
+            
+            save_user(db, user_email, user_data)
+            return jsonify({'years': user_data['years']})
+        finally:
+            db.close()
     
     @app.route('/api/get', methods=['GET'])
     @require_auth
@@ -111,22 +125,26 @@ def register_routes(app):
         if year_num is None:
             return jsonify({'error': 'Année invalide'}), 400
         
-        user_data = load_user(user_email)
-        year_key = str(year_num)
-        dataset = user_data['datasets'].get(year_key)
-        
-        if not dataset:
-            # Return default dataset with all required fields
+        db = next(get_db())
+        try:
+            user_data = load_user(db, user_email)
+            year_key = str(year_num)
+            dataset = user_data['datasets'].get(year_key)
+            
+            if not dataset:
+                # Return default dataset with all required fields
+                default_data = get_default_year_data()
+                return jsonify(default_data)
+            
+            # Ensure all default fields are present for backward compatibility
             default_data = get_default_year_data()
-            return jsonify(default_data)
-        
-        # Ensure all default fields are present for backward compatibility
-        default_data = get_default_year_data()
-        for key, default_value in default_data.items():
-            if key not in dataset:
-                dataset[key] = default_value
-        
-        return jsonify(dataset)
+            for key, default_value in default_data.items():
+                if key not in dataset:
+                    dataset[key] = default_value
+            
+            return jsonify(dataset)
+        finally:
+            db.close()
     
     @app.route('/api/put', methods=['PUT'])
     @require_auth
@@ -152,29 +170,37 @@ def register_routes(app):
         if validated_data is None:
             return jsonify({'error': 'Données invalides'}), 400
         
-        user_data = load_user(user_email)
-        year_key = str(year_num)
-        
-        # Merge with existing data
-        existing_data = user_data['datasets'].get(year_key, {})
-        existing_data.update(validated_data)
-        user_data['datasets'][year_key] = existing_data
-        
-        # Ensure year is in years array
-        if year_num not in user_data['years']:
-            user_data['years'].append(year_num)
-            user_data['years'].sort()
-        
-        save_user(user_email, user_data)
-        return jsonify({'ok': True})
+        db = next(get_db())
+        try:
+            user_data = load_user(db, user_email)
+            year_key = str(year_num)
+            
+            # Merge with existing data
+            existing_data = user_data['datasets'].get(year_key, {})
+            existing_data.update(validated_data)
+            user_data['datasets'][year_key] = existing_data
+            
+            # Ensure year is in years array
+            if year_num not in user_data['years']:
+                user_data['years'].append(year_num)
+                user_data['years'].sort()
+            
+            save_user(db, user_email, user_data)
+            return jsonify({'ok': True})
+        finally:
+            db.close()
     
     @app.route('/api/global', methods=['GET'])
     @require_auth
     def get_global_data():
         """Get global user data"""
         user_email = session['user_email']
-        user_data = load_user(user_email)
-        return jsonify(user_data.get('globalData', {}))
+        db = next(get_db())
+        try:
+            user_data = load_user(db, user_email)
+            return jsonify(user_data.get('globalData', {}))
+        finally:
+            db.close()
     
     @app.route('/api/global', methods=['PUT'])
     @require_auth
@@ -204,8 +230,12 @@ def register_routes(app):
             # Si validate_global_data n'est pas disponible, utiliser le payload directement (normal)
             pass
         
-        user_data = load_user(user_email)
-        user_data['globalData'] = validated_data
-        save_user(user_email, user_data)
-        
-        return jsonify({'ok': True})
+        db = next(get_db())
+        try:
+            user_data = load_user(db, user_email)
+            user_data['globalData'] = validated_data
+            save_user(db, user_email, user_data)
+            
+            return jsonify({'ok': True})
+        finally:
+            db.close()

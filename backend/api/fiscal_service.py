@@ -13,7 +13,8 @@ from api.fiscal_tracking import (
 )
 from api.fiscal_country_manager import CountryFiscalManager
 from api.government_fiscal_regulations import GovernmentFiscalRegulationsService
-from api.utils import load_user
+from api.database import get_db
+from api.db_service import load_user
 
 
 def require_auth(f):
