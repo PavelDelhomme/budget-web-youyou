@@ -186,8 +186,10 @@ RATE_LIMIT_WINDOW = 60  # Fenêtre de 60 secondes pour les tentatives
 
 # CORS configuration
 CORS(app, 
-     origins=['http://localhost:6061', 'http://127.0.0.1:6061'],
-     supports_credentials=True)
+     origins=['http://localhost:6061', 'http://127.0.0.1:6061', 'http://localhost:3030'],
+     supports_credentials=True,
+     allow_headers=['Content-Type', 'X-CSRF-Token'],
+     expose_headers=['X-CSRF-Token'])
 
 # Global error handler
 @app.errorhandler(500)

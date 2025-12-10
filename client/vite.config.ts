@@ -34,6 +34,10 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         ws: false,
+        cookieDomainRewrite: '', // Supprimer le domaine du cookie pour qu'il fonctionne avec le proxy
+        cookiePathRewrite: {
+          '*': '/', // Réécrire le chemin du cookie
+        },
         configure: (proxy, _options) => {
           proxy.on('error', (err, req, res) => {
             console.warn(`Proxy error (backend non disponible) [target: ${proxyTarget}]:`, err.message);
@@ -45,6 +49,13 @@ export default defineConfig({
                 error: 'Service temporairement indisponible',
                 message: 'Le serveur backend n\'est pas disponible. Veuillez le démarrer avec: make restart'
               }));
+            }
+          });
+          // Log proxy requests for debugging
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            // Transmettre les cookies de la requête originale
+            if (req.headers.cookie) {
+              proxyReq.setHeader('Cookie', req.headers.cookie);
             }
           });
         },
