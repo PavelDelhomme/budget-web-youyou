@@ -231,21 +231,23 @@ def register_fiscal_routes(app):
             # Get fiscal info for country
             fiscal_info = country_manager.get_tax_info(country_code)
             
-            return jsonify({
-                'success': True,
-                'year': year,
-                'country': country_code,
-                'important_dates': combined_dates,
-                'upcoming_deadlines': calendar.get_upcoming_deadlines(days_ahead=60),
-                'next_deadline': calendar.get_next_deadline(),
-                'fiscal_info': fiscal_info,
-                'source': 'live_government_data',
-                'last_update': datetime.now().isoformat()
-            })
-        except Exception as e:
-            return jsonify({
-                'error': f'Erreur: {str(e)}'
-            }), 500
+                return jsonify({
+                    'success': True,
+                    'year': year,
+                    'country': country_code,
+                    'important_dates': combined_dates,
+                    'upcoming_deadlines': calendar.get_upcoming_deadlines(days_ahead=60),
+                    'next_deadline': calendar.get_next_deadline(),
+                    'fiscal_info': fiscal_info,
+                    'source': 'live_government_data',
+                    'last_update': datetime.now().isoformat()
+                })
+            except Exception as e:
+                return jsonify({
+                    'error': f'Erreur: {str(e)}'
+                }), 500
+        finally:
+            db.close()
     
     @app.route('/api/fiscal/regulations', methods=['GET'])
     @require_auth
@@ -387,36 +389,38 @@ def register_fiscal_routes(app):
     def get_payroll_summary(year: int):
         """Get summary of payroll slips for a year to prepare tax declaration"""
         user_email = session['user_email']
-        user_data = load_user(user_email)
-        global_data = user_data.get('globalData', {})
-        payroll_slips = global_data.get('payrollSlips', [])
-        
+        db = next(get_db())
         try:
-            # Filtrer les fiches de paie pour l'année
-            year_slips = [slip for slip in payroll_slips if slip.get('year') == year]
+            user_data = load_user(db, user_email)
+            global_data = user_data.get('globalData', {})
+            payroll_slips = global_data.get('payrollSlips', [])
             
-            # Calculer les totaux
-            total_gross = sum(slip.get('grossSalary', 0) for slip in year_slips)
-            total_net = sum(slip.get('netSalary', 0) for slip in year_slips)
-            total_contributions = sum(slip.get('socialContributions', 0) for slip in year_slips)
-            total_tax_withheld = sum(slip.get('incomeTaxWithheld', 0) for slip in year_slips)
-            
-            # Groupement par employeur
-            by_employer = {}
-            for slip in year_slips:
-                employer = slip.get('employer', 'Inconnu')
-                if employer not in by_employer:
-                    by_employer[employer] = {
-                        'count': 0,
-                        'total_gross': 0,
-                        'total_net': 0,
-                        'contract_type': slip.get('contractType', 'Unknown')
-                    }
-                by_employer[employer]['count'] += 1
-                by_employer[employer]['total_gross'] += slip.get('grossSalary', 0)
-                by_employer[employer]['total_net'] += slip.get('netSalary', 0)
-            
-            return jsonify({
+            try:
+                # Filtrer les fiches de paie pour l'année
+                year_slips = [slip for slip in payroll_slips if slip.get('year') == year]
+                
+                # Calculer les totaux
+                total_gross = sum(slip.get('grossSalary', 0) for slip in year_slips)
+                total_net = sum(slip.get('netSalary', 0) for slip in year_slips)
+                total_contributions = sum(slip.get('socialContributions', 0) for slip in year_slips)
+                total_tax_withheld = sum(slip.get('incomeTaxWithheld', 0) for slip in year_slips)
+                
+                # Groupement par employeur
+                by_employer = {}
+                for slip in year_slips:
+                    employer = slip.get('employer', 'Inconnu')
+                    if employer not in by_employer:
+                        by_employer[employer] = {
+                            'count': 0,
+                            'total_gross': 0,
+                            'total_net': 0,
+                            'contract_type': slip.get('contractType', 'Unknown')
+                        }
+                    by_employer[employer]['count'] += 1
+                    by_employer[employer]['total_gross'] += slip.get('grossSalary', 0)
+                    by_employer[employer]['total_net'] += slip.get('netSalary', 0)
+                
+                return jsonify({
                 'success': True,
                 'year': year,
                 'summary': {
