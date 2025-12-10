@@ -421,11 +421,11 @@ def register_fiscal_routes(app):
                     by_employer[employer]['total_net'] += slip.get('netSalary', 0)
                 
                 return jsonify({
-                'success': True,
-                'year': year,
-                'summary': {
-                    'total_slips': len(year_slips),
-                    'total_gross_salary': total_gross,
+                    'success': True,
+                    'year': year,
+                    'summary': {
+                        'total_slips': len(year_slips),
+                        'total_gross_salary': total_gross,
                     'total_net_salary': total_net,
                     'total_social_contributions': total_contributions,
                     'total_tax_withheld': total_tax_withheld,
