@@ -1199,6 +1199,16 @@ function App() {
     try {
       // For now, signup is handled the same way as login - backend creates data on first connection
       const out = await Api.login(email, password);
+      
+      // Attendre un peu pour que le cookie soit bien enregistré
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Vérifier que la session est bien établie
+      const sessionInfo = await Api.checkSession();
+      if (!sessionInfo.authenticated) {
+        throw new Error('Session non établie après connexion');
+      }
+      
       setSessionEmail(out.email);
       setIsCheckingSession(false); // Connexion réussie
       
@@ -1207,21 +1217,22 @@ function App() {
           // Load global data after login (with retry if session not ready)
           try {
             // Wait a bit for session cookie to be available
-            await new Promise(resolve => setTimeout(resolve, 200));
+            await new Promise(resolve => setTimeout(resolve, 300));
             
             let global = null;
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < 5; i++) {
               try {
                 global = await Api.getGlobalData();
                 break;
               } catch (err: any) {
-                if (err?.status === 401 && i < 2) {
+                if (err?.status === 401 && i < 4) {
                   // Wait a bit and retry if session not ready yet
-                  await new Promise(resolve => setTimeout(resolve, 200));
+                  await new Promise(resolve => setTimeout(resolve, 300));
                   continue;
                 }
                 // If still 401 after retries, don't throw - just skip loading global data
                 if (err?.status === 401) {
+                  console.warn('Impossible de charger les données globales après connexion');
                   break;
                 }
                 throw err;
