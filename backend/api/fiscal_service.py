@@ -202,8 +202,8 @@ def register_fiscal_routes(app):
             country_code = geographic_location.get('country', 'FR')  # Default to FR
             
             try:
-            # Utiliser le service de réglementations gouvernementales pour récupérer les dates en temps réel
-            gov_service = GovernmentFiscalRegulationsService()
+                # Utiliser le service de réglementations gouvernementales pour récupérer les dates en temps réel
+                gov_service = GovernmentFiscalRegulationsService()
             live_dates = gov_service.fetch_live_calendar_dates(year)
             
             # Use country-specific calendar if available
