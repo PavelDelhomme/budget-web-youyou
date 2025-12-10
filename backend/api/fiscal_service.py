@@ -204,33 +204,33 @@ def register_fiscal_routes(app):
             try:
                 # Utiliser le service de réglementations gouvernementales pour récupérer les dates en temps réel
                 gov_service = GovernmentFiscalRegulationsService()
-            live_dates = gov_service.fetch_live_calendar_dates(year)
-            
-            # Use country-specific calendar if available
-            country_manager = CountryFiscalManager()
-            country_calendar = country_manager.get_fiscal_calendar(country_code, year)
-            
-            # Merge with default calendar
-            calendar = FiscalCalendar(year)
-            default_dates = calendar.important_dates
-            
-            # Combiner les dates : priorités aux dates en temps réel, puis country-specific, puis défaut
-            all_dates = {}
-            for date_info in default_dates:
-                key = date_info['date']
-                all_dates[key] = date_info
-            for date_info in country_calendar:
-                key = date_info['date']
-                all_dates[key] = date_info  # Override if exists
-            for date_info in live_dates:
-                key = date_info['date']
-                all_dates[key] = date_info  # Highest priority - override if exists
-            
-            combined_dates = sorted(all_dates.values(), key=lambda x: x['date'])
-            
-            # Get fiscal info for country
-            fiscal_info = country_manager.get_tax_info(country_code)
-            
+                live_dates = gov_service.fetch_live_calendar_dates(year)
+                
+                # Use country-specific calendar if available
+                country_manager = CountryFiscalManager()
+                country_calendar = country_manager.get_fiscal_calendar(country_code, year)
+                
+                # Merge with default calendar
+                calendar = FiscalCalendar(year)
+                default_dates = calendar.important_dates
+                
+                # Combiner les dates : priorités aux dates en temps réel, puis country-specific, puis défaut
+                all_dates = {}
+                for date_info in default_dates:
+                    key = date_info['date']
+                    all_dates[key] = date_info
+                for date_info in country_calendar:
+                    key = date_info['date']
+                    all_dates[key] = date_info  # Override if exists
+                for date_info in live_dates:
+                    key = date_info['date']
+                    all_dates[key] = date_info  # Highest priority - override if exists
+                
+                combined_dates = sorted(all_dates.values(), key=lambda x: x['date'])
+                
+                # Get fiscal info for country
+                fiscal_info = country_manager.get_tax_info(country_code)
+                
                 return jsonify({
                     'success': True,
                     'year': year,
@@ -426,14 +426,17 @@ def register_fiscal_routes(app):
                     'summary': {
                         'total_slips': len(year_slips),
                         'total_gross_salary': total_gross,
-                    'total_net_salary': total_net,
-                    'total_social_contributions': total_contributions,
-                    'total_tax_withheld': total_tax_withheld,
-                    'by_employer': by_employer
-                },
-                'slips': year_slips
-            })
-        except Exception as e:
-            return jsonify({
-                'error': f'Erreur: {str(e)}'
-            }), 500
+                        'total_net_salary': total_net,
+                        'total_social_contributions': total_contributions,
+                        'total_tax_withheld': total_tax_withheld,
+                        'by_employer': by_employer
+                    },
+                    'slips': year_slips
+                })
+            except Exception as e:
+                return jsonify({
+                    'success': False,
+                    'error': f'Erreur: {str(e)}'
+                }), 500
+        finally:
+            db.close()

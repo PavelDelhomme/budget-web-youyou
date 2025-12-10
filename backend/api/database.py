@@ -4,7 +4,8 @@ Database models and session management for PostgreSQL
 from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, DateTime, Text, JSON, ForeignKey, Index
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship, Session
-from sqlalchemy.dialects.postgresql import UUID, ARRAY
+from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from datetime import datetime
 import os
 from typing import Optional, List, Dict, Any
@@ -23,7 +24,7 @@ class User(Base):
     """User table - stores user emails and basic info"""
     __tablename__ = 'users'
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String(255), unique=True, nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -37,8 +38,8 @@ class UserYear(Base):
     """Stores which years a user has"""
     __tablename__ = 'user_years'
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(PG_UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     year = Column(Integer, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     
@@ -55,8 +56,8 @@ class YearData(Base):
     """Stores year-specific data (categories, expenses, etc.)"""
     __tablename__ = 'year_data'
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_year_id = Column(UUID(as_uuid=True), ForeignKey('user_years.id', ondelete='CASCADE'), nullable=False, unique=True, index=True)
+    id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_year_id = Column(PG_UUID(as_uuid=True), ForeignKey('user_years.id', ondelete='CASCADE'), nullable=False, unique=True, index=True)
     categories = Column(JSON, nullable=False, default=list)
     expenses = Column(JSON, nullable=False, default=list)
     subs = Column(JSON, nullable=False, default=list)
@@ -78,8 +79,8 @@ class UserGlobalData(Base):
     """Stores global user data (bank accounts, investments, etc.)"""
     __tablename__ = 'user_global_data'
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, unique=True, index=True)
+    id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(PG_UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, unique=True, index=True)
     bank_accounts = Column(JSON, nullable=False, default=list)
     investments = Column(JSON, nullable=False, default=list)
     savings_goals = Column(JSON, nullable=False, default=list)
@@ -107,7 +108,7 @@ class CacheEntry(Base):
     """Generic cache table for external API responses"""
     __tablename__ = 'cache_entries'
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     cache_key = Column(String(255), unique=True, nullable=False, index=True)
     cache_type = Column(String(50), nullable=False, index=True)  # 'fiscal_calendar', 'regulations', 'insee', etc.
     data = Column(JSON, nullable=False)
