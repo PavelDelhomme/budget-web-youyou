@@ -1623,143 +1623,51 @@ function App() {
                   }
                   
                   const actualYear = displayYear;
-                  // Calculer les calculs pour cette année spécifique
-                  const yearCalculations = useBudgetCalculations(
-                    actualYear,
-                    categories,
-                    expenses,
-                    subs,
-                    annualFixedExpenses
-                  );
                   return (
-                  <>
-                    {/* Header */}
-                    <header>
-                      <div className="flex items-center gap-3">
-                        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-                          Budget Annuel – {actualYear}
-                        </h1>
-                        {isViewingPrediction && (
-                          <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-1">
-                            <span className="text-xs font-medium text-blue-700">Prévision IA</span>
-                            <button
-                              onClick={() => handleMaterializeYear(actualYear)}
-                              className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded transition-colors"
-                            >
-                              Créer cette année
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                      {isViewingPrediction && (
-                        <p className="text-sm text-gray-600 mt-2">
-                          Cette prévision est générée automatiquement à partir de vos habitudes de dépenses des années précédentes
-                        </p>
-                      )}
-                    </header>
-
-                    {/* Summary cards */}
-                    <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                      <SummaryCard
-                        title="Budget annuel (cible)"
-                        value={currency(yearCalculations.annualBudgetTotal)}
-                        subtitle={`Variables: ${currency(yearCalculations.variableTargets)} | Abonnements: ${currency(yearCalculations.subsAnnualCommitted)} | Fixes annuelles: ${currency(yearCalculations.annualFixedExpensesTotal || 0)}`}
-                      />
-                      <SummaryCard
-                        title="Dépensé à date"
-                        value={currency(yearCalculations.spentToDateTotal)}
-                        subtitle={`Variables ${currency(yearCalculations.variableSpentTotal)} + Fixes ${currency(yearCalculations.subsPaidToDate)}`}
-                      />
-                      <SummaryCard
-                        title="Reste année (tous postes)"
-                        value={currency(yearCalculations.remainingYearTotal)}
-                        subtitle={`${yearCalculations.daysRemaining} jours restants`}
-                      />
-                      <SummaryCard
-                        title="Reste variables"
-                        value={currency(yearCalculations.variableRemainingTotal)}
-                        subtitle={`Taux/jour ≈ ${currency(
-                          yearCalculations.daysRemaining
-                            ? yearCalculations.variableRemainingTotal / yearCalculations.daysRemaining
-                            : 0
-                        )}`}
-                      />
-                    </section>
-
-                    {/* Income and Savings */}
-                    <LazySection rootMargin="50px">
-                      <IncomeAndSavingsSection
-                        monthlySalary={monthlySalary}
-                        currentSavings={currentSavings}
-                        savingsTransactions={savingsTransactions}
-                        onSalaryChange={handleSalaryChange}
-                        onSavingsChange={handleSavingsChange}
-                        onAddTransaction={handleAddTransaction}
-                        onRemoveTransaction={handleRemoveTransaction}
-                        onUpdateTransaction={handleUpdateTransaction}
-                        annualIncome={annualIncome}
-                        projectedSavings={projectedSavings}
-                        temporaryIncomes={globalData?.temporaryIncomes || []}
-                        savingsProjects={globalData?.savingsProjects || []}
-                        variableMonthlyIncomes={variableMonthlyIncomes}
-                        onVariableMonthlyIncomesChange={setVariableMonthlyIncomes}
-                        additionalMonthlyIncomes={additionalMonthlyIncomes}
-                        onAdditionalMonthlyIncomesChange={setAdditionalMonthlyIncomes}
-                        monthlyIncomeSources={monthlyIncomeSources}
-                        onMonthlyIncomeSourcesChange={setMonthlyIncomeSources}
-                        currentYear={actualYear}
-                        onOpenTaxManager={() => setIsTaxManagerOpen(true)}
-                        onOpenAdvancedFiscal={() => setIsAdvancedFiscalManagerOpen(true)}
-                        globalMonthlySalary={globalData?.monthlySalary}
-                        yearSpecificSalary={hasYearSpecificSalary ? monthlySalary : undefined}
-                        isFromSalaryHistory={isFromSalaryHistory}
-                      />
-                    </LazySection>
-
-                    {/* Categories */}
-                    <LazySection rootMargin="50px">
-                      <CategoriesSection
-                        categories={categories}
-                        variableSpentByCat={calculations.variableSpentByCat}
-                        variableRemainingByCat={calculations.variableRemainingByCat}
-                        onUpsertCategory={upsertCategory}
-                        onAddCategory={addCategory}
-                        onRemoveCategory={removeCategory}
-                        hasExpensesInCategory={(id) => expenses.some((e) => e.categoryId === id)}
-                      />
-                    </LazySection>
-
-                    {/* Unified Expenses Manager */}
-                    <LazySection rootMargin="50px">
-                      <UnifiedExpensesManager
-                        expenses={expenses}
-                        subs={subs}
-                        annualFixedExpenses={annualFixedExpenses}
-                        categories={categories}
-                        bankAccounts={globalData?.bankAccounts || []}
-                        savingsProjects={globalData?.savingsProjects || []}
-                        monthNow={calculations.monthNow}
-                        onAddExpense={addExpense}
-                        onRemoveExpense={removeExpense}
-                        onUpdateExpense={updateExpense}
-                        onAddSub={addSub}
-                        onRemoveSub={removeSub}
-                        onUpdateSub={updateSub}
-                        onAddAnnualFixed={addAnnualFixedExpense}
-                        onRemoveAnnualFixed={removeAnnualFixedExpense}
-                        onUpdateAnnualFixed={updateAnnualFixedExpense}
-                        triggerAddExpense={triggerAddExpense}
-                        onTriggerAddExpenseComplete={() => setTriggerAddExpense(false)}
-                      />
-                    </LazySection>
-
-                    <section className="text-xs text-slate-500 pb-8">
-                      <p>
-                        Les données sont stockées côté serveur, par utilisateur (email), et
-                        chargées/écrites à la volée.
-                      </p>
-                    </section>
-                  </>
+                    <YearViewContent
+                      year={actualYear}
+                      isViewingPrediction={isViewingPrediction}
+                      handleMaterializeYear={handleMaterializeYear}
+                      categories={categories}
+                      expenses={expenses}
+                      subs={subs}
+                      annualFixedExpenses={annualFixedExpenses}
+                      monthlySalary={monthlySalary}
+                      currentSavings={currentSavings}
+                      savingsTransactions={savingsTransactions}
+                      handleSalaryChange={handleSalaryChange}
+                      handleSavingsChange={handleSavingsChange}
+                      handleAddTransaction={handleAddTransaction}
+                      handleRemoveTransaction={handleRemoveTransaction}
+                      handleUpdateTransaction={handleUpdateTransaction}
+                      annualIncome={annualIncome}
+                      projectedSavings={projectedSavings}
+                      globalData={globalData}
+                      variableMonthlyIncomes={variableMonthlyIncomes}
+                      setVariableMonthlyIncomes={setVariableMonthlyIncomes}
+                      additionalMonthlyIncomes={additionalMonthlyIncomes}
+                      setAdditionalMonthlyIncomes={setAdditionalMonthlyIncomes}
+                      monthlyIncomeSources={monthlyIncomeSources}
+                      setMonthlyIncomeSources={setMonthlyIncomeSources}
+                      hasYearSpecificSalary={hasYearSpecificSalary}
+                      isFromSalaryHistory={isFromSalaryHistory}
+                      upsertCategory={upsertCategory}
+                      addCategory={addCategory}
+                      removeCategory={removeCategory}
+                      addExpense={addExpense}
+                      removeExpense={removeExpense}
+                      updateExpense={updateExpense}
+                      addSub={addSub}
+                      removeSub={removeSub}
+                      updateSub={updateSub}
+                      addAnnualFixedExpense={addAnnualFixedExpense}
+                      removeAnnualFixedExpense={removeAnnualFixedExpense}
+                      updateAnnualFixedExpense={updateAnnualFixedExpense}
+                      triggerAddExpense={triggerAddExpense}
+                      setTriggerAddExpense={setTriggerAddExpense}
+                      setIsTaxManagerOpen={setIsTaxManagerOpen}
+                      setIsAdvancedFiscalManagerOpen={setIsAdvancedFiscalManagerOpen}
+                    />
                   );
                 })()}
               </div>
