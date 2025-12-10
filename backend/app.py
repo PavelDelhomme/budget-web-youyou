@@ -38,7 +38,9 @@ if app.secret_key == 'budget-annuel-secret-key-change-in-production':
 
 # Cookie security configuration
 app.config['SESSION_COOKIE_HTTPONLY'] = True  # Empêche l'accès JavaScript aux cookies
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Protection CSRF (Lax pour permettre les liens)
+# Pour Docker avec proxy, utiliser 'None' pour SameSite permet la transmission via proxy
+# En production HTTPS, on peut remettre 'Lax' ou 'Strict'
+app.config['SESSION_COOKIE_SAMESITE'] = 'None' if os.environ.get('FLASK_ENV') != 'production' else 'Lax'
 app.config['SESSION_COOKIE_SECURE'] = os.environ.get('FLASK_ENV') == 'production' or os.environ.get('FORCE_HTTPS', '').lower() == 'true'  # HTTPS en production
 app.config['SESSION_COOKIE_NAME'] = 'budget_session'  # Nom personnalisé pour éviter les collisions
 app.config['SESSION_COOKIE_PATH'] = '/'  # Restreindre le chemin
@@ -46,7 +48,6 @@ app.config['SESSION_COOKIE_PATH'] = '/'  # Restreindre le chemin
 # Le cookie sera envoyé pour le domaine de la requête (localhost)
 app.config['SESSION_COOKIE_DOMAIN'] = None
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
-app.config['SESSION_COOKIE_SAMESITE_FORCE_ALL'] = True
 
 # Initialize advanced security features
 BASE_DIR = Path(__file__).resolve().parent

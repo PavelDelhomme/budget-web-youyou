@@ -34,9 +34,14 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         ws: false,
-        cookieDomainRewrite: '', // Supprimer le domaine du cookie pour qu'il fonctionne avec le proxy
+        cookieDomainRewrite: {
+          '*': '', // Supprimer le domaine du cookie pour qu'il fonctionne avec le proxy
+        },
         cookiePathRewrite: {
           '*': '/', // Réécrire le chemin du cookie
+        },
+        headers: {
+          'Connection': 'keep-alive',
         },
         configure: (proxy, _options) => {
           proxy.on('error', (err, req, res) => {
@@ -56,6 +61,14 @@ export default defineConfig({
             // Transmettre les cookies de la requête originale
             if (req.headers.cookie) {
               proxyReq.setHeader('Cookie', req.headers.cookie);
+            }
+            // S'assurer que les headers de connexion sont corrects
+            proxyReq.setHeader('Connection', 'keep-alive');
+          });
+          proxy.on('proxyRes', (proxyRes, req, res) => {
+            // Log pour debug
+            if (proxyRes.headers['set-cookie']) {
+              console.log('Cookies reçus du backend:', proxyRes.headers['set-cookie']);
             }
           });
         },
