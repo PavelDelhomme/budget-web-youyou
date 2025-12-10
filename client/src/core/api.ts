@@ -41,14 +41,15 @@ async function api(path: string, opts: RequestInit = {}, silent: boolean = false
     }
     
     if (!res.ok) {
-      // For 401 errors, always treat them as silent to avoid console pollution
-      // It's normal if user is not authenticated (especially at startup)
+      // For 401 errors, check if it's a getYearData request for a future year
+      // Those might return 401 if the year doesn't exist yet (normal for predicted years)
       if (res.status === 401) {
+        const isYearDataRequest = path.startsWith('get?year=');
         const error = new Error('Not authenticated');
         (error as any).status = 401;
-        (error as any).silent = true;
-        (error as any).sessionExpired = true;
-        (error as any).expected = true; // Mark as expected error (user not logged in)
+        (error as any).silent = isYearDataRequest; // Silent for year data requests (might be future years)
+        (error as any).sessionExpired = !isYearDataRequest; // Only session expired if not a year data request
+        (error as any).expected = isYearDataRequest; // Expected for year data requests (future years don't exist)
         throw error;
       }
       

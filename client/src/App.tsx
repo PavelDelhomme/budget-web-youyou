@@ -724,7 +724,11 @@ function App() {
 
   // Fonction réutilisable pour charger les données historiques et régénérer les prédictions
   const reloadHistoricalDataAndRegeneratePredictions = React.useCallback(async () => {
-    if (!sessionEmail || years.length === 0) return;
+    if (!sessionEmail || years.length === 0 || isCheckingSession) return;
+    
+    // Attendre un peu pour que la session soit complètement établie
+    // et que les cookies soient disponibles
+    await new Promise(resolve => setTimeout(resolve, 300));
     
     // Prevent multiple simultaneous calls
     if (isReloadingHistoricalData.current) {
@@ -773,7 +777,10 @@ function App() {
       
       // Load ALL future years that exist in years list to check if they have real data
       // If they have data, they are real years, not predictions
-      const futureRealYears = years.filter(y => y > currentYearNum);
+      // IMPORTANT: Ne charger que les années qui sont vraiment dans la base (existantes)
+      // Pour éviter les 401 inutiles, on ne charge que les années futures qui ont déjà été créées
+      // Les années trop loin dans le futur (comme 2028, 2029) peuvent ne pas exister
+      const futureRealYears = years.filter(y => y > currentYearNum && y <= currentYearNum + 3); // Limiter à 3 ans dans le futur max
       for (const y of futureRealYears) {
         try {
           const data = await Api.getYearData(y);
@@ -786,10 +793,14 @@ function App() {
             historicalDataMap.set(y, data); // Include in historical data for dashboard
           }
         } catch (err: any) {
-          // Skip years with errors (especially 401 - session not ready)
-          if (err?.status !== 401) {
-            console.debug('Error loading future year data:', err);
+          // Pour les années futures, un 401 ou 404 signifie que l'année n'existe pas encore
+          // Ce n'est pas une erreur - c'est normal pour les années prédites
+          if (err?.status === 401 || err?.status === 404) {
+            // Année n'existe pas encore - c'est normal, ne pas logger
+            continue;
           }
+          // Pour les autres erreurs, logger
+          console.debug('Error loading future year data:', err);
         }
       }
       
@@ -901,10 +912,11 @@ function App() {
       prevExcludedYearsRef.current = JSON.stringify(globalData?.excludedPredictedYears || []);
       prevMaxYearsRef.current = globalData?.maxPredictedYears;
       
-      // Call after a delay to ensure all state is ready
+      // Call after a delay to ensure all state is ready AND session is established
+      // Augmenter le délai pour laisser le temps aux cookies d'être disponibles
       setTimeout(() => {
         reloadHistoricalDataAndRegeneratePredictions();
-      }, 500);
+      }, 1000); // Augmenté à 1 seconde pour laisser le temps à la session d'être complètement établie
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionEmail]);
