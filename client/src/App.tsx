@@ -321,6 +321,21 @@ function YearViewContentWithHandlers(props: any) {
       globalMonthlySalary={props.globalData?.monthlySalary}
       yearSpecificSalary={props.hasYearSpecificSalary ? props.monthlySalary : undefined}
       isFromSalaryHistory={props.isFromSalaryHistory}
+      onUpsertCategory={props.upsertCategory}
+      onAddCategory={props.addCategory}
+      onRemoveCategory={props.removeCategory}
+      onAddExpense={props.addExpense}
+      onRemoveExpense={props.removeExpense}
+      onUpdateExpense={props.updateExpense}
+      onAddSub={props.addSub}
+      onRemoveSub={props.removeSub}
+      onUpdateSub={props.updateSub}
+      onAddAnnualFixedExpense={props.addAnnualFixedExpense}
+      onRemoveAnnualFixedExpense={props.removeAnnualFixedExpense}
+      onUpdateAnnualFixedExpense={props.updateAnnualFixedExpense}
+      triggerAddExpense={props.triggerAddExpense}
+      onTriggerAddExpenseComplete={() => props.setTriggerAddExpense(false)}
+      bankAccounts={props.globalData?.bankAccounts || []}
     />
   );
 }
