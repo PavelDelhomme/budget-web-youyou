@@ -193,13 +193,15 @@ def register_fiscal_routes(app):
     def get_fiscal_calendar(year: int):
         """Get fiscal calendar for a year, with live data from government websites"""
         user_email = session['user_email']
-        user_data = load_user(user_email)
-        global_data = user_data.get('globalData', {})
-        user_profile = global_data.get('userProfile', {})
-        geographic_location = user_profile.get('geographic_location', {})
-        country_code = geographic_location.get('country', 'FR')  # Default to FR
-        
+        db = next(get_db())
         try:
+            user_data = load_user(db, user_email)
+            global_data = user_data.get('globalData', {})
+            user_profile = global_data.get('userProfile', {})
+            geographic_location = user_profile.get('geographic_location', {})
+            country_code = geographic_location.get('country', 'FR')  # Default to FR
+            
+            try:
             # Utiliser le service de réglementations gouvernementales pour récupérer les dates en temps réel
             gov_service = GovernmentFiscalRegulationsService()
             live_dates = gov_service.fetch_live_calendar_dates(year)
