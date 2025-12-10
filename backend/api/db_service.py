@@ -150,25 +150,7 @@ def save_user(db: Session, email: str, data: Dict[str, Any]) -> None:
             user_year = UserYear(user_id=user.id, year=year)
             db.add(user_year)
             db.flush()  # Get the ID
-        
-        # Check if YearData already exists
-        if not user_year.year_data:
-            # Initialize year data with defaults
-            default_year_data = get_default_year_data()
-            year_data = YearData(
-                user_year_id=user_year.id,
-                categories=default_year_data['categories'],
-                expenses=default_year_data['expenses'],
-                subs=default_year_data['subs'],
-                annual_fixed_expenses=default_year_data['annualFixedExpenses'],
-                monthly_salary=default_year_data['monthlySalary'],
-                variable_monthly_incomes=default_year_data.get('variableMonthlyIncomes'),
-                additional_monthly_incomes=default_year_data['additionalMonthlyIncomes'],
-                monthly_income_sources=default_year_data.get('monthlyIncomeSources', []),
-                current_savings=default_year_data['currentSavings'],
-                savings_transactions=default_year_data['savingsTransactions'],
-            )
-            db.add(year_data)
+            current_years[year] = user_year  # Ajouter au dictionnaire pour la suite
     
     # Remove deleted years (only if they don't have important data)
     for year in existing_years - new_years:
