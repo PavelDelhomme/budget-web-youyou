@@ -2,6 +2,9 @@ FROM node:18-alpine
 
 WORKDIR /app
 
+# Update npm to latest version
+RUN npm install -g npm@11.7.0
+
 # Install dependencies during build (for caching)
 COPY package*.json ./
 RUN npm install
