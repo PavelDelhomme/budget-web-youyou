@@ -14,7 +14,7 @@
       "max": 11294,
       "rate": 0.0
     },
-    "last_updated": "2025-12-08T13:02:03.849011"
+    "last_updated": "2025-12-10T09:00:49.486894"
   },
   {
     "id": "tax_bracket_2025_1",
@@ -31,7 +31,7 @@
       "max": 28797,
       "rate": 0.11
     },
-    "last_updated": "2025-12-08T13:02:03.849027"
+    "last_updated": "2025-12-10T09:00:49.486903"
   },
   {
     "id": "tax_bracket_2025_2",
@@ -48,7 +48,7 @@
       "max": 82341,
       "rate": 0.3
     },
-    "last_updated": "2025-12-08T13:02:03.849033"
+    "last_updated": "2025-12-10T09:00:49.486906"
   },
   {
     "id": "tax_bracket_2025_3",
@@ -65,7 +65,7 @@
       "max": 177106,
       "rate": 0.41
     },
-    "last_updated": "2025-12-08T13:02:03.849039"
+    "last_updated": "2025-12-10T09:00:49.486909"
   },
   {
     "id": "tax_bracket_2025_4",
@@ -82,7 +82,7 @@
       "max": null,
       "rate": 0.45
     },
-    "last_updated": "2025-12-08T13:02:03.849044"
+    "last_updated": "2025-12-10T09:00:49.486912"
   },
   {
     "id": "deduction_limit_revenue_2025",
@@ -97,7 +97,7 @@
       "type": "deduction_limit",
       "value": 15000
     },
-    "last_updated": "2025-12-08T13:02:03.849066"
+    "last_updated": "2025-12-10T09:00:49.486918"
   },
   {
     "id": "pinel_limit_2025",
@@ -113,7 +113,7 @@
       "type": "pinel_limit",
       "value": 55000
     },
-    "last_updated": "2025-12-08T13:02:03.849072"
+    "last_updated": "2025-12-10T09:00:49.486920"
   },
   {
     "id": "donation_deduction_2025",
@@ -128,7 +128,7 @@
       "rate": 0.66,
       "limit_percent": 0.2
     },
-    "last_updated": "2025-12-08T13:02:03.849078"
+    "last_updated": "2025-12-10T09:00:49.486923"
   },
   {
     "id": "energy_credit_2025",
@@ -144,7 +144,7 @@
       "limit_single": 8000,
       "limit_couple": 16000
     },
-    "last_updated": "2025-12-08T13:02:03.849083"
+    "last_updated": "2025-12-10T09:00:49.486925"
   },
   {
     "id": "real_expenses_2025",
@@ -158,7 +158,7 @@
     "data": {
       "rate": 0.1
     },
-    "last_updated": "2025-12-08T13:02:03.849087"
+    "last_updated": "2025-12-10T09:00:49.486927"
   },
   {
     "id": "regulation_change_2025_1",
@@ -169,6 +169,6 @@
     "source": "impots.gouv.fr",
     "url": "https://www.impots.gouv.fr/particulier/actualites/actualites-2025",
     "impact": "high",
-    "last_updated": "2025-12-08T13:02:03.849093"
+    "last_updated": "2025-12-10T09:00:49.486930"
   }
 ]

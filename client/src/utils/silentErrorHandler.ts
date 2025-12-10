@@ -52,6 +52,9 @@ const IGNORED_ERRORS = [
   'sw.js',
   'failed to fetch the script',
   'uauthenticated', // Typo possible
+  'react router future flag', // Warnings React Router v7
+  'v7_starttransition',
+  'v7_relativesplatpath',
 ];
 
 // Fonction pour vérifier si une erreur doit être ignorée

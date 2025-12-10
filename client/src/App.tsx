@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Routes, Route, Navigate, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { Api } from './core/api';
 // Layout
 import { Sidebar } from './components/layout/Sidebar';
@@ -36,6 +37,7 @@ import { MLTrainingInterface } from './components/ai/MLTrainingInterface';
 // UI
 import { FloatingActionButton } from './components/ui/FloatingActionButton';
 import { QuickAddExpenseModal } from './components/ui/QuickAddExpenseModal';
+import { LazySection } from './components/ui/LazySection';
 import { QuickAddIncomeModal } from './components/ui/QuickAddIncomeModal';
 
 // Fiscal
@@ -64,12 +66,80 @@ import {
 } from './lib/utils';
 
 function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const params = useParams();
+  
   const [sessionEmail, setSessionEmail] = useState<string | null>(null);
   const [isCheckingSession, setIsCheckingSession] = useState<boolean>(true); // État de vérification de la session
   const [years, setYears] = useState<number[]>(INITIAL_YEARS);
   const currentYearNum = today.getFullYear();
   const [year, setYear] = useState<number | 'dashboard' | 'charts-test'>('dashboard');
   const [isAddYearModalOpen, setIsAddYearModalOpen] = useState(false);
+  
+  // Synchroniser l'URL avec l'état year (seulement quand l'URL change)
+  useEffect(() => {
+    if (!sessionEmail) return; // Ne pas synchroniser si pas connecté
+    
+    const path = location.pathname;
+    if (path === '/' || path === '/dashboard' || path === '/dashboard/') {
+      if (year !== 'dashboard') {
+        setYear('dashboard');
+      }
+    } else if (path === '/test-graphiques' || path === '/test-graphiques/') {
+      if (year !== 'charts-test') {
+        setYear('charts-test');
+      }
+    } else if (path.startsWith('/annee/')) {
+      const yearFromUrl = parseInt(params.year || '');
+      if (!isNaN(yearFromUrl) && yearFromUrl >= 2000 && yearFromUrl <= 2100) {
+        if (typeof year !== 'number' || year !== yearFromUrl) {
+          setYear(yearFromUrl);
+        }
+      }
+      // Ne pas rediriger si on est sur /annee/ - laisser la route gérer l'affichage
+    }
+  }, [location.pathname, params.year, sessionEmail, year, navigate]);
+
+  // Synchroniser l'URL lorsque year change (sauf si c'est depuis l'URL)
+  const lastPathRef = useRef(location.pathname);
+  useEffect(() => {
+    if (!sessionEmail) return; // Ne pas naviguer si pas connecté
+    
+    // Si l'URL a changé, ne pas naviguer (pour éviter les boucles)
+    if (lastPathRef.current !== location.pathname) {
+      lastPathRef.current = location.pathname;
+      return;
+    }
+    
+    const currentPath = location.pathname;
+    
+    // Si on est sur une route /annee/, ne pas rediriger
+    if (currentPath.startsWith('/annee/')) {
+      // Vérifier que l'année dans l'URL correspond à year
+      const yearFromUrl = parseInt(params.year || '');
+      if (typeof year === 'number' && year === yearFromUrl) {
+        // Tout est bon, on reste sur cette route
+        return;
+      }
+      // Si year n'est pas encore synchronisé, attendre
+      return;
+    }
+    
+    if (year === 'dashboard' && currentPath !== '/' && currentPath !== '/dashboard' && currentPath !== '/dashboard/') {
+      navigate('/dashboard', { replace: true });
+      lastPathRef.current = '/dashboard';
+    } else if (year === 'charts-test' && currentPath !== '/test-graphiques' && currentPath !== '/test-graphiques/') {
+      navigate('/test-graphiques', { replace: true });
+      lastPathRef.current = '/test-graphiques';
+    } else if (typeof year === 'number') {
+      const expectedPath = `/annee/${year}`;
+      if (currentPath !== expectedPath && !currentPath.startsWith('/annee/')) {
+        navigate(expectedPath, { replace: true });
+        lastPathRef.current = expectedPath;
+      }
+    }
+  }, [year, navigate, sessionEmail, location.pathname, params.year]);
 
   // Data for the selected year
   const [categories, setCategories] = useState<Category[]>(defaultCategories);
@@ -470,18 +540,38 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionEmail]);
 
-  // Load data when sessionEmail or year changes
+  // Load data when sessionEmail or year changes, OR when params.year changes (for direct URL access)
   useEffect(() => {
-    if (!sessionEmail || !year) return;
+    if (!sessionEmail) return;
     
-    // Don't load year data if we're on the dashboard or charts test page
-    if (year === 'dashboard' || year === 'charts-test') {
-      return;
+    // Si on est sur une route /annee/, utiliser params.year directement
+    const currentPath = location.pathname;
+    let yearToLoad: number | 'dashboard' | 'charts-test' | null = null;
+    
+    if (currentPath.startsWith('/annee/')) {
+      const yearFromUrl = params.year ? parseInt(params.year) : null;
+      if (yearFromUrl && !isNaN(yearFromUrl) && yearFromUrl >= 2000 && yearFromUrl <= 2100) {
+        yearToLoad = yearFromUrl;
+        // Forcer la synchronisation de year
+        if (typeof year !== 'number' || year !== yearFromUrl) {
+          setYear(yearFromUrl);
+        }
+      } else {
+        return; // Année invalide, ne pas charger
+      }
+    } else if (year === 'dashboard' || year === 'charts-test') {
+      return; // Ne pas charger de données pour dashboard ou charts-test
+    } else if (typeof year === 'number') {
+      yearToLoad = year;
+    } else {
+      return; // Pas d'année à charger
     }
     
+    if (!yearToLoad || typeof yearToLoad !== 'number') return;
+    
     // Check if it's a predicted year (only if it's NOT in years list - real years are never predictions)
-    const isRealYear = typeof year === 'number' && years.includes(year);
-    const prediction = !isRealYear ? predictedYears.find(p => p.year === year) : null;
+    const isRealYear = years.includes(yearToLoad);
+    const prediction = !isRealYear ? predictedYears.find(p => p.year === yearToLoad) : null;
     
     if (prediction) {
       setIsViewingPrediction(true);
@@ -497,14 +587,13 @@ function App() {
     
     setIsViewingPrediction(false);
     async function load() {
-      if (year === 'dashboard' || year === 'charts-test') return;
-      // Vérifier que l'année est valide (entre 2000 et 2100)
-      if (typeof year === 'number' && (year < 2000 || year > 2100)) {
-        console.warn(`⚠️ Année invalide ignorée: ${year}`);
+      // Utiliser yearToLoad au lieu de year
+      if (yearToLoad < 2000 || yearToLoad > 2100) {
+        console.warn(`⚠️ Année invalide ignorée: ${yearToLoad}`);
         return;
       }
       try {
-        const ds = await Api.getYearData(year);
+        const ds = await Api.getYearData(yearToLoad);
         setCategories(
           ds.categories && ds.categories.length ? ds.categories : defaultCategories
         );
@@ -525,9 +614,9 @@ function App() {
         } else if (globalData?.monthlySalary && globalData.monthlySalary > 0) {
           calculatedMonthlySalary = globalData.monthlySalary;
           setIsFromSalaryHistory(false); // Pas depuis l'historique si depuis global
-        } else if (globalData?.salaryHistory && typeof year === 'number') {
+        } else if (globalData?.salaryHistory) {
           // Utiliser le salaire actif de l'historique si disponible
-          const activeSalary = getActiveSalaryForYear(globalData.salaryHistory, year);
+          const activeSalary = getActiveSalaryForYear(globalData.salaryHistory, yearToLoad);
           if (activeSalary !== null && activeSalary > 0) {
             calculatedMonthlySalary = activeSalary;
             setIsFromSalaryHistory(true); // Le revenu vient de l'historique
@@ -568,7 +657,7 @@ function App() {
       }
     }
     load();
-  }, [sessionEmail, year, predictedYears, globalData, pendingAddExpense]);
+  }, [sessionEmail, year, predictedYears, globalData, pendingAddExpense, location.pathname, params.year, years]);
 
   // Save data when categories, expenses, subs, salary, savings change, with debounce
   // Don't save if viewing a prediction or if we're on the dashboard
@@ -829,6 +918,7 @@ function App() {
       setYears(updatedYears);
       // Always select dashboard by default after login
       setYear('dashboard');
+      navigate('/dashboard', { replace: true });
       setIsCheckingSession(false); // Connexion réussie, vérification terminée
     } catch (err: any) {
       setIsCheckingSession(false); // En cas d'erreur, arrêter la vérification
@@ -991,6 +1081,7 @@ function App() {
   async function onLogout() {
     await Api.logout();
     setSessionEmail(null);
+    navigate('/login', { replace: true });
   }
 
   function onAddYear() {
@@ -1002,6 +1093,7 @@ function App() {
       const out = await Api.addYear(yearToAdd);
       setYears(out.years);
       setYear(yearToAdd);
+      navigate(`/annee/${yearToAdd}`);
     } catch (err: any) {
       throw err; // Let the modal handle the error display
     }
@@ -1179,6 +1271,7 @@ function App() {
       // Remove from predictions
       setPredictedYears(prev => prev.filter(p => p.year !== yearToMaterialize));
       setYear(yearToMaterialize);
+      navigate(`/annee/${yearToMaterialize}`);
       setIsViewingPrediction(false);
     } catch (err: any) {
       alert('Erreur lors de la création de l\'année : ' + (err.message || 'Erreur inconnue'));
@@ -1319,11 +1412,6 @@ function App() {
     );
   }
 
-  // Afficher le formulaire de connexion seulement après vérification
-  if (!sessionEmail) {
-    return <LoginForm onLogin={onLogin} />;
-  }
-
   // UI when logged in
   // Détecter si un modal est ouvert pour cacher le FAB
   const isAnyModalOpen = 
@@ -1360,12 +1448,13 @@ function App() {
         years={[...new Set([...years, ...predictedYears.map(p => p.year)])]}
         currentYear={year}
         onYearSelect={(y) => {
+          // Utiliser navigate() pour changer l'URL, ce qui synchronisera automatiquement year
           if (y === 'dashboard') {
-            setYear('dashboard');
+            navigate('/dashboard');
           } else if (y === 'charts-test') {
-            setYear('charts-test');
+            navigate('/test-graphiques');
           } else {
-            setYear(y);
+            navigate(`/annee/${y}`);
           }
           // Fermer le drawer après sélection sur mobile
           if (typeof window !== 'undefined' && window.innerWidth < 1024) {
@@ -1406,218 +1495,287 @@ function App() {
       />
 
       {/* Main content */}
-      <main className={`flex-1 w-full overflow-x-hidden p-4 sm:p-4 md:p-6 lg:px-0 lg:py-4 dark:text-gray-100 transition-all duration-300 min-h-screen bg-gray-50 dark:bg-gray-900 ${isSidebarOpen && typeof window !== 'undefined' && window.innerWidth < 1024 ? 'overflow-hidden' : ''} pt-12 lg:pt-2`}>
-        <div className="w-full max-w-full lg:max-w-none space-y-4 sm:space-y-6 lg:pl-2 lg:pr-4">
-          {/* Dashboard View */}
-          {year === 'dashboard' && (
-            <>
-              {globalData !== null ? (
-                <Dashboard
-                  currentYear={currentYearNum}
-                  years={years}
-                  yearData={(() => {
-                    // Try to get current year data for dashboard stats
-                    const currentYearData = historicalData.get(currentYearNum);
-                    if (currentYearData) {
-                      return currentYearData;
-                    }
-                    // Otherwise use defaults, but take monthlySalary from globalData if available
-                    return {
-                      categories: defaultCategories,
-                      expenses: [],
-                      subs: [],
-                      annualFixedExpenses: [],
-                      monthlySalary: globalData?.monthlySalary || 0,
-                      currentSavings: 0,
-                      savingsTransactions: [],
-                    };
-                  })()}
-                  historicalData={historicalData}
-                  globalData={globalData || {
-                    bankAccounts: [],
-                    investments: [],
-                    savingsGoals: [],
-                    savingsProjects: [],
-                    temporaryIncomes: [],
-                    sharedExpensePersons: [],
-                    personTransactions: [],
-                    salaryHistory: [],
-                    initializationComplete: true,
-                    monthlySalary: 0,
-                  }}
-                  predictedYears={predictedYears}
-                />
-              ) : (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Chargement du dashboard...</p>
-                </div>
-              )}
-            </>
-          )}
+      <Routes>
+        {/* Route de connexion */}
+        <Route path="/login" element={<LoginForm onLogin={onLogin} />} />
+        
+        {/* Route racine : rediriger vers dashboard ou login */}
+        <Route path="/" element={
+          sessionEmail ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
+        } />
+        
+        {/* Route dashboard */}
+        <Route path="/dashboard" element={
+          !sessionEmail ? (
+            <Navigate to="/login" replace />
+          ) : (
+            <main className={`flex-1 w-full overflow-x-hidden p-4 sm:p-4 md:p-6 lg:px-0 lg:py-4 dark:text-gray-100 transition-all duration-300 min-h-screen bg-gray-50 dark:bg-gray-900 ${isSidebarOpen && typeof window !== 'undefined' && window.innerWidth < 1024 ? 'overflow-hidden' : ''} pt-12 lg:pt-2`}>
+              <div className="w-full max-w-full lg:max-w-none space-y-4 sm:space-y-6 lg:pl-2 lg:pr-4">
+                {globalData !== null ? (
+                  <Dashboard
+                    currentYear={currentYearNum}
+                    years={years}
+                    yearData={(() => {
+                      const currentYearData = historicalData.get(currentYearNum);
+                      if (currentYearData) {
+                        return currentYearData;
+                      }
+                      return {
+                        categories: defaultCategories,
+                        expenses: [],
+                        subs: [],
+                        annualFixedExpenses: [],
+                        monthlySalary: globalData?.monthlySalary || 0,
+                        currentSavings: 0,
+                        savingsTransactions: [],
+                      };
+                    })()}
+                    historicalData={historicalData}
+                    globalData={globalData || {
+                      bankAccounts: [],
+                      investments: [],
+                      savingsGoals: [],
+                      savingsProjects: [],
+                      temporaryIncomes: [],
+                      sharedExpensePersons: [],
+                      personTransactions: [],
+                      salaryHistory: [],
+                      initializationComplete: true,
+                      monthlySalary: 0,
+                    }}
+                    predictedYears={predictedYears}
+                  />
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Chargement du dashboard...</p>
+                  </div>
+                )}
+              </div>
+            </main>
+          )
+        } />
+        
+        {/* Route test graphiques */}
+        <Route path="/test-graphiques" element={
+          !sessionEmail ? (
+            <Navigate to="/login" replace />
+          ) : (
+            <main className={`flex-1 w-full overflow-x-hidden p-4 sm:p-4 md:p-6 lg:px-0 lg:py-4 dark:text-gray-100 transition-all duration-300 min-h-screen bg-gray-50 dark:bg-gray-900 ${isSidebarOpen && typeof window !== 'undefined' && window.innerWidth < 1024 ? 'overflow-hidden' : ''} pt-12 lg:pt-2`}>
+              <div className="w-full max-w-full lg:max-w-none space-y-4 sm:space-y-6 lg:pl-2 lg:pr-4">
+                {globalData !== null ? (
+                  <ChartsTestInterface
+                    currentYear={currentYearNum}
+                    yearData={(() => {
+                      const currentYearData = historicalData.get(currentYearNum);
+                      if (currentYearData) {
+                        return currentYearData;
+                      }
+                      return {
+                        categories: defaultCategories,
+                        expenses: [],
+                        subs: [],
+                        annualFixedExpenses: [],
+                        monthlySalary: globalData?.monthlySalary || 0,
+                        currentSavings: 0,
+                        savingsTransactions: [],
+                      };
+                    })()}
+                    historicalData={historicalData}
+                    globalData={globalData}
+                    predictedYears={predictedYears}
+                  />
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Chargement des données...</p>
+                  </div>
+                )}
+              </div>
+            </main>
+          )
+        } />
+        
+        {/* Route année spécifique */}
+        <Route path="/annee/:year" element={
+          !sessionEmail ? (
+            <Navigate to="/login" replace />
+          ) : (
+            <main className={`flex-1 w-full overflow-x-hidden p-4 sm:p-4 md:p-6 lg:px-0 lg:py-4 dark:text-gray-100 transition-all duration-300 min-h-screen bg-gray-50 dark:bg-gray-900 ${isSidebarOpen && typeof window !== 'undefined' && window.innerWidth < 1024 ? 'overflow-hidden' : ''} pt-12 lg:pt-2`}>
+              <div className="w-full max-w-full lg:max-w-none space-y-4 sm:space-y-6 lg:pl-2 lg:pr-4">
+                {/* Year View */}
+                {(() => {
+                  const yearFromUrl = params.year ? parseInt(params.year) : null;
+                  const displayYear = typeof year === 'number' ? year : yearFromUrl;
+                  
+                  // Forcer la mise à jour de year si nécessaire
+                  if (yearFromUrl && (typeof year !== 'number' || year !== yearFromUrl)) {
+                    setYear(yearFromUrl);
+                  }
+                  
+                  if (!displayYear || isNaN(displayYear)) {
+                    return (
+                      <div className="text-center py-8">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                        <p className="text-gray-600">Chargement...</p>
+                      </div>
+                    );
+                  }
+                  
+                  const actualYear = displayYear;
+                  // Calculer les calculs pour cette année spécifique
+                  const yearCalculations = useBudgetCalculations(
+                    actualYear,
+                    categories,
+                    expenses,
+                    subs,
+                    annualFixedExpenses
+                  );
+                  return (
+                  <>
+                    {/* Header */}
+                    <header>
+                      <div className="flex items-center gap-3">
+                        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+                          Budget Annuel – {actualYear}
+                        </h1>
+                        {isViewingPrediction && (
+                          <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-1">
+                            <span className="text-xs font-medium text-blue-700">Prévision IA</span>
+                            <button
+                              onClick={() => handleMaterializeYear(actualYear)}
+                              className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded transition-colors"
+                            >
+                              Créer cette année
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      {isViewingPrediction && (
+                        <p className="text-sm text-gray-600 mt-2">
+                          Cette prévision est générée automatiquement à partir de vos habitudes de dépenses des années précédentes
+                        </p>
+                      )}
+                    </header>
 
-          {/* Charts Test View */}
-          {year === 'charts-test' && (
-            <>
-              {globalData !== null ? (
-                <ChartsTestInterface
-                  currentYear={currentYearNum}
-                  yearData={(() => {
-                    const currentYearData = historicalData.get(currentYearNum);
-                    if (currentYearData) {
-                      return currentYearData;
-                    }
-                    return {
-                      categories: defaultCategories,
-                      expenses: [],
-                      subs: [],
-                      annualFixedExpenses: [],
-                      monthlySalary: globalData?.monthlySalary || 0,
-                      currentSavings: 0,
-                      savingsTransactions: [],
-                    };
-                  })()}
-                  historicalData={historicalData}
-                  globalData={globalData}
-                  predictedYears={predictedYears}
-                />
-              ) : (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Chargement des données...</p>
-                </div>
-              )}
-            </>
-          )}
+                    {/* Summary cards */}
+                    <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                      <SummaryCard
+                        title="Budget annuel (cible)"
+                        value={currency(yearCalculations.annualBudgetTotal)}
+                        subtitle={`Variables: ${currency(yearCalculations.variableTargets)} | Abonnements: ${currency(yearCalculations.subsAnnualCommitted)} | Fixes annuelles: ${currency(yearCalculations.annualFixedExpensesTotal || 0)}`}
+                      />
+                      <SummaryCard
+                        title="Dépensé à date"
+                        value={currency(yearCalculations.spentToDateTotal)}
+                        subtitle={`Variables ${currency(yearCalculations.variableSpentTotal)} + Fixes ${currency(yearCalculations.subsPaidToDate)}`}
+                      />
+                      <SummaryCard
+                        title="Reste année (tous postes)"
+                        value={currency(yearCalculations.remainingYearTotal)}
+                        subtitle={`${yearCalculations.daysRemaining} jours restants`}
+                      />
+                      <SummaryCard
+                        title="Reste variables"
+                        value={currency(yearCalculations.variableRemainingTotal)}
+                        subtitle={`Taux/jour ≈ ${currency(
+                          yearCalculations.daysRemaining
+                            ? yearCalculations.variableRemainingTotal / yearCalculations.daysRemaining
+                            : 0
+                        )}`}
+                      />
+                    </section>
 
-          {/* Year View */}
-          {year !== 'dashboard' && year !== 'charts-test' && (
-            <>
-              {/* Header */}
-              <header>
-                <div className="flex items-center gap-3">
-                  <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-                    Budget Annuel – {year}
-                  </h1>
-                  {isViewingPrediction && (
-                <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-1">
-                  <span className="text-xs font-medium text-blue-700">Prévision IA</span>
-                  <button
-                    onClick={() => handleMaterializeYear(year)}
-                    className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded transition-colors"
-                  >
-                    Créer cette année
-                  </button>
-                </div>
-              )}
-            </div>
-            {isViewingPrediction && (
-              <p className="text-sm text-gray-600 mt-2">
-                Cette prévision est générée automatiquement à partir de vos habitudes de dépenses des années précédentes
-              </p>
-            )}
-          </header>
+                    {/* Income and Savings */}
+                    <LazySection rootMargin="50px">
+                      <IncomeAndSavingsSection
+                        monthlySalary={monthlySalary}
+                        currentSavings={currentSavings}
+                        savingsTransactions={savingsTransactions}
+                        onSalaryChange={handleSalaryChange}
+                        onSavingsChange={handleSavingsChange}
+                        onAddTransaction={handleAddTransaction}
+                        onRemoveTransaction={handleRemoveTransaction}
+                        onUpdateTransaction={handleUpdateTransaction}
+                        annualIncome={annualIncome}
+                        projectedSavings={projectedSavings}
+                        temporaryIncomes={globalData?.temporaryIncomes || []}
+                        savingsProjects={globalData?.savingsProjects || []}
+                        variableMonthlyIncomes={variableMonthlyIncomes}
+                        onVariableMonthlyIncomesChange={setVariableMonthlyIncomes}
+                        additionalMonthlyIncomes={additionalMonthlyIncomes}
+                        onAdditionalMonthlyIncomesChange={setAdditionalMonthlyIncomes}
+                        monthlyIncomeSources={monthlyIncomeSources}
+                        onMonthlyIncomeSourcesChange={setMonthlyIncomeSources}
+                        currentYear={actualYear}
+                        onOpenTaxManager={() => setIsTaxManagerOpen(true)}
+                        onOpenAdvancedFiscal={() => setIsAdvancedFiscalManagerOpen(true)}
+                        globalMonthlySalary={globalData?.monthlySalary}
+                        yearSpecificSalary={hasYearSpecificSalary ? monthlySalary : undefined}
+                        isFromSalaryHistory={isFromSalaryHistory}
+                      />
+                    </LazySection>
 
-        {/* Summary cards */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <SummaryCard
-            title="Budget annuel (cible)"
-            value={currency(calculations.annualBudgetTotal)}
-            subtitle={`Variables: ${currency(calculations.variableTargets)} | Abonnements: ${currency(calculations.subsAnnualCommitted)} | Fixes annuelles: ${currency(calculations.annualFixedExpensesTotal || 0)}`}
-          />
-          <SummaryCard
-            title="Dépensé à date"
-            value={currency(calculations.spentToDateTotal)}
-            subtitle={`Variables ${currency(calculations.variableSpentTotal)} + Fixes ${currency(calculations.subsPaidToDate)}`}
-          />
-          <SummaryCard
-            title="Reste année (tous postes)"
-            value={currency(calculations.remainingYearTotal)}
-            subtitle={`${calculations.daysRemaining} jours restants`}
-          />
-          <SummaryCard
-            title="Reste variables"
-            value={currency(calculations.variableRemainingTotal)}
-            subtitle={`Taux/jour ≈ ${currency(
-              calculations.daysRemaining
-                ? calculations.variableRemainingTotal / calculations.daysRemaining
-                : 0
-            )}`}
-          />
-        </section>
+                    {/* Categories */}
+                    <LazySection rootMargin="50px">
+                      <CategoriesSection
+                        categories={categories}
+                        variableSpentByCat={calculations.variableSpentByCat}
+                        variableRemainingByCat={calculations.variableRemainingByCat}
+                        onUpsertCategory={upsertCategory}
+                        onAddCategory={addCategory}
+                        onRemoveCategory={removeCategory}
+                        hasExpensesInCategory={(id) => expenses.some((e) => e.categoryId === id)}
+                      />
+                    </LazySection>
 
-        {/* Income and Savings */}
-        <IncomeAndSavingsSection
-          monthlySalary={monthlySalary}
-          currentSavings={currentSavings}
-          savingsTransactions={savingsTransactions}
-          onSalaryChange={handleSalaryChange}
-          onSavingsChange={handleSavingsChange}
-          onAddTransaction={handleAddTransaction}
-          onRemoveTransaction={handleRemoveTransaction}
-          onUpdateTransaction={handleUpdateTransaction}
-          annualIncome={annualIncome}
-          projectedSavings={projectedSavings}
-          temporaryIncomes={globalData?.temporaryIncomes || []}
-          savingsProjects={globalData?.savingsProjects || []}
-          variableMonthlyIncomes={variableMonthlyIncomes}
-          onVariableMonthlyIncomesChange={typeof year === 'number' ? setVariableMonthlyIncomes : undefined}
-          additionalMonthlyIncomes={additionalMonthlyIncomes}
-          onAdditionalMonthlyIncomesChange={typeof year === 'number' ? setAdditionalMonthlyIncomes : undefined}
-          monthlyIncomeSources={monthlyIncomeSources}
-          onMonthlyIncomeSourcesChange={typeof year === 'number' ? setMonthlyIncomeSources : undefined}
-          currentYear={typeof year === 'number' ? year : undefined}
-          onOpenTaxManager={() => setIsTaxManagerOpen(true)}
-          onOpenAdvancedFiscal={() => setIsAdvancedFiscalManagerOpen(true)}
-          globalMonthlySalary={globalData?.monthlySalary}
-          yearSpecificSalary={hasYearSpecificSalary && typeof year === 'number' ? monthlySalary : undefined}
-          isFromSalaryHistory={isFromSalaryHistory}
-        />
+                    {/* Unified Expenses Manager */}
+                    <LazySection rootMargin="50px">
+                      <UnifiedExpensesManager
+                        expenses={expenses}
+                        subs={subs}
+                        annualFixedExpenses={annualFixedExpenses}
+                        categories={categories}
+                        bankAccounts={globalData?.bankAccounts || []}
+                        savingsProjects={globalData?.savingsProjects || []}
+                        monthNow={calculations.monthNow}
+                        onAddExpense={addExpense}
+                        onRemoveExpense={removeExpense}
+                        onUpdateExpense={updateExpense}
+                        onAddSub={addSub}
+                        onRemoveSub={removeSub}
+                        onUpdateSub={updateSub}
+                        onAddAnnualFixed={addAnnualFixedExpense}
+                        onRemoveAnnualFixed={removeAnnualFixedExpense}
+                        onUpdateAnnualFixed={updateAnnualFixedExpense}
+                        triggerAddExpense={triggerAddExpense}
+                        onTriggerAddExpenseComplete={() => setTriggerAddExpense(false)}
+                      />
+                    </LazySection>
 
-        {/* Categories */}
-        <CategoriesSection
-          categories={categories}
-          variableSpentByCat={calculations.variableSpentByCat}
-          variableRemainingByCat={calculations.variableRemainingByCat}
-          onUpsertCategory={upsertCategory}
-          onAddCategory={addCategory}
-          onRemoveCategory={removeCategory}
-          hasExpensesInCategory={(id) => expenses.some((e) => e.categoryId === id)}
-        />
-
-        {/* Unified Expenses Manager */}
-        <UnifiedExpensesManager
-          expenses={expenses}
-          subs={subs}
-          annualFixedExpenses={annualFixedExpenses}
-          categories={categories}
-          bankAccounts={globalData?.bankAccounts || []}
-          savingsProjects={globalData?.savingsProjects || []}
-          monthNow={calculations.monthNow}
-          onAddExpense={addExpense}
-          onRemoveExpense={removeExpense}
-          onUpdateExpense={updateExpense}
-          onAddSub={addSub}
-          onRemoveSub={removeSub}
-          onUpdateSub={updateSub}
-          onAddAnnualFixed={addAnnualFixedExpense}
-          onRemoveAnnualFixed={removeAnnualFixedExpense}
-          onUpdateAnnualFixed={updateAnnualFixedExpense}
-          triggerAddExpense={triggerAddExpense}
-          onTriggerAddExpenseComplete={() => setTriggerAddExpense(false)}
-        />
-
-
-              <section className="text-xs text-slate-500 pb-8">
-                <p>
-                  Les données sont stockées côté serveur, par utilisateur (email), et
-                  chargées/écrites à la volée.
-                </p>
-              </section>
-            </>
-          )}
-        </div>
-      </main>
+                    <section className="text-xs text-slate-500 pb-8">
+                      <p>
+                        Les données sont stockées côté serveur, par utilisateur (email), et
+                        chargées/écrites à la volée.
+                      </p>
+                    </section>
+                  </>
+                  );
+                })()}
+              </div>
+            </main>
+          )
+        } />
+        
+        {/* Routes protégées (nécessitent une connexion) - Catch-all pour les autres routes */}
+        <Route path="/*" element={
+          !sessionEmail ? (
+            <Navigate to="/login" replace />
+          ) : (
+            <Navigate to="/dashboard" replace />
+          )
+        } />
+      </Routes>
       
       {/* Add Year Modal */}
       <AddYearModal

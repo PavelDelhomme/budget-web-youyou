@@ -10,7 +10,7 @@ import { MonthlyExpensesIncomeChartChartJS } from '../charts/MonthlyExpensesInco
 import { AnnualEvolutionChart } from '../charts/AnnualEvolutionChart';
 import { SimpleBarChart } from '../charts/SimpleBarChart';
 import { CategoryEvolutionChart } from '../charts/CategoryEvolutionChart';
-import { SimpleBarChart } from '../charts/SimpleBarChart';
+import { LazySection } from '../ui/LazySection';
 
 interface DashboardProps {
   currentYear: number;
@@ -394,7 +394,7 @@ export function Dashboard({
       </div> */}
 
       {/* Charts Section - Full Width */}
-      <div className="space-y-6">
+      <LazySection className="space-y-6" rootMargin="50px">
         {/* Répartition des dépenses par catégorie - DÉSACTIVÉ TEMPORAIREMENT */}
         {/* <ExpensesPieChart
           categories={yearData.categories || []}
@@ -415,10 +415,11 @@ export function Dashboard({
             height={400}
           />
         </div>
-      </div>
+      </LazySection>
 
       {/* Trends and Analysis */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+      <LazySection rootMargin="50px">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 min-w-0 overflow-hidden">
           <h3 className="font-semibold text-base sm:text-lg mb-4 text-gray-900 dark:text-white truncate">📈 Tendances</h3>
           <div className="space-y-4">
@@ -472,10 +473,12 @@ export function Dashboard({
             )}
           </div>
         </div> */}
-      </div>
+        </div>
+      </LazySection>
 
       {/* Graphique en barres simple - À développer étape par étape */}
-      <div className="w-full mt-6">
+      <LazySection rootMargin="50px">
+        <div className="w-full mt-6">
         <SimpleBarChart
           data={[
             { label: 'Exemple 1', value: 100 },
@@ -484,71 +487,77 @@ export function Dashboard({
           ]}
           height={300}
         />
-      </div>
+        </div>
+      </LazySection>
 
       {/* AI Predictions */}
       {predictedYears.length > 0 && (
-        <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/30 dark:to-blue-900/30 rounded-lg shadow p-6 border border-purple-200 dark:border-purple-800">
-          <h3 className="font-semibold text-lg mb-4 text-gray-900 dark:text-white">🤖 Prévisions IA</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {predictedYears.map((prediction) => (
-              <div key={prediction.year} className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-semibold text-gray-900 dark:text-white">{prediction.year}</span>
-                  <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 px-2 py-0.5 rounded-full">IA</span>
-                </div>
-                <div className="text-sm space-y-1">
-                  <div className="text-gray-600 dark:text-gray-400">Revenus projetés:</div>
-                  <div className="font-semibold text-gray-900 dark:text-white">
-                    {currency(prediction.projectedAnnualIncome || (prediction.monthlySalary * 12))}
+        <LazySection rootMargin="50px">
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/30 dark:to-blue-900/30 rounded-lg shadow p-6 border border-purple-200 dark:border-purple-800">
+            <h3 className="font-semibold text-lg mb-4 text-gray-900 dark:text-white">🤖 Prévisions IA</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {predictedYears.map((prediction) => (
+                <div key={prediction.year} className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-semibold text-gray-900 dark:text-white">{prediction.year}</span>
+                    <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 px-2 py-0.5 rounded-full">IA</span>
                   </div>
-                  {(prediction.projectedAnnualIncome || 0) > (prediction.monthlySalary * 12) && (
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                      (dont {currency((prediction.projectedAnnualIncome || 0) - (prediction.monthlySalary * 12))} revenus supplémentaires)
+                  <div className="text-sm space-y-1">
+                    <div className="text-gray-600 dark:text-gray-400">Revenus projetés:</div>
+                    <div className="font-semibold text-gray-900 dark:text-white">
+                      {currency(prediction.projectedAnnualIncome || (prediction.monthlySalary * 12))}
                     </div>
-                  )}
-                  <div className="text-gray-600 dark:text-gray-400">Dépenses projetées:</div>
-                  <div className="font-semibold text-gray-900 dark:text-white">{currency(prediction.projectedExpenses)}</div>
-                  <div className="text-gray-600 dark:text-gray-400">Épargne projetée:</div>
-                  <div className={`font-semibold ${prediction.projectedSavings >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                    {currency(prediction.projectedSavings)}
+                    {(prediction.projectedAnnualIncome || 0) > (prediction.monthlySalary * 12) && (
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        (dont {currency((prediction.projectedAnnualIncome || 0) - (prediction.monthlySalary * 12))} revenus supplémentaires)
+                      </div>
+                    )}
+                    <div className="text-gray-600 dark:text-gray-400">Dépenses projetées:</div>
+                    <div className="font-semibold text-gray-900 dark:text-white">{currency(prediction.projectedExpenses)}</div>
+                    <div className="text-gray-600 dark:text-gray-400">Épargne projetée:</div>
+                    <div className={`font-semibold ${prediction.projectedSavings >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      {currency(prediction.projectedSavings)}
+                    </div>
+                    {prediction.projectedTotalAssets !== undefined && prediction.projectedTotalAssets > 0 && (
+                      <>
+                        <div className="text-gray-600 dark:text-gray-400 pt-1 border-t border-gray-200 dark:border-gray-700">Actifs totaux projetés:</div>
+                        <div className="font-semibold text-green-600 dark:text-green-400">{currency(prediction.projectedTotalAssets)}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-500">
+                          {prediction.projectedBankAccounts !== undefined && prediction.projectedBankAccounts > 0 && (
+                            <>Comptes: {currency(prediction.projectedBankAccounts)}</>
+                          )}
+                          {prediction.projectedInvestments !== undefined && prediction.projectedInvestments > 0 && (
+                            <>{prediction.projectedBankAccounts && prediction.projectedBankAccounts > 0 ? ' + ' : ''}Investissements: {currency(prediction.projectedInvestments)}</>
+                          )}
+                        </div>
+                      </>
+                    )}
+                    {prediction.projectedSavingsProjects && (
+                      <>
+                        <div className="text-gray-600 dark:text-gray-400 pt-1 border-t border-gray-200 dark:border-gray-700">Projets d'épargne:</div>
+                        <div className="font-semibold text-purple-600 dark:text-purple-400">
+                          {currency(prediction.projectedSavingsProjects.totalCurrent)} / {currency(prediction.projectedSavingsProjects.totalTarget)}
+                        </div>
+                      </>
+                    )}
                   </div>
-                  {prediction.projectedTotalAssets !== undefined && prediction.projectedTotalAssets > 0 && (
-                    <>
-                      <div className="text-gray-600 dark:text-gray-400 pt-1 border-t border-gray-200 dark:border-gray-700">Actifs totaux projetés:</div>
-                      <div className="font-semibold text-green-600 dark:text-green-400">{currency(prediction.projectedTotalAssets)}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-500">
-                        {prediction.projectedBankAccounts !== undefined && prediction.projectedBankAccounts > 0 && (
-                          <>Comptes: {currency(prediction.projectedBankAccounts)}</>
-                        )}
-                        {prediction.projectedInvestments !== undefined && prediction.projectedInvestments > 0 && (
-                          <>{prediction.projectedBankAccounts && prediction.projectedBankAccounts > 0 ? ' + ' : ''}Investissements: {currency(prediction.projectedInvestments)}</>
-                        )}
-                      </div>
-                    </>
-                  )}
-                  {prediction.projectedSavingsProjects && (
-                    <>
-                      <div className="text-gray-600 dark:text-gray-400 pt-1 border-t border-gray-200 dark:border-gray-700">Projets d'épargne:</div>
-                      <div className="font-semibold text-purple-600 dark:text-purple-400">
-                        {currency(prediction.projectedSavingsProjects.totalCurrent)} / {currency(prediction.projectedSavingsProjects.totalTarget)}
-                      </div>
-                    </>
-                  )}
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        </LazySection>
       )}
 
       {/* Budget Suggestions */}
       {suggestions.length > 0 && (
-        <BudgetSuggestions suggestions={suggestions} />
+        <LazySection rootMargin="50px">
+          <BudgetSuggestions suggestions={suggestions} />
+        </LazySection>
       )}
 
       {/* Monthly Expenses Section */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+      <LazySection rootMargin="50px">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
         <h3 className="font-semibold text-lg mb-4 text-gray-900 dark:text-white">📅 Dépenses mensuelles</h3>
         
         {/* Current Month */}
@@ -619,10 +628,12 @@ export function Dashboard({
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      </LazySection>
 
       {/* Expenses by Category - Last 12 Months */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-5 md:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+      <LazySection rootMargin="50px">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-5 md:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
         <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-5 text-gray-900 dark:text-white">📊 Évolution par catégorie (12 derniers mois)</h3>
         
         {Object.keys(categoryExpenses).length > 0 ? (
@@ -678,10 +689,12 @@ export function Dashboard({
             <p className="text-sm">Aucune donnée à afficher</p>
           </div>
         )}
-      </div>
+        </div>
+      </LazySection>
 
       {/* Additional Statistics */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 min-w-0 overflow-hidden">
+      <LazySection rootMargin="50px">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 min-w-0 overflow-hidden">
         <h3 className="font-semibold text-base sm:text-lg mb-4 text-gray-900 dark:text-white truncate">📈 Statistiques supplémentaires</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg min-w-0 overflow-hidden">
@@ -722,11 +735,13 @@ export function Dashboard({
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      </LazySection>
 
       {/* Investments Visual Section */}
       {investments.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+        <LazySection rootMargin="50px">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
           <h3 className="font-semibold text-lg mb-4 text-gray-900 dark:text-white">📈 Mes investissements</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {investments.map((inv) => {
@@ -780,12 +795,14 @@ export function Dashboard({
               </span>
             </div>
           </div>
-        </div>
+          </div>
+        </LazySection>
       )}
 
       {/* Savings Projects Section */}
       {savingsProjects.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+        <LazySection rootMargin="50px">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
           <h3 className="font-semibold text-lg mb-4 text-gray-900 dark:text-white">🎯 Mes projets d'épargne</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {savingsProjects.map((project) => {
@@ -845,12 +862,14 @@ export function Dashboard({
               </div>
             </div>
           )}
-        </div>
+          </div>
+        </LazySection>
       )}
 
       {/* Temporary Incomes Section */}
       {temporaryIncomes.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+        <LazySection rootMargin="50px">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
           <h3 className="font-semibold text-lg mb-4 text-gray-900 dark:text-white">💰 Revenus ponctuels et supplémentaires</h3>
           <div className="space-y-3">
             {temporaryIncomes.map((income) => {
@@ -894,58 +913,64 @@ export function Dashboard({
               );
             })}
           </div>
-        </div>
+          </div>
+        </LazySection>
       )}
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
-          <h3 className="font-semibold text-lg mb-4 text-gray-900 dark:text-white">💳 Transactions partagées</h3>
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            {personTransactions.length} transaction(s) enregistrée(s)
+      <LazySection rootMargin="50px">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+            <h3 className="font-semibold text-lg mb-4 text-gray-900 dark:text-white">💳 Transactions partagées</h3>
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              {personTransactions.length} transaction(s) enregistrée(s)
+            </div>
+            {personTransactions.length === 0 && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">Aucune transaction partagée pour le moment</p>
+            )}
           </div>
-          {personTransactions.length === 0 && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">Aucune transaction partagée pour le moment</p>
-          )}
-        </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
-          <h3 className="font-semibold text-lg mb-4 text-gray-900 dark:text-white">📅 Années suivies</h3>
-          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{years.length}</div>
-          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">années avec données</div>
-        </div>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+            <h3 className="font-semibold text-lg mb-4 text-gray-900 dark:text-white">📅 Années suivies</h3>
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{years.length}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">années avec données</div>
+          </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
-          <h3 className="font-semibold text-lg mb-4 text-gray-900 dark:text-white">💼 Investissements actifs</h3>
-          <div className="text-2xl font-bold text-green-600 dark:text-green-400">{investments.length}</div>
-          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Contribution mensuelle: {currency(investments.reduce((sum, inv) => sum + inv.monthlyContribution, 0))}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+            <h3 className="font-semibold text-lg mb-4 text-gray-900 dark:text-white">💼 Investissements actifs</h3>
+            <div className="text-2xl font-bold text-green-600 dark:text-green-400">{investments.length}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Contribution mensuelle: {currency(investments.reduce((sum, inv) => sum + inv.monthlyContribution, 0))}
+            </div>
           </div>
         </div>
-      </div>
+      </LazySection>
 
       {/* Annual Evolution Chart */}
       {historicalArray.length > 0 && (
-        <AnnualEvolutionChart
-          historicalData={historicalArray}
-          globalData={globalData || undefined}
-        />
+        <LazySection rootMargin="50px">
+          <AnnualEvolutionChart
+            historicalData={historicalArray}
+            globalData={globalData || undefined}
+          />
+        </LazySection>
       )}
 
       {/* Annual Chart Variants Showcase - Integrated directly to avoid import errors */}
       {historicalArray.length > 0 && (
-        <div className="w-full space-y-8 p-4 mt-6">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              📊 5 Variantes de Graphique Annuel
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              Choisissez la variante qui vous convient le mieux pour afficher l'évolution des dépenses et revenus par année
-            </p>
-          </div>
+        <LazySection rootMargin="50px">
+          <div className="w-full space-y-8 p-4 mt-6">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                📊 5 Variantes de Graphique Annuel
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                Choisissez la variante qui vous convient le mieux pour afficher l'évolution des dépenses et revenus par année
+              </p>
+            </div>
 
-          {/* Variante 1 : Barres Groupées */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-2 border-blue-500">
+              {/* Variante 1 : Barres Groupées */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-2 border-blue-500">
             <div className="mb-4">
               <div className="flex items-center gap-3 mb-2">
                 <span className="text-2xl font-bold text-blue-600">1</span>
@@ -985,8 +1010,8 @@ export function Dashboard({
             </div>
           </div>
 
-          {/* Variante 2 : Area Chart */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-2 border-purple-500">
+            {/* Variante 2 : Area Chart */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-2 border-purple-500">
             <div className="mb-4">
               <div className="flex items-center gap-3 mb-2">
                 <span className="text-2xl font-bold text-purple-600">2</span>
@@ -1036,8 +1061,8 @@ export function Dashboard({
             </div>
           </div>
 
-          {/* Variante 3 : Stacked Bars */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-2 border-indigo-500">
+            {/* Variante 3 : Stacked Bars */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-2 border-indigo-500">
             <div className="mb-4">
               <div className="flex items-center gap-3 mb-2">
                 <span className="text-2xl font-bold text-indigo-600">3</span>
@@ -1084,8 +1109,8 @@ export function Dashboard({
             </div>
           </div>
 
-          {/* Variante 4 : Radar */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-2 border-pink-500">
+            {/* Variante 4 : Radar */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-2 border-pink-500">
             <div className="mb-4">
               <div className="flex items-center gap-3 mb-2">
                 <span className="text-2xl font-bold text-pink-600">4</span>
@@ -1128,8 +1153,8 @@ export function Dashboard({
             </div>
           </div>
 
-          {/* Variante 5 : Cards */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-2 border-teal-500">
+            {/* Variante 5 : Cards */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-2 border-teal-500">
             <div className="mb-4">
               <div className="flex items-center gap-3 mb-2">
                 <span className="text-2xl font-bold text-teal-600">5</span>
@@ -1186,14 +1211,14 @@ export function Dashboard({
                 </ul>
               </div>
             </div>
-          </div>
+            </div>
 
-          {/* Conclusion */}
-          <div className="bg-gradient-to-r from-blue-50 to-teal-50 dark:from-gray-800 dark:to-gray-700 rounded-lg shadow-lg p-6 border-2 border-gray-200 dark:border-gray-600">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              💡 Quelle variante choisir ?
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            {/* Conclusion */}
+            <div className="bg-gradient-to-r from-blue-50 to-teal-50 dark:from-gray-800 dark:to-gray-700 rounded-lg shadow-lg p-6 border-2 border-gray-200 dark:border-gray-600">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                💡 Quelle variante choisir ?
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
                 <p className="text-gray-700 dark:text-gray-300 mb-2">
                   <strong>Pour la cohérence</strong> : Choisissez la <strong className="text-blue-600">Variante 1</strong> (Barres Groupées) car elle est identique au graphique mensuel.
@@ -1204,9 +1229,10 @@ export function Dashboard({
                   <strong>Pour mobile</strong> : Choisissez la <strong className="text-teal-600">Variante 5</strong> (Cartes) qui s'adapte parfaitement aux petits écrans.
                 </p>
               </div>
+              </div>
             </div>
           </div>
-        </div>
+        </LazySection>
       )}
     </div>
   );

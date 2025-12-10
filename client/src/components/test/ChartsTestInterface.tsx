@@ -6,6 +6,7 @@ import { ExpensesPieChart } from '../charts/ExpensesPieChart';
 import { SimpleBarChart } from '../charts/SimpleBarChart';
 import { AnnualEvolutionChart } from '../charts/AnnualEvolutionChart';
 import { SimpleChartJSTest } from './SimpleChartJSTest';
+import { LazySection } from '../ui/LazySection';
 import { currency } from '../../lib/utils';
 
 interface ChartsTestInterfaceProps {
@@ -235,16 +236,18 @@ export function ChartsTestInterface({
       </div>
 
       {/* Test Simple Chart.js - Comparaison */}
-      <div className="bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg shadow-lg p-4 sm:p-6 text-white mb-6">
-        <h2 className="text-xl sm:text-2xl font-bold mb-2">
-          🧪 Test Simple Chart.js - Comparaison
-        </h2>
-        <p className="text-yellow-100 text-sm sm:text-base">
-          Graphiques Chart.js très simples pour vérifier que beginAtZero fonctionne correctement
-        </p>
-      </div>
+      <LazySection rootMargin="50px">
+        <div className="bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg shadow-lg p-4 sm:p-6 text-white mb-6">
+          <h2 className="text-xl sm:text-2xl font-bold mb-2">
+            🧪 Test Simple Chart.js - Comparaison
+          </h2>
+          <p className="text-yellow-100 text-sm sm:text-base">
+            Graphiques Chart.js très simples pour vérifier que beginAtZero fonctionne correctement
+          </p>
+        </div>
 
-      <SimpleChartJSTest />
+        <SimpleChartJSTest />
+      </LazySection>
 
       {/* 1-10. 10 Variantes du Graphique Dépenses et revenus par mois */}
       <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg shadow-lg p-4 sm:p-6 text-white mb-6">
@@ -257,7 +260,8 @@ export function ChartsTestInterface({
       </div>
 
       {/* Variante 1 : Standard (par défaut) - Chart.js */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+      <LazySection rootMargin="50px">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
         <h3 className="text-base sm:text-lg font-bold mb-2 text-gray-900 dark:text-white">
           1️⃣ Standard (Par défaut) - Chart.js
         </h3>
@@ -277,10 +281,12 @@ export function ChartsTestInterface({
             variant="Standard - Barres groupées verticales"
           />
         </div>
-      </div>
+        </div>
+      </LazySection>
 
       {/* Variante 2 : Compacte (barres fines, espacement réduit) - Chart.js */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+      <LazySection rootMargin="50px">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
         <h3 className="text-base sm:text-lg font-bold mb-2 text-gray-900 dark:text-white">
           2️⃣ Compacte - Chart.js
         </h3>
@@ -300,10 +306,12 @@ export function ChartsTestInterface({
             variant="Compacte - Barres groupées verticales compactes"
           />
         </div>
-      </div>
+        </div>
+      </LazySection>
 
       {/* Variante 3 : Large (hauteur augmentée) - Chart.js */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+      <LazySection rootMargin="50px">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
         <h3 className="text-base sm:text-lg font-bold mb-2 text-gray-900 dark:text-white">
           3️⃣ Large - Chart.js
         </h3>
@@ -323,10 +331,12 @@ export function ChartsTestInterface({
             variant="Large - Barres groupées verticales larges"
           />
         </div>
-      </div>
+        </div>
+      </LazySection>
 
       {/* Variante 4 : Couleurs bleues/violettes - Chart.js */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+      <LazySection rootMargin="50px">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
         <h3 className="text-base sm:text-lg font-bold mb-2 text-gray-900 dark:text-white">
           4️⃣ Couleurs bleues/violettes - Chart.js
         </h3>
@@ -348,10 +358,12 @@ export function ChartsTestInterface({
             expenseColor="#8B5CF6"
           />
         </div>
-      </div>
+        </div>
+      </LazySection>
 
       {/* Variante 5 : Couleurs orange/rouge - Chart.js */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+      <LazySection rootMargin="50px">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
         <h3 className="text-base sm:text-lg font-bold mb-2 text-gray-900 dark:text-white">
           5️⃣ Couleurs orange/rouge - Chart.js
         </h3>
@@ -373,10 +385,12 @@ export function ChartsTestInterface({
             expenseColor="#DC2626"
           />
         </div>
-      </div>
+        </div>
+      </LazySection>
 
       {/* Variante 6 : Minimaliste - Chart.js */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+      <LazySection rootMargin="50px">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
         <h3 className="text-base sm:text-lg font-bold mb-2 text-gray-900 dark:text-white">
           6️⃣ Minimaliste - Chart.js
         </h3>
@@ -396,10 +410,12 @@ export function ChartsTestInterface({
             variant="Minimaliste - Barres groupées verticales minimalistes"
           />
         </div>
-      </div>
+        </div>
+      </LazySection>
 
       {/* Variante 7 : Couleurs sombres - Chart.js */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+      <LazySection rootMargin="50px">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
         <h3 className="text-base sm:text-lg font-bold mb-2 text-gray-900 dark:text-white">
           7️⃣ Sombre - Chart.js
         </h3>
@@ -421,10 +437,12 @@ export function ChartsTestInterface({
             expenseColor="#B91C1C"
           />
         </div>
-      </div>
+        </div>
+      </LazySection>
 
       {/* Variante 8 : Hauteur réduite - Chart.js */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+      <LazySection rootMargin="50px">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
         <h3 className="text-base sm:text-lg font-bold mb-2 text-gray-900 dark:text-white">
           8️⃣ Hauteur réduite (300px) - Chart.js
         </h3>
@@ -444,10 +462,12 @@ export function ChartsTestInterface({
             variant="Hauteur réduite - Barres groupées verticales"
           />
         </div>
-      </div>
+        </div>
+      </LazySection>
 
       {/* Variante 9 : Hauteur augmentée - Chart.js */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+      <LazySection rootMargin="50px">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
         <h3 className="text-base sm:text-lg font-bold mb-2 text-gray-900 dark:text-white">
           9️⃣ Hauteur augmentée (500px) - Chart.js
         </h3>
@@ -467,10 +487,12 @@ export function ChartsTestInterface({
             variant="Hauteur augmentée - Barres groupées verticales"
           />
         </div>
-      </div>
+        </div>
+      </LazySection>
 
       {/* Variante 10 : Mix (couleurs personnalisées) - Chart.js */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+      <LazySection rootMargin="50px">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
         <h3 className="text-base sm:text-lg font-bold mb-2 text-gray-900 dark:text-white">
           🔟 Mix - Chart.js
         </h3>
@@ -492,10 +514,12 @@ export function ChartsTestInterface({
             expenseColor="#EF4444"
           />
         </div>
-      </div>
+        </div>
+      </LazySection>
 
       {/* 2. Graphique Évolution par catégorie */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+      <LazySection rootMargin="50px">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
         <h2 className="text-lg sm:text-xl font-bold mb-4 text-gray-900 dark:text-white">
           2️⃣ Évolution par catégorie (12 derniers mois)
         </h2>
@@ -545,10 +569,12 @@ export function ChartsTestInterface({
             <p className="text-sm sm:text-base">Aucune donnée à afficher</p>
           </div>
         )}
-      </div>
+        </div>
+      </LazySection>
 
       {/* 3. Graphique Répartition des dépenses par catégorie (Pie Chart) */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+      <LazySection rootMargin="50px">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
         <h2 className="text-lg sm:text-xl font-bold mb-4 text-gray-900 dark:text-white">
           3️⃣ Répartition des dépenses par catégorie
         </h2>
@@ -559,10 +585,12 @@ export function ChartsTestInterface({
             size={Math.min(400, typeof window !== 'undefined' ? window.innerWidth * 0.9 : 400)}
           />
         </div>
-      </div>
+        </div>
+      </LazySection>
 
       {/* 4. Graphique Simple Bar Chart */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+      <LazySection rootMargin="50px">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
         <h2 className="text-lg sm:text-xl font-bold mb-4 text-gray-900 dark:text-white">
           4️⃣ Graphique en barres simple
         </h2>
@@ -598,10 +626,12 @@ export function ChartsTestInterface({
             <p className="text-sm sm:text-base">Aucune donnée historique disponible</p>
           </div>
         )}
-      </div>
+        </div>
+      </LazySection>
 
       {/* 6. Graphique de comparaison mensuelle (Dépenses vs Budget) */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+      <LazySection rootMargin="50px">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
         <h2 className="text-lg sm:text-xl font-bold mb-4 text-gray-900 dark:text-white">
           6️⃣ Comparaison Dépenses par mois
         </h2>
@@ -615,10 +645,12 @@ export function ChartsTestInterface({
             barColor="#EF4444"
           />
         </div>
-      </div>
+        </div>
+      </LazySection>
 
       {/* 7. Graphique de tendances (Ligne) - VALIDÉ ET INTÉGRÉ */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border-2 border-green-500 dark:border-green-600 w-full min-w-0 overflow-hidden">
+      <LazySection rootMargin="50px">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border-2 border-green-500 dark:border-green-600 w-full min-w-0 overflow-hidden">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
             7️⃣ Tendance des dépenses (12 derniers mois)
@@ -636,8 +668,8 @@ export function ChartsTestInterface({
           partant de 0€ sur l'axe Y et avec scroll horizontal pour mobile.
         </p>
         <div className="w-full min-w-0 overflow-x-auto">
-          <div className="inline-block min-w-full">
-            <svg width="100%" height="300" className="w-full">
+          <div className="inline-block" style={{ minWidth: '900px' }}>
+            <svg width="900" height="300" className="w-full" viewBox="0 0 900 300" preserveAspectRatio="xMinYMid">
               <defs>
                 <linearGradient id="expenseGradient" x1="0%" y1="0%" x2="0%" y2="100%">
                   <stop offset="0%" stopColor="rgba(239, 68, 68, 0.3)" />
@@ -735,10 +767,12 @@ export function ChartsTestInterface({
             </svg>
           </div>
         </div>
-      </div>
+        </div>
+      </LazySection>
 
       {/* 8. Graphique de répartition mensuelle */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
+      <LazySection rootMargin="50px">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full min-w-0 overflow-hidden">
         <h2 className="text-lg sm:text-xl font-bold mb-4 text-gray-900 dark:text-white">
           8️⃣ Répartition des dépenses par mois (Camembert mensuel)
         </h2>
@@ -757,10 +791,12 @@ export function ChartsTestInterface({
             );
           })}
         </div>
-      </div>
+        </div>
+      </LazySection>
 
       {/* Instructions */}
-      <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4 sm:p-6 border border-blue-200 dark:border-blue-800">
+      <LazySection rootMargin="50px">
+        <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4 sm:p-6 border border-blue-200 dark:border-blue-800">
         <h3 className="text-base sm:text-lg font-bold mb-3 text-gray-900 dark:text-white">
           📝 Instructions de test
         </h3>
@@ -785,7 +821,8 @@ export function ChartsTestInterface({
             </ul>
           </div>
         </div>
-      </div>
+        </div>
+      </LazySection>
     </div>
   );
 }
