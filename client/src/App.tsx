@@ -355,7 +355,7 @@ function YearRouteWrapper(props: any) {
   return (
     <main className={`flex-1 w-full overflow-x-hidden p-4 sm:p-4 md:p-6 lg:px-0 lg:py-4 dark:text-gray-100 transition-all duration-300 min-h-screen bg-gray-50 dark:bg-gray-900 ${props.isSidebarOpen && typeof window !== 'undefined' && window.innerWidth < 1024 ? 'overflow-hidden' : ''} pt-12 lg:pt-2`}>
       <div className="w-full max-w-full lg:max-w-none space-y-4 sm:space-y-6 lg:pl-2 lg:pr-4">
-        <YearViewContent
+        <YearViewContentWithHandlers
           year={yearFromUrl}
           isViewingPrediction={props.isViewingPrediction}
           handleMaterializeYear={props.handleMaterializeYear}
@@ -366,27 +366,38 @@ function YearRouteWrapper(props: any) {
           monthlySalary={props.monthlySalary}
           currentSavings={props.currentSavings}
           savingsTransactions={props.savingsTransactions}
-          onSalaryChange={props.handleSalaryChange}
-          onSavingsChange={props.handleSavingsChange}
-          onAddTransaction={props.handleAddTransaction}
-          onRemoveTransaction={props.handleRemoveTransaction}
-          onUpdateTransaction={props.handleUpdateTransaction}
+          handleSalaryChange={props.handleSalaryChange}
+          handleSavingsChange={props.handleSavingsChange}
+          handleAddTransaction={props.handleAddTransaction}
+          handleRemoveTransaction={props.handleRemoveTransaction}
+          handleUpdateTransaction={props.handleUpdateTransaction}
           annualIncome={props.annualIncome}
           projectedSavings={props.projectedSavings}
-          temporaryIncomes={props.globalData?.temporaryIncomes || []}
-          savingsProjects={props.globalData?.savingsProjects || []}
+          globalData={props.globalData}
           variableMonthlyIncomes={props.variableMonthlyIncomes}
-          onVariableMonthlyIncomesChange={props.setVariableMonthlyIncomes}
+          setVariableMonthlyIncomes={props.setVariableMonthlyIncomes}
           additionalMonthlyIncomes={props.additionalMonthlyIncomes}
-          onAdditionalMonthlyIncomesChange={props.setAdditionalMonthlyIncomes}
+          setAdditionalMonthlyIncomes={props.setAdditionalMonthlyIncomes}
           monthlyIncomeSources={props.monthlyIncomeSources}
-          onMonthlyIncomeSourcesChange={props.setMonthlyIncomeSources}
-          currentYear={yearFromUrl}
-          onOpenTaxManager={() => props.setIsTaxManagerOpen(true)}
-          onOpenAdvancedFiscal={() => props.setIsAdvancedFiscalManagerOpen(true)}
-          globalMonthlySalary={props.globalData?.monthlySalary}
-          yearSpecificSalary={props.hasYearSpecificSalary ? props.monthlySalary : undefined}
+          setMonthlyIncomeSources={props.setMonthlyIncomeSources}
+          hasYearSpecificSalary={props.hasYearSpecificSalary}
           isFromSalaryHistory={props.isFromSalaryHistory}
+          upsertCategory={props.upsertCategory}
+          addCategory={props.addCategory}
+          removeCategory={props.removeCategory}
+          addExpense={props.addExpense}
+          removeExpense={props.removeExpense}
+          updateExpense={props.updateExpense}
+          addSub={props.addSub}
+          removeSub={props.removeSub}
+          updateSub={props.updateSub}
+          addAnnualFixedExpense={props.addAnnualFixedExpense}
+          removeAnnualFixedExpense={props.removeAnnualFixedExpense}
+          updateAnnualFixedExpense={props.updateAnnualFixedExpense}
+          triggerAddExpense={props.triggerAddExpense}
+          setTriggerAddExpense={props.setTriggerAddExpense}
+          setIsTaxManagerOpen={props.setIsTaxManagerOpen}
+          setIsAdvancedFiscalManagerOpen={props.setIsAdvancedFiscalManagerOpen}
         />
       </div>
     </main>
