@@ -38,9 +38,10 @@ if app.secret_key == 'budget-annuel-secret-key-change-in-production':
 
 # Cookie security configuration
 app.config['SESSION_COOKIE_HTTPONLY'] = True  # Empêche l'accès JavaScript aux cookies
-# Pour Docker avec proxy, utiliser 'None' pour SameSite permet la transmission via proxy
-# En production HTTPS, on peut remettre 'Lax' ou 'Strict'
-app.config['SESSION_COOKIE_SAMESITE'] = 'None' if os.environ.get('FLASK_ENV') != 'production' else 'Lax'
+# Pour Docker avec proxy, utiliser 'Lax' (fonctionne avec proxy si même domaine)
+# Le proxy Vite transmet les cookies correctement car c'est le même domaine (localhost)
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+# Secure doit être False en développement (pas de HTTPS), True en production
 app.config['SESSION_COOKIE_SECURE'] = os.environ.get('FLASK_ENV') == 'production' or os.environ.get('FORCE_HTTPS', '').lower() == 'true'  # HTTPS en production
 app.config['SESSION_COOKIE_NAME'] = 'budget_session'  # Nom personnalisé pour éviter les collisions
 app.config['SESSION_COOKIE_PATH'] = '/'  # Restreindre le chemin
