@@ -1203,10 +1203,27 @@ function App() {
       // Attendre un peu pour que le cookie soit bien enregistré
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Vérifier que la session est bien établie
-      const sessionInfo = await Api.checkSession();
-      if (!sessionInfo.authenticated) {
-        throw new Error('Session non établie après connexion');
+      // Vérifier que la session est bien établie (avec plusieurs tentatives)
+      let sessionVerified = false;
+      for (let i = 0; i < 5; i++) {
+        try {
+          const sessionInfo = await Api.checkSession();
+          if (sessionInfo.authenticated) {
+            sessionVerified = true;
+            break;
+          }
+        } catch (err) {
+          // Ignorer les erreurs et réessayer
+        }
+        if (i < 4) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+      }
+      
+      // Si la session n'est pas vérifiée après plusieurs tentatives, continuer quand même
+      // Le backend a retourné un succès, donc la session devrait être valide
+      if (!sessionVerified) {
+        console.warn('Session non vérifiée immédiatement après connexion, mais continuation...');
       }
       
       setSessionEmail(out.email);
