@@ -65,6 +65,266 @@ import {
   today,
 } from './lib/utils';
 
+// Composant YearViewContent pour afficher la vue année avec useBudgetCalculations
+function YearViewContent({
+  year,
+  isViewingPrediction,
+  handleMaterializeYear,
+  categories,
+  expenses,
+  subs,
+  annualFixedExpenses,
+  monthlySalary,
+  currentSavings,
+  savingsTransactions,
+  onSalaryChange,
+  onSavingsChange,
+  onAddTransaction,
+  onRemoveTransaction,
+  onUpdateTransaction,
+  annualIncome,
+  projectedSavings,
+  temporaryIncomes,
+  savingsProjects,
+  variableMonthlyIncomes,
+  onVariableMonthlyIncomesChange,
+  additionalMonthlyIncomes,
+  onAdditionalMonthlyIncomesChange,
+  monthlyIncomeSources,
+  onMonthlyIncomeSourcesChange,
+  currentYear,
+  onOpenTaxManager,
+  onOpenAdvancedFiscal,
+  globalMonthlySalary,
+  yearSpecificSalary,
+  isFromSalaryHistory,
+}: {
+  year: number;
+  isViewingPrediction: boolean;
+  handleMaterializeYear: (year: number) => void;
+  categories: Category[];
+  expenses: Expense[];
+  subs: Subscription[];
+  annualFixedExpenses: AnnualFixedExpense[];
+  monthlySalary: number;
+  currentSavings: number;
+  savingsTransactions: SavingsTransaction[];
+  onSalaryChange: (value: number) => void;
+  onSavingsChange: (value: number) => void;
+  onAddTransaction: (t: SavingsTransaction) => void;
+  onRemoveTransaction: (id: string) => void;
+  onUpdateTransaction: (id: string, t: SavingsTransaction) => void;
+  annualIncome: number;
+  projectedSavings: number;
+  temporaryIncomes: any[];
+  savingsProjects: any[];
+  variableMonthlyIncomes?: number[];
+  onVariableMonthlyIncomesChange: (incomes: number[] | undefined) => void;
+  additionalMonthlyIncomes: MonthlyAdditionalIncome[];
+  onAdditionalMonthlyIncomesChange: (incomes: MonthlyAdditionalIncome[]) => void;
+  monthlyIncomeSources: MonthlyIncomeSource[];
+  onMonthlyIncomeSourcesChange: (sources: MonthlyIncomeSource[]) => void;
+  currentYear: number;
+  onOpenTaxManager: () => void;
+  onOpenAdvancedFiscal: () => void;
+  globalMonthlySalary?: number;
+  yearSpecificSalary?: number;
+  isFromSalaryHistory: boolean;
+  onUpsertCategory?: (cat: Category) => void;
+  onAddCategory?: () => void;
+  onRemoveCategory?: (id: string) => void;
+  onAddExpense?: (expense: Omit<Expense, 'id'>) => void;
+  onRemoveExpense?: (id: string) => void;
+  onUpdateExpense?: (id: string, expense: Partial<Expense>) => void;
+  onAddSub?: (sub: Omit<Subscription, 'id'>) => void;
+  onRemoveSub?: (id: string) => void;
+  onUpdateSub?: (id: string, sub: Partial<Subscription>) => void;
+  onAddAnnualFixedExpense?: (expense: Omit<AnnualFixedExpense, 'id'>) => void;
+  onRemoveAnnualFixedExpense?: (id: string) => void;
+  onUpdateAnnualFixedExpense?: (id: string, expense: Partial<AnnualFixedExpense>) => void;
+  triggerAddExpense?: boolean;
+  onTriggerAddExpenseComplete?: () => void;
+  bankAccounts?: any[];
+}) {
+  const yearCalculations = useBudgetCalculations(
+    year,
+    categories,
+    expenses,
+    subs,
+    annualFixedExpenses
+  );
+
+  return (
+    <>
+      {/* Header */}
+      <header>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+            Budget Annuel – {year}
+          </h1>
+          {isViewingPrediction && (
+            <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-1">
+              <span className="text-xs font-medium text-blue-700">Prévision IA</span>
+              <button
+                onClick={() => handleMaterializeYear(year)}
+                className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded transition-colors"
+              >
+                Créer cette année
+              </button>
+            </div>
+          )}
+        </div>
+        {isViewingPrediction && (
+          <p className="text-sm text-gray-600 mt-2">
+            Cette prévision est générée automatiquement à partir de vos habitudes de dépenses des années précédentes
+          </p>
+        )}
+      </header>
+
+      {/* Summary cards */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <SummaryCard
+          title="Budget annuel (cible)"
+          value={currency(yearCalculations.annualBudgetTotal)}
+          subtitle={`Variables: ${currency(yearCalculations.variableTargets)} | Abonnements: ${currency(yearCalculations.subsAnnualCommitted)} | Fixes annuelles: ${currency(yearCalculations.annualFixedExpensesTotal || 0)}`}
+        />
+        <SummaryCard
+          title="Dépensé à date"
+          value={currency(yearCalculations.spentToDateTotal)}
+          subtitle={`Variables ${currency(yearCalculations.variableSpentTotal)} + Fixes ${currency(yearCalculations.subsPaidToDate)}`}
+        />
+        <SummaryCard
+          title="Reste année (tous postes)"
+          value={currency(yearCalculations.remainingYearTotal)}
+          subtitle={`${yearCalculations.daysRemaining} jours restants`}
+        />
+        <SummaryCard
+          title="Reste variables"
+          value={currency(yearCalculations.variableRemainingTotal)}
+          subtitle={`Taux/jour ≈ ${currency(
+            yearCalculations.daysRemaining
+              ? yearCalculations.variableRemainingTotal / yearCalculations.daysRemaining
+              : 0
+          )}`}
+        />
+      </section>
+
+      {/* Income and Savings */}
+      <LazySection rootMargin="50px">
+        <IncomeAndSavingsSection
+          monthlySalary={monthlySalary}
+          currentSavings={currentSavings}
+          savingsTransactions={savingsTransactions}
+          onSalaryChange={onSalaryChange}
+          onSavingsChange={onSavingsChange}
+          onAddTransaction={onAddTransaction}
+          onRemoveTransaction={onRemoveTransaction}
+          onUpdateTransaction={onUpdateTransaction}
+          annualIncome={annualIncome}
+          projectedSavings={projectedSavings}
+          temporaryIncomes={temporaryIncomes}
+          savingsProjects={savingsProjects}
+          variableMonthlyIncomes={variableMonthlyIncomes}
+          onVariableMonthlyIncomesChange={onVariableMonthlyIncomesChange}
+          additionalMonthlyIncomes={additionalMonthlyIncomes}
+          onAdditionalMonthlyIncomesChange={onAdditionalMonthlyIncomesChange}
+          monthlyIncomeSources={monthlyIncomeSources}
+          onMonthlyIncomeSourcesChange={onMonthlyIncomeSourcesChange}
+          currentYear={currentYear}
+          onOpenTaxManager={onOpenTaxManager}
+          onOpenAdvancedFiscal={onOpenAdvancedFiscal}
+          globalMonthlySalary={globalMonthlySalary}
+          yearSpecificSalary={yearSpecificSalary}
+          isFromSalaryHistory={isFromSalaryHistory}
+        />
+      </LazySection>
+
+      {/* Categories */}
+      <LazySection rootMargin="50px">
+        <CategoriesSection
+          categories={categories}
+          variableSpentByCat={yearCalculations.variableSpentByCat}
+          variableRemainingByCat={yearCalculations.variableRemainingByCat}
+          onUpsertCategory={onUpsertCategory || (() => {})}
+          onAddCategory={onAddCategory || (() => {})}
+          onRemoveCategory={onRemoveCategory || (() => {})}
+          hasExpensesInCategory={(id) => expenses.some((e) => e.categoryId === id)}
+        />
+      </LazySection>
+
+      {/* Unified Expenses Manager */}
+      <LazySection rootMargin="50px">
+        <UnifiedExpensesManager
+          expenses={expenses}
+          subs={subs}
+          annualFixedExpenses={annualFixedExpenses}
+          categories={categories}
+          bankAccounts={bankAccounts || []}
+          savingsProjects={savingsProjects}
+          monthNow={yearCalculations.monthNow}
+          onAddExpense={onAddExpense || (() => {})}
+          onRemoveExpense={onRemoveExpense || (() => {})}
+          onUpdateExpense={onUpdateExpense || (() => {})}
+          onAddSub={onAddSub || (() => {})}
+          onRemoveSub={onRemoveSub || (() => {})}
+          onUpdateSub={onUpdateSub || (() => {})}
+          onAddAnnualFixed={onAddAnnualFixedExpense || (() => {})}
+          onRemoveAnnualFixed={onRemoveAnnualFixedExpense || (() => {})}
+          onUpdateAnnualFixed={onUpdateAnnualFixedExpense || (() => {})}
+          triggerAddExpense={triggerAddExpense || false}
+          onTriggerAddExpenseComplete={onTriggerAddExpenseComplete || (() => {})}
+        />
+      </LazySection>
+
+      <section className="text-xs text-slate-500 pb-8">
+        <p>
+          Les données sont stockées côté serveur, par utilisateur (email), et
+          chargées/écrites à la volée.
+        </p>
+      </section>
+    </>
+  );
+}
+
+// Composant wrapper qui passe les handlers à YearViewContent
+function YearViewContentWithHandlers(props: any) {
+  return (
+    <YearViewContent
+      year={props.year}
+      isViewingPrediction={props.isViewingPrediction}
+      handleMaterializeYear={props.handleMaterializeYear}
+      categories={props.categories}
+      expenses={props.expenses}
+      subs={props.subs}
+      annualFixedExpenses={props.annualFixedExpenses}
+      monthlySalary={props.monthlySalary}
+      currentSavings={props.currentSavings}
+      savingsTransactions={props.savingsTransactions}
+      onSalaryChange={props.handleSalaryChange}
+      onSavingsChange={props.handleSavingsChange}
+      onAddTransaction={props.handleAddTransaction}
+      onRemoveTransaction={props.handleRemoveTransaction}
+      onUpdateTransaction={props.handleUpdateTransaction}
+      annualIncome={props.annualIncome}
+      projectedSavings={props.projectedSavings}
+      temporaryIncomes={props.globalData?.temporaryIncomes || []}
+      savingsProjects={props.globalData?.savingsProjects || []}
+      variableMonthlyIncomes={props.variableMonthlyIncomes}
+      onVariableMonthlyIncomesChange={props.setVariableMonthlyIncomes}
+      additionalMonthlyIncomes={props.additionalMonthlyIncomes}
+      onAdditionalMonthlyIncomesChange={props.setAdditionalMonthlyIncomes}
+      monthlyIncomeSources={props.monthlyIncomeSources}
+      onMonthlyIncomeSourcesChange={props.setMonthlyIncomeSources}
+      currentYear={props.year}
+      onOpenTaxManager={() => props.setIsTaxManagerOpen(true)}
+      onOpenAdvancedFiscal={() => props.setIsAdvancedFiscalManagerOpen(true)}
+      globalMonthlySalary={props.globalData?.monthlySalary}
+      yearSpecificSalary={props.hasYearSpecificSalary ? props.monthlySalary : undefined}
+      isFromSalaryHistory={props.isFromSalaryHistory}
+    />
+  );
+}
+
 // Composant wrapper pour la route /annee/:year qui utilise useParams() correctement
 function YearRouteWrapper(props: any) {
   const routeParams = useParams(); // Utiliser useParams() dans le composant rendu par la route
