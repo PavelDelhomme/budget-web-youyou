@@ -98,6 +98,21 @@ function YearViewContent({
   globalMonthlySalary,
   yearSpecificSalary,
   isFromSalaryHistory,
+  onUpsertCategory,
+  onAddCategory,
+  onRemoveCategory,
+  onAddExpense,
+  onRemoveExpense,
+  onUpdateExpense,
+  onAddSub,
+  onRemoveSub,
+  onUpdateSub,
+  onAddAnnualFixedExpense,
+  onRemoveAnnualFixedExpense,
+  onUpdateAnnualFixedExpense,
+  triggerAddExpense,
+  onTriggerAddExpenseComplete,
+  bankAccounts,
 }: {
   year: number;
   isViewingPrediction: boolean;
