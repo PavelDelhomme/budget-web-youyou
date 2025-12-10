@@ -1669,78 +1669,38 @@ function App() {
           !sessionEmail ? (
             <Navigate to="/login" replace />
           ) : (
-            <main className={`flex-1 w-full overflow-x-hidden p-4 sm:p-4 md:p-6 lg:px-0 lg:py-4 dark:text-gray-100 transition-all duration-300 min-h-screen bg-gray-50 dark:bg-gray-900 ${isSidebarOpen && typeof window !== 'undefined' && window.innerWidth < 1024 ? 'overflow-hidden' : ''} pt-12 lg:pt-2`}>
-              <div className="w-full max-w-full lg:max-w-none space-y-4 sm:space-y-6 lg:pl-2 lg:pr-4">
-                {(() => {
-                  // Utiliser directement params.year
-                  const yearFromUrl = params.year ? parseInt(params.year) : null;
-                  
-                  // Si on n'a pas d'année valide, afficher un loader avec debug
-                  if (!yearFromUrl || isNaN(yearFromUrl) || yearFromUrl < 2000 || yearFromUrl > 2100) {
-                    return (
-                      <div className="text-center py-8">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                        <p className="text-gray-600">Chargement de l'année...</p>
-                        <p className="text-xs text-gray-400 mt-2">params.year: {params.year || 'undefined'}</p>
-                      </div>
-                    );
-                  }
-                  
-                  // Forcer la mise à jour de year si nécessaire
-                  if (typeof year !== 'number' || year !== yearFromUrl) {
-                    setYear(yearFromUrl);
-                  }
-                  
-                  return (
-                    <YearViewContent
-                      year={yearFromUrl}
-                      isViewingPrediction={isViewingPrediction}
-                      handleMaterializeYear={handleMaterializeYear}
-                      categories={categories}
-                      expenses={expenses}
-                      subs={subs}
-                      annualFixedExpenses={annualFixedExpenses}
-                      monthlySalary={monthlySalary}
-                      currentSavings={currentSavings}
-                      savingsTransactions={savingsTransactions}
-                      handleSalaryChange={handleSalaryChange}
-                      handleSavingsChange={handleSavingsChange}
-                      handleAddTransaction={handleAddTransaction}
-                      handleRemoveTransaction={handleRemoveTransaction}
-                      handleUpdateTransaction={handleUpdateTransaction}
-                      annualIncome={annualIncome}
-                      projectedSavings={projectedSavings}
-                      globalData={globalData}
-                      variableMonthlyIncomes={variableMonthlyIncomes}
-                      setVariableMonthlyIncomes={setVariableMonthlyIncomes}
-                      additionalMonthlyIncomes={additionalMonthlyIncomes}
-                      setAdditionalMonthlyIncomes={setAdditionalMonthlyIncomes}
-                      monthlyIncomeSources={monthlyIncomeSources}
-                      setMonthlyIncomeSources={setMonthlyIncomeSources}
-                      hasYearSpecificSalary={hasYearSpecificSalary}
-                      isFromSalaryHistory={isFromSalaryHistory}
-                      upsertCategory={upsertCategory}
-                      addCategory={addCategory}
-                      removeCategory={removeCategory}
-                      addExpense={addExpense}
-                      removeExpense={removeExpense}
-                      updateExpense={updateExpense}
-                      addSub={addSub}
-                      removeSub={removeSub}
-                      updateSub={updateSub}
-                      addAnnualFixedExpense={addAnnualFixedExpense}
-                      removeAnnualFixedExpense={removeAnnualFixedExpense}
-                      updateAnnualFixedExpense={updateAnnualFixedExpense}
-                      triggerAddExpense={triggerAddExpense}
-                      setTriggerAddExpense={setTriggerAddExpense}
-                      setIsTaxManagerOpen={setIsTaxManagerOpen}
-                      setIsAdvancedFiscalManagerOpen={setIsAdvancedFiscalManagerOpen}
-                      currency={currency}
-                    />
-                  );
-                })()}
-              </div>
-            </main>
+            <YearRouteWrapper
+              year={year}
+              setYear={setYear}
+              isViewingPrediction={isViewingPrediction}
+              handleMaterializeYear={handleMaterializeYear}
+              categories={categories}
+              expenses={expenses}
+              subs={subs}
+              annualFixedExpenses={annualFixedExpenses}
+              monthlySalary={monthlySalary}
+              currentSavings={currentSavings}
+              savingsTransactions={savingsTransactions}
+              handleSalaryChange={handleSalaryChange}
+              handleSavingsChange={handleSavingsChange}
+              handleAddTransaction={handleAddTransaction}
+              handleRemoveTransaction={handleRemoveTransaction}
+              handleUpdateTransaction={handleUpdateTransaction}
+              annualIncome={annualIncome}
+              projectedSavings={projectedSavings}
+              globalData={globalData}
+              variableMonthlyIncomes={variableMonthlyIncomes}
+              setVariableMonthlyIncomes={setVariableMonthlyIncomes}
+              additionalMonthlyIncomes={additionalMonthlyIncomes}
+              setAdditionalMonthlyIncomes={setAdditionalMonthlyIncomes}
+              monthlyIncomeSources={monthlyIncomeSources}
+              setMonthlyIncomeSources={setMonthlyIncomeSources}
+              hasYearSpecificSalary={hasYearSpecificSalary}
+              isFromSalaryHistory={isFromSalaryHistory}
+              setIsTaxManagerOpen={setIsTaxManagerOpen}
+              setIsAdvancedFiscalManagerOpen={setIsAdvancedFiscalManagerOpen}
+              isSidebarOpen={isSidebarOpen}
+            />
           )
         } />
         
