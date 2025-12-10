@@ -65,6 +65,74 @@ import {
   today,
 } from './lib/utils';
 
+// Composant wrapper pour la route /annee/:year qui utilise useParams() correctement
+function YearRouteWrapper(props: any) {
+  const routeParams = useParams(); // Utiliser useParams() dans le composant rendu par la route
+  const yearFromUrl = routeParams.year ? parseInt(routeParams.year) : null;
+  
+  // Si on n'a pas d'année valide, afficher un loader avec debug
+  if (!yearFromUrl || isNaN(yearFromUrl) || yearFromUrl < 2000 || yearFromUrl > 2100) {
+    return (
+      <main className={`flex-1 w-full overflow-x-hidden p-4 sm:p-4 md:p-6 lg:px-0 lg:py-4 dark:text-gray-100 transition-all duration-300 min-h-screen bg-gray-50 dark:bg-gray-900 ${props.isSidebarOpen && typeof window !== 'undefined' && window.innerWidth < 1024 ? 'overflow-hidden' : ''} pt-12 lg:pt-2`}>
+        <div className="w-full max-w-full lg:max-w-none space-y-4 sm:space-y-6 lg:pl-2 lg:pr-4">
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Chargement de l'année...</p>
+            <p className="text-xs text-gray-400 mt-2">routeParams.year: {routeParams.year || 'undefined'}</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+  
+  // Mettre à jour year si nécessaire
+  useEffect(() => {
+    if (props.year !== yearFromUrl) {
+      props.setYear(yearFromUrl);
+    }
+  }, [yearFromUrl, props.year, props.setYear]);
+  
+  return (
+    <main className={`flex-1 w-full overflow-x-hidden p-4 sm:p-4 md:p-6 lg:px-0 lg:py-4 dark:text-gray-100 transition-all duration-300 min-h-screen bg-gray-50 dark:bg-gray-900 ${props.isSidebarOpen && typeof window !== 'undefined' && window.innerWidth < 1024 ? 'overflow-hidden' : ''} pt-12 lg:pt-2`}>
+      <div className="w-full max-w-full lg:max-w-none space-y-4 sm:space-y-6 lg:pl-2 lg:pr-4">
+        <YearViewContent
+          year={yearFromUrl}
+          isViewingPrediction={props.isViewingPrediction}
+          handleMaterializeYear={props.handleMaterializeYear}
+          categories={props.categories}
+          expenses={props.expenses}
+          subs={props.subs}
+          annualFixedExpenses={props.annualFixedExpenses}
+          monthlySalary={props.monthlySalary}
+          currentSavings={props.currentSavings}
+          savingsTransactions={props.savingsTransactions}
+          onSalaryChange={props.handleSalaryChange}
+          onSavingsChange={props.handleSavingsChange}
+          onAddTransaction={props.handleAddTransaction}
+          onRemoveTransaction={props.handleRemoveTransaction}
+          onUpdateTransaction={props.handleUpdateTransaction}
+          annualIncome={props.annualIncome}
+          projectedSavings={props.projectedSavings}
+          temporaryIncomes={props.globalData?.temporaryIncomes || []}
+          savingsProjects={props.globalData?.savingsProjects || []}
+          variableMonthlyIncomes={props.variableMonthlyIncomes}
+          onVariableMonthlyIncomesChange={props.setVariableMonthlyIncomes}
+          additionalMonthlyIncomes={props.additionalMonthlyIncomes}
+          onAdditionalMonthlyIncomesChange={props.setAdditionalMonthlyIncomes}
+          monthlyIncomeSources={props.monthlyIncomeSources}
+          onMonthlyIncomeSourcesChange={props.setMonthlyIncomeSources}
+          currentYear={yearFromUrl}
+          onOpenTaxManager={() => props.setIsTaxManagerOpen(true)}
+          onOpenAdvancedFiscal={() => props.setIsAdvancedFiscalManagerOpen(true)}
+          globalMonthlySalary={props.globalData?.monthlySalary}
+          yearSpecificSalary={props.hasYearSpecificSalary ? props.monthlySalary : undefined}
+          isFromSalaryHistory={props.isFromSalaryHistory}
+        />
+      </div>
+    </main>
+  );
+}
+
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
