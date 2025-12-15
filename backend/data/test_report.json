@@ -1,12 +1,12 @@
 {
-  "date": "2025-12-15T13:02:05.534992",
+  "date": "2025-12-15T13:11:26.662515",
   "summary": {
-    "total_passed": 97,
-    "total_failed": 3,
+    "total_passed": 100,
+    "total_failed": 0,
     "total_skipped": 0,
     "total_errors": 0,
     "total_tests": 100,
-    "success_rate": 97.0
+    "success_rate": 100.0
   },
   "results": {
     "bank_scoring": {
@@ -20,20 +20,20 @@
       }
     },
     "ml": {
-      "success": false,
+      "success": true,
       "stats": {
-        "passed": 22,
-        "failed": 1,
+        "passed": 23,
+        "failed": 0,
         "skipped": 0,
         "errors": 0,
         "total": 23
       }
     },
     "security": {
-      "success": false,
+      "success": true,
       "stats": {
-        "passed": 15,
-        "failed": 2,
+        "passed": 17,
+        "failed": 0,
         "skipped": 0,
         "errors": 0,
         "total": 17

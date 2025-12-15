@@ -119,7 +119,7 @@ def main():
     
     # 1. Tests de scoring bancaire
     success, output, error = run_command(
-        f"python -m pytest {test_bank_scoring} -v --tb=short",
+        f"python -m pytest {test_bank_scoring} -v --tb=short --no-cov",
         "1. Tests de Scoring Bancaire"
     )
     results['bank_scoring'] = {
@@ -131,7 +131,7 @@ def main():
     
     # 2. Tests ML
     success, output, error = run_command(
-        f"python -m pytest {test_ml} -v --tb=short",
+        f"python -m pytest {test_ml} -v --tb=short --no-cov",
         "2. Tests ML/IA"
     )
     results['ml'] = {
@@ -143,7 +143,7 @@ def main():
     
     # 3. Tests de sécurité
     success, output, error = run_command(
-        f"python -m pytest {test_security} -v --tb=short",
+        f"python -m pytest {test_security} -v --tb=short --no-cov",
         "3. Tests de Cybersécurité"
     )
     results['security'] = {
@@ -155,7 +155,7 @@ def main():
     
     # 4. Tests d'authentification
     success, output, error = run_command(
-        f"python -m pytest {test_auth} -v --tb=short",
+        f"python -m pytest {test_auth} -v --tb=short --no-cov",
         "4. Tests d'Authentification"
     )
     results['auth'] = {
@@ -167,7 +167,7 @@ def main():
     
     # 5. Tests des endpoints
     success, output, error = run_command(
-        f"python -m pytest {test_endpoints} -v --tb=short",
+        f"python -m pytest {test_endpoints} -v --tb=short --no-cov",
         "5. Tests des Endpoints API"
     )
     results['endpoints'] = {
