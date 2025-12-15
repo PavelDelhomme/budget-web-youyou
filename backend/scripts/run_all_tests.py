@@ -5,6 +5,7 @@ Script pour exécuter tous les tests et générer un rapport complet
 import sys
 import subprocess
 import json
+import os
 from pathlib import Path
 from datetime import datetime
 
@@ -15,6 +16,14 @@ YELLOW = '\033[93m'
 BLUE = '\033[94m'
 RESET = '\033[0m'
 BOLD = '\033[1m'
+
+# Déterminer le répertoire de base
+# Si on est dans Docker, le WORKDIR est /app
+# Si on est local, c'est le parent du répertoire scripts
+if os.path.exists('/app'):
+    BASE_DIR = Path('/app')
+else:
+    BASE_DIR = Path(__file__).parent.parent
 
 def run_command(cmd, description):
     """Exécute une commande et retourne le résultat"""
@@ -28,7 +37,7 @@ def run_command(cmd, description):
             shell=True,
             capture_output=True,
             text=True,
-            cwd=Path(__file__).parent.parent
+            cwd=BASE_DIR
         )
         
         print(result.stdout)
@@ -93,9 +102,25 @@ def main():
     
     results = {}
     
+    # Déterminer les chemins des tests selon l'environnement
+    if BASE_DIR == Path('/app'):
+        # Dans Docker
+        test_bank_scoring = "tests/backend/test_bank_scoring.py"
+        test_ml = "tests/backend/test_ml_complete.py tests/backend/test_ml_service_endpoints.py tests/backend/test_ml_performance.py"
+        test_security = "tests/backend/test_security.py"
+        test_auth = "tests/backend/test_auth.py"
+        test_endpoints = "tests/backend/test_data_endpoints.py tests/backend/test_years_endpoints.py"
+    else:
+        # Local
+        test_bank_scoring = "tests/test_bank_scoring.py"
+        test_ml = "tests/backend/test_ml_complete.py tests/backend/test_ml_service_endpoints.py tests/backend/test_ml_performance.py"
+        test_security = "tests/backend/test_security.py"
+        test_auth = "tests/backend/test_auth.py"
+        test_endpoints = "tests/backend/test_data_endpoints.py tests/backend/test_years_endpoints.py"
+    
     # 1. Tests de scoring bancaire
     success, output, error = run_command(
-        "python -m pytest tests/test_bank_scoring.py -v --tb=short",
+        f"python -m pytest {test_bank_scoring} -v --tb=short",
         "1. Tests de Scoring Bancaire"
     )
     results['bank_scoring'] = {
@@ -107,7 +132,7 @@ def main():
     
     # 2. Tests ML
     success, output, error = run_command(
-        "python -m pytest tests/backend/test_ml_complete.py tests/backend/test_ml_service_endpoints.py tests/backend/test_ml_performance.py -v --tb=short",
+        f"python -m pytest {test_ml} -v --tb=short",
         "2. Tests ML/IA"
     )
     results['ml'] = {
@@ -119,7 +144,7 @@ def main():
     
     # 3. Tests de sécurité
     success, output, error = run_command(
-        "python -m pytest tests/backend/test_security.py -v --tb=short",
+        f"python -m pytest {test_security} -v --tb=short",
         "3. Tests de Cybersécurité"
     )
     results['security'] = {
@@ -131,7 +156,7 @@ def main():
     
     # 4. Tests d'authentification
     success, output, error = run_command(
-        "python -m pytest tests/backend/test_auth.py -v --tb=short",
+        f"python -m pytest {test_auth} -v --tb=short",
         "4. Tests d'Authentification"
     )
     results['auth'] = {
@@ -143,7 +168,7 @@ def main():
     
     # 5. Tests des endpoints
     success, output, error = run_command(
-        "python -m pytest tests/backend/test_data_endpoints.py tests/backend/test_years_endpoints.py -v --tb=short",
+        f"python -m pytest {test_endpoints} -v --tb=short",
         "5. Tests des Endpoints API"
     )
     results['endpoints'] = {
@@ -199,8 +224,8 @@ def main():
             print(f"{RED}{BOLD}✗ Système nécessite des corrections importantes{RESET}")
     
     # Sauvegarder le rapport JSON
-    report_file = Path(__file__).parent.parent / 'data' / 'test_report.json'
-    report_file.parent.mkdir(exist_ok=True)
+    report_file = BASE_DIR / 'data' / 'test_report.json'
+    report_file.parent.mkdir(parents=True, exist_ok=True)
     
     report_data = {
         'date': datetime.now().isoformat(),

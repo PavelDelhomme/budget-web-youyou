@@ -882,11 +882,32 @@ test-complete: ## Lance tous les tests complets (scoring, ML, sécurité) et gé
 		docker exec budget-web-backend pip install -q pytest pytest-cov pytest-mock pytest-timeout coverage 2>/dev/null || true; \
 		echo ""; \
 		echo "🧪 Exécution du script de test complet..."; \
-		docker exec budget-web-backend python backend/scripts/run_all_tests.py || \
-		echo "⚠️  Le script de test nécessite pytest. Installation..."; \
-		docker exec budget-web-backend pip install pytest pytest-cov pytest-mock pytest-timeout coverage && \
-		docker exec budget-web-backend python backend/scripts/run_all_tests.py || \
-		echo "⚠️  Impossible d'exécuter le script complet. Utilisez 'make test-backend-all' pour les tests de base."; \
+		docker exec budget-web-backend python scripts/run_all_tests.py || \
+		(echo "⚠️  Le script utilise les tests directement, exécution manuelle..."; \
+		echo ""; \
+		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
+		echo "1. Tests de Scoring Bancaire"; \
+		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
+		docker exec budget-web-backend python -m pytest tests/backend/test_bank_scoring.py -v --tb=short 2>&1 || echo "⚠️  Tests scoring échoués ou fichiers non trouvés"; \
+		echo ""; \
+		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
+		echo "2. Tests ML/IA"; \
+		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
+		docker exec budget-web-backend python -m pytest tests/backend/test_ml_complete.py tests/backend/test_ml_service_endpoints.py tests/backend/test_ml_performance.py -v --tb=short 2>&1 || echo "⚠️  Tests ML échoués"; \
+		echo ""; \
+		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
+		echo "3. Tests de Cybersécurité"; \
+		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
+		docker exec budget-web-backend python -m pytest tests/backend/test_security.py -v --tb=short 2>&1 || echo "⚠️  Tests sécurité échoués"; \
+		echo ""; \
+		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
+		echo "4. Tests d'Authentification"; \
+		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
+		docker exec budget-web-backend python -m pytest tests/backend/test_auth.py -v --tb=short 2>&1 || echo "⚠️  Tests auth échoués"; \
+		echo ""; \
+		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
+		echo "✅ Tous les tests ont été exécutés !"; \
+		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"); \
 	else \
 		echo "❌ Conteneur backend non démarré. Utilisez 'make start' d'abord."; \
 	fi
