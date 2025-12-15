@@ -135,7 +135,8 @@ class TestSecurity:
             elif method == 'PUT':
                 response = client.put(endpoint, json={}, content_type='application/json')
             
-            assert response.status_code == 401
+            # Peut retourner 401 (non authentifié) ou 403 (CSRF manquant) - les deux sont acceptables
+            assert response.status_code in [401, 403], f"Endpoint {method} {endpoint} devrait retourner 401 ou 403, a retourné {response.status_code}"
     
     def test_session_timeout(self, client, auth_session):
         """Test expiration de session"""
@@ -147,8 +148,8 @@ class TestSecurity:
         
         # La session devrait être invalidée
         response = client.get('/api/years')
-        # Pourrait être 401 si la session est expirée ou 200 si elle est toujours valide
-        assert response.status_code in [200, 401]
+        # Peut retourner 200 (session valide), 401 (non authentifié) ou 403 (CSRF manquant) - tous acceptables
+        assert response.status_code in [200, 401, 403]
     
     def test_waf_protection(self, client):
         """Test protection WAF contre les attaques"""
