@@ -1823,6 +1823,10 @@ function App() {
     );
   }
 
+  // Détecter si on est sur la page de login
+  const isLoginPage = location.pathname === '/login' || location.pathname === '/login/';
+  const isAuthenticated = !!sessionEmail;
+  
   // UI when logged in
   // Détecter si un modal est ouvert pour cacher le FAB
   const isAnyModalOpen = 
@@ -1840,22 +1844,27 @@ function App() {
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-gray-900 w-full overflow-x-hidden">
-      {/* Floating Action Button - Caché si un modal est ouvert */}
-      <FloatingActionButton
-        hidden={isAnyModalOpen}
-        onAddExpense={() => {
-          setIsQuickAddExpenseOpen(true);
-        }}
-        onAddIncome={() => {
-          setIsQuickAddIncomeOpen(true);
-        }}
-      />
+      {/* Floating Action Button - Caché si un modal est ouvert OU si on est sur la page de login */}
+      {isAuthenticated && !isLoginPage && (
+        <FloatingActionButton
+          hidden={isAnyModalOpen}
+          onAddExpense={() => {
+            setIsQuickAddExpenseOpen(true);
+          }}
+          onAddIncome={() => {
+            setIsQuickAddIncomeOpen(true);
+          }}
+        />
+      )}
       
-      {/* Hamburger Menu Button */}
-      <HamburgerMenu isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+      {/* Hamburger Menu Button - Caché si on est sur la page de login */}
+      {isAuthenticated && !isLoginPage && (
+        <HamburgerMenu isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+      )}
       
-      {/* Sidebar */}
-      <Sidebar
+      {/* Sidebar - Caché si on est sur la page de login */}
+      {isAuthenticated && !isLoginPage && (
+        <Sidebar
         years={[...new Set([...years, ...predictedYears.map(p => p.year)])]}
         currentYear={year}
         onYearSelect={(y) => {
@@ -1900,15 +1909,22 @@ function App() {
           setIsSidebarOpen(false);
           setIsAdvancedFiscalManagerOpen(true);
         }}
-        isOpen={isSidebarOpen}
-        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-        onClose={() => setIsSidebarOpen(false)}
-      />
+          isOpen={isSidebarOpen}
+          onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+          onClose={() => setIsSidebarOpen(false)}
+        />
+      )}
 
       {/* Main content */}
       <Routes>
-        {/* Route de connexion */}
-        <Route path="/login" element={<LoginForm onLogin={onLogin} />} />
+        {/* Route de connexion - Rediriger vers dashboard si déjà connecté */}
+        <Route path="/login" element={
+          sessionEmail ? (
+            <Navigate to="/dashboard" replace />
+          ) : (
+            <LoginForm onLogin={onLogin} />
+          )
+        } />
         
         {/* Route racine : rediriger vers dashboard ou login */}
         <Route path="/" element={
