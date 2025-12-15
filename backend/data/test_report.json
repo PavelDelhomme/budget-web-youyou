@@ -1,0 +1,63 @@
+{
+  "date": "2025-12-15T12:47:08.322455",
+  "summary": {
+    "total_passed": 79,
+    "total_failed": 0,
+    "total_skipped": 0,
+    "total_errors": 0,
+    "total_tests": 79,
+    "success_rate": 100.0
+  },
+  "results": {
+    "bank_scoring": {
+      "success": false,
+      "stats": {
+        "passed": 24,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 0,
+        "total": 24
+      }
+    },
+    "ml": {
+      "success": false,
+      "stats": {
+        "passed": 22,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 0,
+        "total": 22
+      }
+    },
+    "security": {
+      "success": false,
+      "stats": {
+        "passed": 13,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 0,
+        "total": 13
+      }
+    },
+    "auth": {
+      "success": true,
+      "stats": {
+        "passed": 0,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 0,
+        "total": 0
+      }
+    },
+    "endpoints": {
+      "success": false,
+      "stats": {
+        "passed": 20,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 0,
+        "total": 20
+      }
+    }
+  }
+}
