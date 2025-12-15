@@ -118,6 +118,7 @@ def main():
         test_endpoints = "tests/backend/test_data_endpoints.py tests/backend/test_years_endpoints.py"
     
     # 1. Tests de scoring bancaire
+    # NOTE: --no-cov désactive SEULEMENT la couverture (mesure optionnelle), pas les tests !
     success, output, error = run_command(
         f"python -m pytest {test_bank_scoring} -v --tb=short --no-cov",
         "1. Tests de Scoring Bancaire"
@@ -130,6 +131,7 @@ def main():
     }
     
     # 2. Tests ML
+    # NOTE: --no-cov désactive SEULEMENT la couverture (mesure optionnelle), pas les tests !
     success, output, error = run_command(
         f"python -m pytest {test_ml} -v --tb=short --no-cov",
         "2. Tests ML/IA"
@@ -142,6 +144,7 @@ def main():
     }
     
     # 3. Tests de sécurité
+    # NOTE: --no-cov désactive SEULEMENT la couverture (mesure optionnelle), pas les tests !
     success, output, error = run_command(
         f"python -m pytest {test_security} -v --tb=short --no-cov",
         "3. Tests de Cybersécurité"
@@ -154,6 +157,7 @@ def main():
     }
     
     # 4. Tests d'authentification
+    # NOTE: --no-cov désactive SEULEMENT la couverture (mesure optionnelle), pas les tests !
     success, output, error = run_command(
         f"python -m pytest {test_auth} -v --tb=short --no-cov",
         "4. Tests d'Authentification"
@@ -166,6 +170,7 @@ def main():
     }
     
     # 5. Tests des endpoints
+    # NOTE: --no-cov désactive SEULEMENT la couverture (mesure optionnelle), pas les tests !
     success, output, error = run_command(
         f"python -m pytest {test_endpoints} -v --tb=short --no-cov",
         "5. Tests des Endpoints API"
