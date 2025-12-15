@@ -888,22 +888,22 @@ test-complete: ## Lance tous les tests complets (scoring, ML, sécurité) et gé
 		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
 		echo "1. Tests de Scoring Bancaire"; \
 		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
-		docker exec budget-web-backend python -m pytest tests/backend/test_bank_scoring.py -v --tb=short 2>&1 || echo "⚠️  Tests scoring échoués ou fichiers non trouvés"; \
+		docker exec budget-web-backend python -m pytest tests/backend/test_bank_scoring.py -v --tb=short --no-cov 2>&1 || echo "⚠️  Tests scoring échoués ou fichiers non trouvés"; \
 		echo ""; \
 		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
 		echo "2. Tests ML/IA"; \
 		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
-		docker exec budget-web-backend python -m pytest tests/backend/test_ml_complete.py tests/backend/test_ml_service_endpoints.py tests/backend/test_ml_performance.py -v --tb=short 2>&1 || echo "⚠️  Tests ML échoués"; \
+		docker exec budget-web-backend python -m pytest tests/backend/test_ml_complete.py tests/backend/test_ml_service_endpoints.py tests/backend/test_ml_performance.py -v --tb=short --no-cov 2>&1 || echo "⚠️  Tests ML échoués"; \
 		echo ""; \
 		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
 		echo "3. Tests de Cybersécurité"; \
 		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
-		docker exec budget-web-backend python -m pytest tests/backend/test_security.py -v --tb=short 2>&1 || echo "⚠️  Tests sécurité échoués"; \
+		docker exec budget-web-backend python -m pytest tests/backend/test_security.py -v --tb=short --no-cov 2>&1 || echo "⚠️  Tests sécurité échoués"; \
 		echo ""; \
 		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
 		echo "4. Tests d'Authentification"; \
 		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
-		docker exec budget-web-backend python -m pytest tests/backend/test_auth.py -v --tb=short 2>&1 || echo "⚠️  Tests auth échoués"; \
+		docker exec budget-web-backend python -m pytest tests/backend/test_auth.py -v --tb=short --no-cov 2>&1 || echo "⚠️  Tests auth échoués"; \
 		echo ""; \
 		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
 		echo "✅ Tous les tests ont été exécutés !"; \
