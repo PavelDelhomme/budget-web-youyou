@@ -1,62 +1,62 @@
 {
-  "date": "2025-12-15T12:57:57.308184",
+  "date": "2025-12-15T13:02:05.534992",
   "summary": {
-    "total_passed": 55,
-    "total_failed": 0,
+    "total_passed": 97,
+    "total_failed": 3,
     "total_skipped": 0,
     "total_errors": 0,
-    "total_tests": 55,
-    "success_rate": 100.0
+    "total_tests": 100,
+    "success_rate": 97.0
   },
   "results": {
     "bank_scoring": {
       "success": true,
       "stats": {
-        "passed": 0,
+        "passed": 25,
         "failed": 0,
         "skipped": 0,
         "errors": 0,
-        "total": 0
+        "total": 25
       }
     },
     "ml": {
       "success": false,
       "stats": {
         "passed": 22,
-        "failed": 0,
+        "failed": 1,
         "skipped": 0,
         "errors": 0,
-        "total": 22
+        "total": 23
       }
     },
     "security": {
       "success": false,
       "stats": {
-        "passed": 13,
-        "failed": 0,
+        "passed": 15,
+        "failed": 2,
         "skipped": 0,
         "errors": 0,
-        "total": 13
+        "total": 17
       }
     },
     "auth": {
       "success": true,
       "stats": {
-        "passed": 0,
+        "passed": 14,
         "failed": 0,
         "skipped": 0,
         "errors": 0,
-        "total": 0
+        "total": 14
       }
     },
     "endpoints": {
-      "success": false,
+      "success": true,
       "stats": {
-        "passed": 20,
+        "passed": 21,
         "failed": 0,
         "skipped": 0,
         "errors": 0,
-        "total": 20
+        "total": 21
       }
     }
   }
