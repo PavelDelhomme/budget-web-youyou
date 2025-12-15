@@ -43,10 +43,11 @@ export function LoginForm({ onLogin }: LoginFormProps) {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-gray-900">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow w-full max-w-sm space-y-3 border border-gray-200 dark:border-gray-700"
-      >
+      <div className="w-full max-w-md flex flex-col items-center justify-center">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl w-full space-y-4 border border-gray-200 dark:border-gray-700"
+        >
         <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
           {isSignup ? 'Inscription' : 'Connexion'}
         </h1>
@@ -130,11 +131,12 @@ export function LoginForm({ onLogin }: LoginFormProps) {
         </button>
 
         {!isSignup && (
-          <p className="text-xs text-slate-500 dark:text-gray-400">
+          <p className="text-xs text-center text-slate-500 dark:text-gray-400">
             Astuce : pas d'inscription séparée. Le fichier de données est créé à la première connexion.
           </p>
         )}
-      </form>
+        </form>
+      </div>
     </div>
   );
 }

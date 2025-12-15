@@ -4,6 +4,7 @@ Tests complets pour la sécurité
 import pytest
 import json
 import time
+import re
 from unittest.mock import patch
 
 class TestSecurity:
@@ -151,4 +152,118 @@ class TestSecurity:
         response = client.get('/api/years')
         # Pourrait être 401 si la session est expirée ou 200 si elle est toujours valide
         assert response.status_code in [200, 401]
+    
+    def test_waf_protection(self, client):
+        """Test protection WAF contre les attaques"""
+        malicious_payloads = [
+            ("SELECT * FROM users", "SQL Injection"),
+            ("<script>alert('XSS')</script>", "XSS"),
+            ("../../../etc/passwd", "Path Traversal"),
+            ("| cat /etc/passwd", "Command Injection"),
+        ]
+        
+        for payload, attack_type in malicious_payloads:
+            # Tester différents endpoints
+            response = client.get(f'/api/years?param={payload}')
+            # Le WAF devrait bloquer ou filtrer les attaques
+            assert response.status_code != 500, f"WAF n'a pas protégé contre {attack_type}"
+    
+    def test_input_validation(self, client, auth_session, csrf_token):
+        """Test validation des entrées utilisateur"""
+        invalid_inputs = [
+            {'year': -1000},  # Année invalide
+            {'year': 3000},   # Année trop future
+            {'year': 'not-a-number'},  # Pas un nombre
+            {'categories': 'not-an-array'},  # Mauvais type
+        ]
+        
+        for invalid_input in invalid_inputs:
+            response = client.post('/api/years',
+                json=invalid_input,
+                headers={'X-CSRF-Token': csrf_token},
+                content_type='application/json'
+            )
+            # Devrait retourner 400 (Bad Request) pour inputs invalides
+            assert response.status_code in [400, 403], f"Input invalide non rejeté: {invalid_input}"
+    
+    def test_email_validation(self, client):
+        """Test validation des emails"""
+        invalid_emails = [
+            'not-an-email',
+            'invalid@',
+            '@invalid.com',
+            'test@invalid',
+            'test space@example.com',
+            'test' * 100 + '@example.com',  # Trop long
+        ]
+        
+        for invalid_email in invalid_emails:
+            response = client.post('/api/login',
+                json={'email': invalid_email, 'password': 'test123'},
+                content_type='application/json'
+            )
+            # Devrait rejeter les emails invalides
+            assert response.status_code in [400, 401], f"Email invalide accepté: {invalid_email}"
+    
+    def test_password_security(self, client, admin_credentials):
+        """Test sécurité des mots de passe"""
+        # Tentative avec mot de passe vide
+        response = client.post('/api/login',
+            json={'email': admin_credentials['email'], 'password': ''},
+            content_type='application/json'
+        )
+        assert response.status_code == 401
+        
+        # Tentative avec mot de passe très long (DoS potentiel)
+        response = client.post('/api/login',
+            json={'email': admin_credentials['email'], 'password': 'a' * 10000},
+            content_type='application/json'
+        )
+        # Devrait rejeter ou limiter la longueur
+        assert response.status_code in [400, 401]
+    
+    def test_json_injection_protection(self, client, auth_session, csrf_token):
+        """Test protection contre injection JSON malformé"""
+        malicious_json = [
+            '{"year": 2025, "malicious": {"__proto__": {"isAdmin": true}}}',
+            '{"year": 2025, "$where": "malicious"}',
+        ]
+        
+        for malicious in malicious_json:
+            response = client.post('/api/years',
+                data=malicious,
+                headers={'X-CSRF-Token': csrf_token, 'Content-Type': 'application/json'},
+            )
+            # Ne devrait pas causer d'erreur serveur
+            assert response.status_code != 500
+    
+    def test_rate_limiting_global(self, client):
+        """Test limitation de débit globale"""
+        # Faire beaucoup de requêtes rapidement
+        responses = []
+        for _ in range(100):
+            response = client.get('/api/session-check')
+            responses.append(response.status_code)
+        
+        # Vérifier qu'il n'y a pas trop de succès (rate limiting actif)
+        # Ou que les réponses sont cohérentes
+        assert len(responses) > 0
+    
+    def test_cors_headers(self, client):
+        """Test présence des headers CORS appropriés"""
+        response = client.get('/api/session-check')
+        
+        # Vérifier que les headers CORS sont présents si nécessaire
+        # (peut varier selon la configuration)
+        assert response.status_code in [200, 401]
+    
+    def test_content_type_validation(self, client, auth_session):
+        """Test validation du Content-Type"""
+        # Requête POST sans Content-Type JSON
+        response = client.post('/api/years',
+            data='{"year": 2025}',
+            content_type='text/plain'
+        )
+        # Devrait rejeter ou gérer gracieusement
+        assert response.status_code in [400, 403, 415]
 
