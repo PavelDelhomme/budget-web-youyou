@@ -1,22 +1,22 @@
 {
-  "date": "2025-12-15T12:47:08.322455",
+  "date": "2025-12-15T12:57:57.308184",
   "summary": {
-    "total_passed": 79,
+    "total_passed": 55,
     "total_failed": 0,
     "total_skipped": 0,
     "total_errors": 0,
-    "total_tests": 79,
+    "total_tests": 55,
     "success_rate": 100.0
   },
   "results": {
     "bank_scoring": {
-      "success": false,
+      "success": true,
       "stats": {
-        "passed": 24,
+        "passed": 0,
         "failed": 0,
         "skipped": 0,
         "errors": 0,
-        "total": 24
+        "total": 0
       }
     },
     "ml": {

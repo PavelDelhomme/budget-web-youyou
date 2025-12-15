@@ -215,35 +215,48 @@ class WebApplicationFirewall:
         
         return False
     
-    def _block_ip(self, ip: str, duration: int = None):
+    def _block_ip(self, ip: str, duration: int = None, skip_log: bool = False):
         """Bloque une IP"""
         duration = duration or self.block_duration
         self.blocked_ips[ip] = time.time() + duration
         
-        # Log l'événement
-        self._log_threat(ip, 'ip_blocked', {
-            'blocked_until': datetime.fromtimestamp(self.blocked_ips[ip]).isoformat(),
-            'duration': duration
-        })
+        # Log l'événement seulement si skip_log=False (évite la récursion)
+        if not skip_log:
+            self._log_threat(ip, 'ip_blocked', {
+                'blocked_until': datetime.fromtimestamp(self.blocked_ips[ip]).isoformat(),
+                'duration': duration
+            }, skip_block=True)  # Ne pas bloquer à nouveau depuis _log_threat
     
-    def _log_threat(self, ip: str, threat_type: str, details: Dict[str, Any]):
+    def _log_threat(self, ip: str, threat_type: str, details: Dict[str, Any], skip_block: bool = False):
         """Enregistre une menace détectée"""
+        try:
+            from flask import request
+            method = request.method if hasattr(request, 'method') else 'UNKNOWN'
+            path = request.path if hasattr(request, 'path') else 'UNKNOWN'
+            user_agent = request.headers.get('User-Agent', '') if hasattr(request, 'headers') else ''
+        except:
+            method = 'UNKNOWN'
+            path = 'UNKNOWN'
+            user_agent = ''
+        
         log_entry = {
             'timestamp': datetime.now().isoformat(),
             'ip': ip,
             'threat_type': threat_type,
-            'method': request.method,
-            'path': request.path,
-            'user_agent': request.headers.get('User-Agent', ''),
+            'method': method,
+            'path': path,
+            'user_agent': user_agent,
             'details': details
         }
         
         self.threat_log.append(log_entry)
         self.ip_threat_count[ip] += 1
         
-        # Si trop de menaces, bloquer l'IP
-        if self.ip_threat_count[ip] >= self.max_threats_per_ip:
-            self._block_ip(ip)
+        # Si trop de menaces, bloquer l'IP (mais seulement si skip_block=False pour éviter récursion)
+        if not skip_block and self.ip_threat_count[ip] >= self.max_threats_per_ip:
+            # Vérifier si l'IP n'est pas déjà bloquée pour éviter la récursion
+            if ip not in self.blocked_ips or self.blocked_ips[ip] < time.time():
+                self._block_ip(ip, skip_log=True)  # Ne pas re-logger pour éviter récursion
         
         # Logger dans un fichier
         try:

@@ -61,33 +61,32 @@ def parse_pytest_output(output):
         'total': 0
     }
     
+    import re
     lines = output.split('\n')
+    
+    # Chercher la ligne de résumé pytest (ex: "25 passed, 1 failed in 0.11s")
     for line in lines:
-        if 'passed' in line.lower() and ('failed' in line.lower() or 'error' in line.lower() or 'skipped' in line.lower()):
-            # Format: "X passed, Y failed, Z skipped"
-            parts = line.split(',')
-            for part in parts:
-                part = part.strip()
-                if 'passed' in part.lower():
-                    try:
-                        stats['passed'] = int(part.split()[0])
-                    except:
-                        pass
-                elif 'failed' in part.lower():
-                    try:
-                        stats['failed'] = int(part.split()[0])
-                    except:
-                        pass
-                elif 'skipped' in part.lower():
-                    try:
-                        stats['skipped'] = int(part.split()[0])
-                    except:
-                        pass
-                elif 'error' in part.lower():
-                    try:
-                        stats['errors'] = int(part.split()[0])
-                    except:
-                        pass
+        line_lower = line.lower()
+        # Chercher les patterns de résumé pytest
+        if ('passed' in line_lower or 'failed' in line_lower or 'error' in line_lower) and ('in' in line_lower or 'warnings' in line_lower):
+            # Extraire les nombres avec regex
+            passed_match = re.search(r'(\d+)\s+passed', line_lower)
+            failed_match = re.search(r'(\d+)\s+failed', line_lower)
+            skipped_match = re.search(r'(\d+)\s+skipped', line_lower)
+            error_match = re.search(r'(\d+)\s+error', line_lower)
+            
+            if passed_match:
+                stats['passed'] = int(passed_match.group(1))
+            if failed_match:
+                stats['failed'] = int(failed_match.group(1))
+            if skipped_match:
+                stats['skipped'] = int(skipped_match.group(1))
+            if error_match:
+                stats['errors'] = int(error_match.group(1))
+            
+            # Si on a trouvé au moins un résultat, on a la bonne ligne
+            if passed_match or failed_match or skipped_match or error_match:
+                break
     
     stats['total'] = stats['passed'] + stats['failed'] + stats['skipped'] + stats['errors']
     return stats
