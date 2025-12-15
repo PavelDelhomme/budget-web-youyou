@@ -118,7 +118,6 @@ class BankScoringService:
         
         # Revenus supplémentaires
         additional_incomes = year_data.get('additionalMonthlyIncomes', []) or []
-        variable_incomes = year_data.get('variableMonthlyIncomes', []) or []
         monthly_income_sources = year_data.get('monthlyIncomeSources', []) or []
         
         total_monthly_income = monthly_salary
@@ -128,16 +127,44 @@ class BankScoringService:
         
         for inc in monthly_income_sources:
             if isinstance(inc, dict):
-                amount = inc.get('monthlyAmount') or inc.get('amount') or 0
-                total_monthly_income += float(amount)
+                # Vérifier si le revenu est actif pour l'année courante
+                start_date = inc.get('startDate')
+                end_date = inc.get('endDate')
+                if start_date:
+                    try:
+                        start = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
+                        end = datetime.fromisoformat(end_date.replace('Z', '+00:00')) if end_date else None
+                        current_date = datetime.now()
+                        if start <= current_date and (not end or end >= current_date):
+                            amount = inc.get('monthlyAmount') or inc.get('amount') or 0
+                            total_monthly_income += float(amount)
+                    except (ValueError, AttributeError):
+                        # Si erreur de parsing, inclure quand même
+                        amount = inc.get('monthlyAmount') or inc.get('amount') or 0
+                        total_monthly_income += float(amount)
+                else:
+                    amount = inc.get('monthlyAmount') or inc.get('amount') or 0
+                    total_monthly_income += float(amount)
         
         # Charges mensuelles
         subs = year_data.get('subs', []) or []
-        monthly_charges = sum(float(s.get('monthly', 0) or 0) for s in subs)
+        monthly_charges = 0
+        for s in subs:
+            monthly_amount = float(s.get('monthly', 0) or 0)
+            # Gérer les parts partagées
+            if isinstance(s.get('share'), dict) and 'yourAmount' in s.get('share', {}):
+                monthly_amount = float(s.get('share', {}).get('yourAmount', monthly_amount))
+            monthly_charges += monthly_amount
         
         # Dépenses fixes annuelles divisées par 12
         annual_expenses = year_data.get('annualFixedExpenses', []) or []
-        annual_total = sum(float(e.get('amount', 0) or 0) for e in annual_expenses)
+        annual_total = 0
+        for e in annual_expenses:
+            amount = float(e.get('amount', 0) or 0)
+            # Gérer les parts partagées
+            if isinstance(e.get('share'), dict) and 'yourAmount' in e.get('share', {}):
+                amount = float(e.get('share', {}).get('yourAmount', amount))
+            annual_total += amount
         monthly_charges += annual_total / 12
         
         # Calculer le ratio
@@ -313,22 +340,36 @@ class BankScoringService:
         monthly_expenses = [0.0] * 12
         for exp in expenses:
             try:
-                date = datetime.fromisoformat(exp.get('date', '').replace('Z', '+00:00'))
+                date_str = exp.get('date', '')
+                # Gérer différents formats de date
+                if 'T' in date_str:
+                    date = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+                else:
+                    date = datetime.strptime(date_str, '%Y-%m-%d')
                 month = date.month - 1  # 0-11
                 amount = float(exp.get('amount', 0) or 0)
+                # Gérer les parts partagées
+                if isinstance(exp.get('share'), dict) and 'yourAmount' in exp.get('share', {}):
+                    amount = float(exp.get('share', {}).get('yourAmount', amount))
                 monthly_expenses[month] += amount
-            except:
+            except (ValueError, AttributeError, TypeError):
                 continue
         
-        # Calculer l'écart-type (coefficient de variation)
-        if not monthly_expenses or all(e == 0 for e in monthly_expenses):
-            return 0, 0  # Pas de dépenses = 0
+        # Filtrer les mois avec des dépenses
+        months_with_expenses = [e for e in monthly_expenses if e > 0]
         
-        mean = sum(monthly_expenses) / len([e for e in monthly_expenses if e > 0] or [1])
+        # Calculer l'écart-type (coefficient de variation)
+        if not months_with_expenses:
+            return 50, 0.5  # Pas de dépenses, score moyen par défaut
+        
+        if len(months_with_expenses) < 3:
+            return 60, 0.6  # Pas assez de données, score légèrement positif
+        
+        mean = sum(months_with_expenses) / len(months_with_expenses)
         if mean == 0:
             return 50, 0.5  # Pas de moyenne, score moyen
         
-        variance = sum((e - mean) ** 2 for e in monthly_expenses) / len(monthly_expenses)
+        variance = sum((e - mean) ** 2 for e in months_with_expenses) / len(months_with_expenses)
         std_dev = variance ** 0.5
         cv = std_dev / mean if mean > 0 else 1.0  # Coefficient de variation
         
@@ -373,6 +414,9 @@ class BankScoringService:
         annual_income = total_monthly_income * 12
         
         if annual_income == 0:
+            if current_savings > 0:
+                # Si on a de l'épargne mais pas de revenus, donner un score minimal
+                return 10, 1.0
             return 0, 0
         
         savings_rate = current_savings / annual_income if annual_income > 0 else 0
