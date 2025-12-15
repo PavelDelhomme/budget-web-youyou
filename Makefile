@@ -871,6 +871,27 @@ test-backend-install: ## Installe les dépendances pour les tests backend
 	fi
 	@echo ""
 
+test-complete: ## Lance tous les tests complets (scoring, ML, sécurité) et génère un rapport
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🧪 TESTS COMPLETS AVEC RAPPORT"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@if docker ps --format "{{.Names}}" | grep -q "^budget-web-backend$$"; then \
+		echo "🔧 Installation des dépendances de test si nécessaire..."; \
+		docker exec budget-web-backend pip install -q pytest pytest-cov pytest-mock pytest-timeout coverage 2>/dev/null || true; \
+		echo ""; \
+		echo "🧪 Exécution du script de test complet..."; \
+		docker exec budget-web-backend python backend/scripts/run_all_tests.py || \
+		echo "⚠️  Le script de test nécessite pytest. Installation..."; \
+		docker exec budget-web-backend pip install pytest pytest-cov pytest-mock pytest-timeout coverage && \
+		docker exec budget-web-backend python backend/scripts/run_all_tests.py || \
+		echo "⚠️  Impossible d'exécuter le script complet. Utilisez 'make test-backend-all' pour les tests de base."; \
+	else \
+		echo "❌ Conteneur backend non démarré. Utilisez 'make start' d'abord."; \
+	fi
+	@echo ""
+
 test-all: test check-errors test-behavior test-files test-ui-components test-endpoints test-data-structure test-features test-e2e test-backend-ml ## Lance tous les tests et vérifie les erreurs (complet)
 
 test-e2e-install: ## Installe Playwright et les navigateurs pour les tests E2E
