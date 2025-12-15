@@ -11,6 +11,7 @@ import { AnnualEvolutionChart } from '../charts/AnnualEvolutionChart';
 import { SimpleBarChart } from '../charts/SimpleBarChart';
 import { CategoryEvolutionChart } from '../charts/CategoryEvolutionChart';
 import { LazySection } from '../ui/LazySection';
+import { BankScoring } from '../bank/BankScoring';
 
 interface DashboardProps {
   currentYear: number;
@@ -488,6 +489,11 @@ export function Dashboard({
           height={300}
         />
         </div>
+      </LazySection>
+
+      {/* Score Bancaire */}
+      <LazySection rootMargin="50px">
+        <BankScoring year={currentYear} />
       </LazySection>
 
       {/* AI Predictions */}

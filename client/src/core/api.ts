@@ -241,6 +241,13 @@ export const Api = {
   getYearData: (year: number) =>
     api(`get?year=${encodeURIComponent(year)}`),
   
+  getBankScore: (year?: number) => {
+    const url = year 
+      ? `bank-score?year=${encodeURIComponent(year)}`
+      : 'bank-score';
+    return api(url);
+  },
+  
   putYearData: (year: number, payload: { categories: any[]; expenses: any[]; subs: any[]; annualFixedExpenses?: any[]; monthlySalary?: number; variableMonthlyIncomes?: number[]; additionalMonthlyIncomes?: any[]; currentSavings?: number; savingsTransactions?: any[] }) =>
     api(`put?year=${encodeURIComponent(year)}`, {
       method: "PUT",

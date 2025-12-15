@@ -8,6 +8,7 @@ import re
 from .utils import get_default_year_data
 from .database import get_db
 from .db_service import load_user, save_user
+from .bank_scoring import bank_scoring_service
 from .security import (
     sanitize_email, validate_email, validate_year, 
     validate_year_data, validate_string
@@ -187,6 +188,40 @@ def register_routes(app):
             
             save_user(db, user_email, user_data)
             return jsonify({'ok': True})
+        finally:
+            db.close()
+    
+    @app.route('/api/bank-score', methods=['GET'])
+    @require_auth
+    def get_bank_score():
+        """Get bank scoring for current year"""
+        user_email = session['user_email']
+        year_str = request.args.get('year')
+        
+        # Use current year if not specified
+        from datetime import datetime
+        if not year_str:
+            year_num = datetime.now().year
+        else:
+            year_num = validate_year(year_str)
+            if year_num is None:
+                return jsonify({'error': 'Année invalide'}), 400
+        
+        db = next(get_db())
+        try:
+            user_data = load_user(db, user_email)
+            
+            # Get global data
+            global_data = user_data.get('globalData', {})
+            
+            # Get year data
+            year_key = str(year_num)
+            year_data = user_data['datasets'].get(year_key, get_default_year_data())
+            
+            # Calculate bank score
+            score_result = bank_scoring_service.calculate_score(global_data, year_data)
+            
+            return jsonify(score_result)
         finally:
             db.close()
     
