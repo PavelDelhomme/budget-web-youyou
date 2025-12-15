@@ -13,11 +13,11 @@
 
 ### 🏦 Système de Scoring Bancaire
 - ✅ **Service backend de scoring** : Calcul du score bancaire basé sur les critères français réels
-  - Ratio d'endettement (charges/revenus) - max 33% recommandé
+  - Ratio d'endettement (charges/revenus) - max 33% recommandé, avec gestion des parts partagées
   - Capacité d'épargne (épargne mensuelle/revenus)
-  - Stabilité des revenus (salaire fixe, historique)
+  - Stabilité des revenus (salaire fixe, historique, vérification dates actives)
   - Actifs totaux (comptes bancaires + investissements)
-  - Régularité des dépenses (variabilité mensuelle)
+  - Régularité des dépenses (variabilité mensuelle avec calcul amélioré)
   - Taux d'épargne global
 - ✅ **Score sur 1000 points** : Système de notation complet avec 6 indicateurs pondérés
 - ✅ **Niveaux de risque** : Excellent, Bon, Moyen, Faible, Très faible
@@ -25,6 +25,17 @@
 - ✅ **Endpoint API** : `/api/bank-score` pour récupérer le score pour une année
 - ✅ **Composant Dashboard** : Affichage visuel avec indicateurs détaillés et recommandations
 - ✅ **Interface utilisateur** : Graphiques de progression, barres de scores par indicateur, recommandations colorées
+- ✅ **Tests unitaires complets** : Suite de tests pytest couvrant tous les indicateurs
+  - Tests pour chaque indicateur individuellement
+  - Tests de cas limites (pas de revenus, endettement excessif, etc.)
+  - Tests de profils complets (excellent, faible)
+  - Tests de génération de recommandations
+  - Tests de détermination du niveau de risque
+- ✅ **Améliorations techniques** :
+  - Gestion des parts partagées dans les dépenses et abonnements
+  - Vérification des dates actives pour les revenus mensuels
+  - Gestion robuste des formats de dates
+  - Calcul amélioré de la régularité des dépenses
 
 ### 🛡️ Sécurité Avancée : WAF et DMZ
 - ✅ **Web Application Firewall (WAF) implémenté** : Protection contre les attaques (SQL Injection, XSS, Command Injection, etc.)
