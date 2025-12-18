@@ -274,3 +274,35 @@ def register_routes(app):
             return jsonify({'ok': True})
         finally:
             db.close()
+    
+    @app.route('/api/reset', methods=['POST'])
+    @require_auth
+    @require_csrf
+    def reset_all_data():
+        """Delete all user data from database (complete reset)"""
+        user_email = session['user_email']
+        db = next(get_db())
+        try:
+            from .database import get_user_by_email, UserYear, YearData, UserGlobalData
+            
+            user = get_user_by_email(db, user_email)
+            if not user:
+                return jsonify({'error': 'User not found'}), 404
+            
+            # Delete all user years (cascade will delete year_data)
+            user_years = db.query(UserYear).filter(UserYear.user_id == user.id).all()
+            for user_year in user_years:
+                db.delete(user_year)
+            
+            # Delete global data
+            if user.global_data:
+                db.delete(user.global_data)
+            
+            db.commit()
+            
+            return jsonify({'ok': True, 'message': 'All data deleted'})
+        except Exception as e:
+            db.rollback()
+            return jsonify({'error': str(e)}), 500
+        finally:
+            db.close()

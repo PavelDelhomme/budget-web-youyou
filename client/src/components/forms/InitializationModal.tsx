@@ -25,30 +25,126 @@ interface InitializationModalProps {
   }; // Données existantes pour pré-remplir le formulaire
 }
 
+const INITIALIZATION_STORAGE_KEY = 'budget-initialization-draft';
+
 export function InitializationModal({ isOpen, onComplete, canSkip = false, initialData }: InitializationModalProps) {
   const [step, setStep] = useState(1);
   const totalSteps = 5;
-  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>(initialData?.bankAccounts || []);
-  const [investments, setInvestments] = useState<Investment[]>(initialData?.investments || []);
-  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>(initialData?.savingsGoals || []);
-  const [monthlySalary, setMonthlySalary] = useState<number>(initialData?.monthlySalary || 0);
-  const [monthlySalaryInput, setMonthlySalaryInput] = useState<string>(initialData?.monthlySalary?.toString() || '');
-  const [monthlySalaryStartDate, setMonthlySalaryStartDate] = useState<string>(initialData?.monthlySalaryStartDate || toISODate(today));
+  
+  // Fonction pour charger les données depuis localStorage
+  const loadDraftData = () => {
+    try {
+      const saved = localStorage.getItem(INITIALIZATION_STORAGE_KEY);
+      if (saved) {
+        const draft = JSON.parse(saved);
+        return {
+          bankAccounts: draft.bankAccounts || [],
+          investments: draft.investments || [],
+          savingsGoals: draft.savingsGoals || [],
+          monthlySalary: draft.monthlySalary || 0,
+          monthlySalaryInput: draft.monthlySalaryInput || '',
+          monthlySalaryStartDate: draft.monthlySalaryStartDate || toISODate(today),
+          monthlySalaryIsTemporary: draft.monthlySalaryIsTemporary || false,
+          monthlySalaryEndDate: draft.monthlySalaryEndDate || '',
+          temporaryIncomes: draft.temporaryIncomes || [],
+          step: draft.step || 1,
+        };
+      }
+    } catch (e) {
+      console.warn('Erreur lors du chargement des données sauvegardées:', e);
+    }
+    return null;
+  };
+
+  // Fonction pour sauvegarder les données dans localStorage
+  const saveDraftData = (data: any) => {
+    try {
+      localStorage.setItem(INITIALIZATION_STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {
+      console.warn('Erreur lors de la sauvegarde des données:', e);
+    }
+  };
+
+  // Fonction pour supprimer les données sauvegardées
+  const clearDraftData = () => {
+    try {
+      localStorage.removeItem(INITIALIZATION_STORAGE_KEY);
+    } catch (e) {
+      console.warn('Erreur lors de la suppression des données sauvegardées:', e);
+    }
+  };
+
+  // Charger les données sauvegardées ou utiliser initialData
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
+  const [investments, setInvestments] = useState<Investment[]>([]);
+  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>([]);
+  const [monthlySalary, setMonthlySalary] = useState<number>(0);
+  const [monthlySalaryInput, setMonthlySalaryInput] = useState<string>('');
+  const [monthlySalaryStartDate, setMonthlySalaryStartDate] = useState<string>(toISODate(today));
   const [monthlySalaryIsTemporary, setMonthlySalaryIsTemporary] = useState<boolean>(false);
   const [monthlySalaryEndDate, setMonthlySalaryEndDate] = useState<string>('');
-  const [temporaryIncomes, setTemporaryIncomes] = useState<TemporaryIncome[]>(initialData?.temporaryIncomes || []);
+  const [temporaryIncomes, setTemporaryIncomes] = useState<TemporaryIncome[]>([]);
 
-  // Reset and load data when modal opens
+  // Charger les données quand le modal s'ouvre (priorité aux données sauvegardées)
   useEffect(() => {
-    if (isOpen && initialData) {
-      setBankAccounts(initialData.bankAccounts || []);
-      setInvestments(initialData.investments || []);
-      setSavingsGoals(initialData.savingsGoals || []);
-      setMonthlySalary(initialData.monthlySalary || 0);
-      setMonthlySalaryInput((initialData.monthlySalary || 0).toString());
-      setTemporaryIncomes(initialData.temporaryIncomes || []);
+    if (isOpen) {
+      const draftData = loadDraftData();
+      
+      if (draftData) {
+        // Utiliser les données sauvegardées si disponibles
+        setBankAccounts(draftData.bankAccounts || []);
+        setInvestments(draftData.investments || []);
+        setSavingsGoals(draftData.savingsGoals || []);
+        setMonthlySalary(draftData.monthlySalary || 0);
+        setMonthlySalaryInput(draftData.monthlySalaryInput || '');
+        setMonthlySalaryStartDate(draftData.monthlySalaryStartDate || toISODate(today));
+        setMonthlySalaryIsTemporary(draftData.monthlySalaryIsTemporary || false);
+        setMonthlySalaryEndDate(draftData.monthlySalaryEndDate || '');
+        setTemporaryIncomes(draftData.temporaryIncomes || []);
+        setStep(draftData.step || 1);
+      } else if (initialData) {
+        // Sinon utiliser initialData
+        setBankAccounts(initialData.bankAccounts || []);
+        setInvestments(initialData.investments || []);
+        setSavingsGoals(initialData.savingsGoals || []);
+        setMonthlySalary(initialData.monthlySalary || 0);
+        setMonthlySalaryInput((initialData.monthlySalary || 0).toString());
+        setMonthlySalaryStartDate(initialData.monthlySalaryStartDate || toISODate(today));
+        setTemporaryIncomes(initialData.temporaryIncomes || []);
+        setStep(1);
+      }
     }
-  }, [isOpen, initialData]);
+  }, [isOpen]);
+
+  // Sauvegarder automatiquement les données à chaque modification
+  useEffect(() => {
+    if (isOpen) {
+      saveDraftData({
+        bankAccounts,
+        investments,
+        savingsGoals,
+        monthlySalary,
+        monthlySalaryInput,
+        monthlySalaryStartDate,
+        monthlySalaryIsTemporary,
+        monthlySalaryEndDate,
+        temporaryIncomes,
+        step,
+      });
+    }
+  }, [
+    isOpen,
+    bankAccounts,
+    investments,
+    savingsGoals,
+    monthlySalary,
+    monthlySalaryInput,
+    monthlySalaryStartDate,
+    monthlySalaryIsTemporary,
+    monthlySalaryEndDate,
+    temporaryIncomes,
+    step,
+  ]);
 
   const [currentAccount, setCurrentAccount] = useState({
     name: '',
@@ -190,6 +286,9 @@ export function InitializationModal({ isOpen, onComplete, canSkip = false, initi
       return;
     }
     
+    // Supprimer les données sauvegardées une fois la configuration terminée
+    clearDraftData();
+    
     onComplete({ 
       bankAccounts, 
       investments, 
@@ -219,6 +318,7 @@ export function InitializationModal({ isOpen, onComplete, canSkip = false, initi
       onClose={canSkip ? () => {} : undefined} 
       title="📈 Configuration initiale de votre budget"
       closeable={canSkip}
+      fullScreen={true}
     >
       <div className="space-y-6">
         {/* Progress indicator */}
@@ -231,8 +331,13 @@ export function InitializationModal({ isOpen, onComplete, canSkip = false, initi
             >
               ← Précédent
             </button>
-            <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Étape {step} / {totalSteps}
+            <div className="flex items-center gap-2">
+              <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Étape {step} / {totalSteps}
+              </div>
+              <span className="text-xs text-green-600 dark:text-green-400" title="Vos données sont sauvegardées automatiquement">
+                💾 Sauvegardé
+              </span>
             </div>
             <button
               onClick={() => setStep(Math.min(totalSteps, step + 1))}

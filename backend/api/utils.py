@@ -158,19 +158,11 @@ def get_default_year_data() -> dict:
 
 
 def get_default_global_data() -> dict:
-    """Get default global user data structure"""
-    import uuid
+    """Get default global user data structure
+    Note: bankAccounts is empty by default - user must add at least one during initialization
+    """
     return {
-        'bankAccounts': [
-            {
-                'id': str(uuid.uuid4()),
-                'name': 'Compte courant',
-                'balance': 0,
-                'type': 'checking',
-                'isShared': False,
-                'sharedWith': ''
-            }
-        ],
+        'bankAccounts': [],  # Vide par défaut - l'utilisateur doit en ajouter au moins un
         'investments': [],
         'savingsGoals': [],
         'savingsProjects': [],

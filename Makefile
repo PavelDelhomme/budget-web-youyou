@@ -65,11 +65,13 @@ dev: ## Démarre le serveur de développement via Docker avec affichage des logs
 	@echo ""
 	@echo "Utilisez Ctrl+C pour arrêter les serveurs"
 	@echo ""
+	@echo "dev" > .last-mode 2>/dev/null || true
 	docker-compose up
 
 start: ## Démarre les conteneurs en arrière-plan (sans afficher les logs)
 	@echo "🚀 Démarrage des conteneurs en arrière-plan..."
 	@docker-compose up -d
+	@echo "start" > .last-mode 2>/dev/null || true
 	@echo "✅ Conteneurs démarrés!"
 	@echo "📡 Backend Flask: http://localhost:$(BACKEND_PORT)"
 	@echo "🌐 Frontend React: http://localhost:$(FRONTEND_PORT)"
@@ -88,13 +90,27 @@ down: ## Arrête et supprime tous les conteneurs du projet budget-web-youyou uni
 	@docker-compose down
 	@echo "✅ Conteneurs budget-web-youyou arrêtés et supprimés!"
 
-restart: ## Redémarre les serveurs backend et frontend (Docker en arrière-plan)
+restart: ## Redémarre les serveurs (détecte automatiquement le mode précédent)
 	@echo "🔄 Redémarrage des conteneurs Docker..."
-	docker-compose down
+	@docker-compose down
 	@sleep 2
-	docker-compose up -d
-	@echo "✅ Conteneurs redémarrés en arrière-plan !"
-	@echo "💡 Utilisez 'make logs' pour voir les logs"
+	@if [ -f .last-mode ] && [ "$$(cat .last-mode 2>/dev/null)" = "dev" ]; then \
+		echo "📋 Mode dev détecté, redémarrage en mode développement avec logs..."; \
+		echo ""; \
+		echo "📡 Backend Flask: http://localhost:$(BACKEND_PORT)"; \
+		echo "🌐 Frontend React: http://localhost:$(FRONTEND_PORT)"; \
+		echo ""; \
+		echo "Utilisez Ctrl+C pour arrêter les serveurs"; \
+		echo ""; \
+		echo "dev" > .last-mode 2>/dev/null || true; \
+		docker-compose up; \
+	else \
+		echo "📋 Redémarrage en arrière-plan..."; \
+		echo "start" > .last-mode 2>/dev/null || true; \
+		docker-compose up -d; \
+		echo "✅ Conteneurs redémarrés en arrière-plan !"; \
+		echo "💡 Utilisez 'make logs' pour voir les logs"; \
+	fi
 
 run-server: ## Lance uniquement le serveur backend Flask (Docker)
 	@echo "📡 Démarrage du backend Flask via Docker..."

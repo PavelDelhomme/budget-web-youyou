@@ -6,9 +6,10 @@ interface ModalProps {
   title: string;
   children: React.ReactNode;
   closeable?: boolean; // Si false, ne peut pas être fermé
+  fullScreen?: boolean; // Si true, modal en plein écran
 }
 
-export function Modal({ isOpen, onClose, title, children, closeable = true }: ModalProps) {
+export function Modal({ isOpen, onClose, title, children, closeable = true, fullScreen = false }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
 
   // Close on Escape key (only if closeable)
@@ -23,15 +24,21 @@ export function Modal({ isOpen, onClose, title, children, closeable = true }: Mo
 
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
-      // Prevent body scroll when modal is open
+      // Prevent body scroll when modal is open - plus strict pour fullScreen
       document.body.style.overflow = 'hidden';
+      document.body.style.position = fullScreen ? 'fixed' : 'relative';
+      document.body.style.width = fullScreen ? '100%' : 'auto';
+      document.body.style.height = fullScreen ? '100%' : 'auto';
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = 'unset';
+      document.body.style.position = 'unset';
+      document.body.style.width = 'unset';
+      document.body.style.height = 'unset';
     };
-  }, [isOpen, onClose, closeable]);
+  }, [isOpen, onClose, closeable, fullScreen]);
 
   // Focus management
   useEffect(() => {
@@ -45,7 +52,7 @@ export function Modal({ isOpen, onClose, title, children, closeable = true }: Mo
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 dark:bg-black dark:bg-opacity-70"
+      className={`fixed inset-0 z-50 flex items-center justify-center ${fullScreen ? 'p-0' : 'p-4'} bg-black bg-opacity-50 dark:bg-black dark:bg-opacity-70`}
       onClick={closeable && onClose ? onClose : undefined}
       onKeyDown={(e) => {
         if (!closeable && e.key === 'Escape') {
@@ -53,10 +60,23 @@ export function Modal({ isOpen, onClose, title, children, closeable = true }: Mo
           e.stopPropagation();
         }
       }}
+      onWheel={(e) => {
+        // Empêcher le scroll de l'arrière-plan même si on scroll dans le modal
+        if (fullScreen) {
+          e.stopPropagation();
+        }
+      }}
+      onTouchMove={(e) => {
+        // Empêcher le scroll tactile de l'arrière-plan
+        if (fullScreen) {
+          e.stopPropagation();
+        }
+      }}
+      style={{ touchAction: fullScreen ? 'none' : 'auto' }}
     >
       <div
         ref={modalRef}
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 space-y-4 border border-gray-200 dark:border-gray-700"
+        className={`bg-white dark:bg-gray-800 ${fullScreen ? 'rounded-none w-full h-full max-w-full max-h-full' : 'rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh]'} overflow-y-auto ${fullScreen ? 'p-4 sm:p-6 md:p-8' : 'p-6'} space-y-4 border border-gray-200 dark:border-gray-700`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">

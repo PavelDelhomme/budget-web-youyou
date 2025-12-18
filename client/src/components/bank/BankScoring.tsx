@@ -33,6 +33,7 @@ interface BankScore {
 
 interface BankScoringProps {
   year?: number;
+  initializationComplete?: boolean; // Si false, ne pas charger les données
 }
 
 const RISK_LEVEL_LABELS: Record<string, { label: string; color: string; bgColor: string }> = {
@@ -50,14 +51,19 @@ const RECOMMENDATION_COLORS: Record<string, { bg: string; border: string; icon: 
   error: { bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-200 dark:border-red-800', icon: '❌' },
 };
 
-export function BankScoring({ year }: BankScoringProps) {
+export function BankScoring({ year, initializationComplete = true }: BankScoringProps) {
   const [scoreData, setScoreData] = useState<BankScore | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Ne pas charger si l'initialisation n'est pas terminée
+    if (initializationComplete === false) {
+      setLoading(false);
+      return;
+    }
     loadScore();
-  }, [year]);
+  }, [year, initializationComplete]);
 
   async function loadScore() {
     setLoading(true);

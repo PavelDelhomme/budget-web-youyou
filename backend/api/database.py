@@ -128,8 +128,32 @@ def get_db() -> Session:
 
 
 def init_db():
-    """Initialize database tables"""
-    Base.metadata.create_all(bind=engine)
+    """Initialize database tables with protection against concurrent creation"""
+    from sqlalchemy import inspect
+    from sqlalchemy.exc import ProgrammingError
+    
+    # Vérifier si les tables existent déjà
+    inspector = inspect(engine)
+    existing_tables = inspector.get_table_names()
+    
+    # Liste des tables à créer
+    required_tables = ['users', 'user_years', 'year_data', 'user_global_data', 'cache_entries']
+    
+    # Vérifier si toutes les tables existent déjà
+    if all(table in existing_tables for table in required_tables):
+        return  # Les tables existent déjà, pas besoin de les créer
+    
+    # Créer les tables avec gestion d'erreur pour les conflits de concurrence
+    try:
+        Base.metadata.create_all(bind=engine, checkfirst=True)
+    except ProgrammingError as e:
+        # Si l'erreur est due à un conflit de concurrence (plusieurs workers), ignorer
+        if 'duplicate key value violates unique constraint "pg_type_typname_nsp_index"' in str(e):
+            # Un autre worker a déjà créé les tables, c'est OK
+            pass
+        else:
+            # Autre erreur, la propager
+            raise
 
 
 def get_user_by_email(db: Session, email: str) -> Optional[User]:

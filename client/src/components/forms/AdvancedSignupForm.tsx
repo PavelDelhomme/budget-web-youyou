@@ -5,6 +5,7 @@ import { GeographicSelector, GeographicLocation } from '../ui/GeographicSelector
 import { ScrollableSelect } from '../ui/ScrollableSelect';
 import { AutocompleteSelect } from '../ui/AutocompleteSelect';
 import { UserProfile } from '../../core/types';
+import { CSP_OPTIONS } from '../../core/cspOptions';
 
 interface AdvancedSignupFormProps {
   isOpen: boolean;

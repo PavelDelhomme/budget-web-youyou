@@ -20,12 +20,38 @@ async function api(path: string, opts: RequestInit = {}, silent: boolean = false
     
     let res: Response;
     try {
-      res = await fetch(`/api/${path}`, {
-        credentials: "include",
-        ...opts,
-        headers,
-      });
+      // Intercepter les erreurs de console pour les requêtes silencieuses
+      const originalConsoleError = console.error;
+      const originalConsoleWarn = console.warn;
+      let shouldSuppressConsole = false;
+      
+      if (silent || path === 'global') {
+        shouldSuppressConsole = true;
+        // Temporairement supprimer console.error pour cette requête
+        console.error = () => {};
+        console.warn = () => {};
+      }
+      
+      try {
+        res = await fetch(`/api/${path}`, {
+          credentials: "include",
+          ...opts,
+          headers,
+        });
+      } finally {
+        // Restaurer console.error après la requête
+        if (shouldSuppressConsole) {
+          console.error = originalConsoleError;
+          console.warn = originalConsoleWarn;
+        }
+      }
     } catch (fetchError: any) {
+      // Supprimer les erreurs de console pour les requêtes silencieuses
+      if (silent || path === 'global') {
+        fetchError.silent = true;
+        fetchError.expected = true;
+        fetchError.suppressConsole = true;
+      }
       // Intercepter les erreurs de fetch avant qu'elles soient loggées
       const isConnectionError = fetchError?.message?.includes("Failed to fetch") || 
                                 fetchError?.message?.includes("ERR_CONNECTION_REFUSED") ||
@@ -45,22 +71,53 @@ async function api(path: string, opts: RequestInit = {}, silent: boolean = false
       // Those might return 401 if the year doesn't exist yet (normal for predicted years)
       if (res.status === 401) {
         const isYearDataRequest = path.startsWith('get?year=');
+        const isGlobalDataRequest = path === 'global';
+        
         // Vérifier si c'est une année future qui n'existe probablement pas
         if (isYearDataRequest) {
           const yearMatch = path.match(/year=(\d+)/);
           if (yearMatch) {
             const year = parseInt(yearMatch[1]);
             const currentYear = new Date().getFullYear();
-            // Si année > currentYear + 3, elle n'existe probablement pas
-            if (year > currentYear + 3) {
-              const error = new Error('Year does not exist');
+            // Si année > currentYear, elle n'existe probablement pas encore (année future)
+            // Ces erreurs sont normales et doivent être silencieuses
+            // Aussi, si l'année est dans le futur même de quelques années, c'est normal
+            if (year > currentYear) {
+              const error = new Error('Year does not exist yet');
               (error as any).status = 401;
               (error as any).silent = true;
               (error as any).expected = true;
+              (error as any).suppressConsole = true; // Supprimer complètement de la console
               throw error;
             }
+            // Même pour l'année actuelle ou passée, si c'est pendant l'initialisation, c'est normal
+            // On ne peut pas vraiment savoir si c'est pendant l'initialisation ici, donc on laisse passer
           }
         }
+        
+        // Pour getGlobalData juste après connexion, c'est normal si la session n'est pas encore prête
+        // Ne pas logger ces erreurs comme des vraies erreurs
+        if (isGlobalDataRequest) {
+          const error = new Error('Global data not available yet');
+          (error as any).status = 401;
+          (error as any).silent = true; // Silencer ces erreurs car elles sont attendues après connexion
+          (error as any).expected = true;
+          (error as any).suppressConsole = true; // Ne pas afficher dans la console
+          throw error;
+        }
+        
+        // Pour les requêtes getYearData, si c'est pendant l'initialisation, c'est normal
+        // On ne peut pas vraiment savoir ici, donc on marque comme silencieuse par défaut
+        // et laisser le code appelant décider
+        if (isYearDataRequest) {
+          const error = new Error('Year data not available yet');
+          (error as any).status = 401;
+          (error as any).silent = true; // Silencer par défaut (peut être pendant l'initialisation)
+          (error as any).expected = true;
+          (error as any).suppressConsole = true; // Ne pas afficher dans la console
+          throw error;
+        }
+        
         // Pour les autres 401, c'est une vraie erreur d'authentification
         const error = new Error('Not authenticated');
         (error as any).status = 401;
@@ -136,7 +193,8 @@ async function api(path: string, opts: RequestInit = {}, silent: boolean = false
     }
     
     // Log errors only if they're not expected, silent, or connection errors
-    if (!error?.silent && !error?.expected && !isConnectionError) {
+    // Ne pas logger si suppressConsole est défini
+    if (!error?.silent && !error?.expected && !isConnectionError && !error?.suppressConsole) {
       console.error(`API Error [${path}]:`, error.message || error);
     }
     
@@ -255,7 +313,7 @@ export const Api = {
       body: JSON.stringify(payload),
     }),
   
-  getGlobalData: () => api("global"),
+  getGlobalData: () => api("global", {}, true), // Silent mode to avoid console errors
   
   putGlobalData: (payload: any) =>
     api("global", {
@@ -271,6 +329,13 @@ export const Api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(profile),
     }, false), // Don't require CSRF token - used during signup
+  
+  // Reset all user data
+  resetAllData: () =>
+    api("reset", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    }),
   
   // Admin routes - WAF statistics and management
   getWAFStats: () => api("waf/stats"),

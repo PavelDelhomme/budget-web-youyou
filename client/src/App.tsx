@@ -581,6 +581,23 @@ function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Fermer et empêcher l'ouverture du drawer quand le modal d'initialisation est ouvert
+  useEffect(() => {
+    if (isInitializationModalOpen || isAdvancedSignupOpen) {
+      setIsSidebarOpen(false);
+    }
+  }, [isInitializationModalOpen, isAdvancedSignupOpen]);
+
+  // Empêcher l'ouverture du drawer si le modal d'initialisation est ouvert
+  // Créer une fonction wrapper pour le toggle qui vérifie si le modal est ouvert
+  const handleSidebarToggle = () => {
+    if (isInitializationModalOpen || isAdvancedSignupOpen) {
+      // Ne pas permettre l'ouverture du drawer pendant l'initialisation
+      return;
+    }
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
   // Debounce timer for saving
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Flag to prevent multiple simultaneous calls to reloadHistoricalDataAndRegeneratePredictions
@@ -726,6 +743,14 @@ function App() {
   const reloadHistoricalDataAndRegeneratePredictions = React.useCallback(async () => {
     if (!sessionEmail || years.length === 0 || isCheckingSession) return;
     
+    // Ne pas charger les données si l'initialisation n'est pas terminée
+    // Utiliser globalData depuis la closure (capturé au moment de l'appel)
+    const currentGlobalData = globalData;
+    // Si globalData n'existe pas encore OU si l'initialisation n'est pas terminée, ne pas charger
+    if (!currentGlobalData || currentGlobalData.initializationComplete === false) {
+      return;
+    }
+    
     // Attendre un peu pour que la session soit complètement établie
     // et que les cookies soient disponibles
     await new Promise(resolve => setTimeout(resolve, 300));
@@ -750,8 +775,18 @@ function App() {
           const data = await Api.getYearData(y);
           historicalDataMap.set(y, data);
         } catch (err: any) {
+          // Si erreur 401 silencieuse (expected), ignorer
+          if (err?.status === 401 && (err?.silent || err?.expected)) {
+            continue;
+          }
           // Si erreur 401, la session a peut-être expiré - rediriger vers login
           if (err?.status === 401) {
+            // Vérifier si l'initialisation est en cours
+            const currentGlobalData = globalData;
+            if (currentGlobalData && currentGlobalData.initializationComplete === false) {
+              // Pendant l'initialisation, ignorer les erreurs 401
+              continue;
+            }
             setSessionEmail(null);
             return;
           }
@@ -768,7 +803,20 @@ function App() {
           const data = await Api.getYearData(currentYearNum);
           historicalDataMap.set(currentYearNum, data);
         } catch (err: any) {
-          // Skip if error (especially 401 - session not ready)
+          // Skip if error (especially 401 - session not ready or initialization not complete)
+          // Ne pas logger les erreurs 401 pendant l'initialisation
+          if (err?.status === 401) {
+            // Vérifier si l'erreur est silencieuse ou si l'initialisation est en cours
+            if (err?.silent || err?.expected) {
+              return;
+            }
+            // Vérifier si l'initialisation est en cours
+            const currentGlobalData = globalData;
+            if (currentGlobalData && currentGlobalData.initializationComplete === false) {
+              // Pendant l'initialisation, ignorer les erreurs 401
+              return;
+            }
+          }
           if (err?.status !== 401) {
             console.debug('Error loading current year data:', err);
           }
@@ -795,7 +843,19 @@ function App() {
         } catch (err: any) {
           // Pour les années futures, un 401 ou 404 signifie que l'année n'existe pas encore
           // Ce n'est pas une erreur - c'est normal pour les années prédites
-          if (err?.status === 401 || err?.status === 404) {
+          if (err?.status === 401) {
+            // Si l'erreur est silencieuse (marquée comme expected), ne rien faire
+            if (err?.silent || err?.expected) {
+              continue;
+            }
+            // Sinon, vérifier si c'est une année future normale
+            const currentYear = new Date().getFullYear();
+            if (y > currentYear) {
+              // Année future qui n'existe pas encore - c'est normal
+              continue;
+            }
+          }
+          if (err?.status === 404) {
             // Année n'existe pas encore - c'est normal, ne pas logger
             continue;
           }
@@ -903,9 +963,16 @@ function App() {
   //   return () => clearTimeout(timeoutId);
   // }, [sessionEmail, years, globalData?.excludedPredictedYears, globalData?.maxPredictedYears]);
   
-  // Initial load only when session is established - ONE TIME ONLY
+  // Initial load only when session is established AND initialization is complete - ONE TIME ONLY
   const hasInitialLoadRef = useRef<boolean>(false);
   useEffect(() => {
+    // Ne pas charger si globalData n'existe pas encore OU si l'initialisation n'est pas terminée
+    if (!globalData || globalData.initializationComplete === false) {
+      // Réinitialiser le flag si l'initialisation n'est pas terminée
+      hasInitialLoadRef.current = false;
+      return;
+    }
+    
     if (sessionEmail && years.length > 0 && !hasInitialLoadRef.current) {
       hasInitialLoadRef.current = true;
       prevYearsRef.current = JSON.stringify([...years].sort());
@@ -915,15 +982,27 @@ function App() {
       // Call after a delay to ensure all state is ready AND session is established
       // Augmenter le délai pour laisser le temps aux cookies d'être disponibles
       setTimeout(() => {
+        // Vérifier à nouveau avant d'appeler (au cas où globalData aurait changé)
+        const currentGlobalData = globalData;
+        if (!currentGlobalData || currentGlobalData.initializationComplete === false) {
+          // L'initialisation n'est pas terminée, ne pas charger les données
+          hasInitialLoadRef.current = false; // Réinitialiser pour réessayer plus tard
+          return;
+        }
         reloadHistoricalDataAndRegeneratePredictions();
       }, 1000); // Augmenté à 1 seconde pour laisser le temps à la session d'être complètement établie
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionEmail]);
+  }, [sessionEmail, globalData?.initializationComplete]);
 
   // Load data when sessionEmail or year changes, OR when params.year changes (for direct URL access)
   useEffect(() => {
     if (!sessionEmail) return;
+    
+    // Ne pas charger les données si l'initialisation n'est pas terminée
+    if (globalData && globalData.initializationComplete === false) {
+      return;
+    }
     
     // Si on est sur une route /annee/, utiliser params.year directement
     const currentPath = location.pathname;
@@ -1022,8 +1101,13 @@ function App() {
           }, 200);
         }
       } catch (err: any) {
-        // Si erreur 401, la session a peut-être expiré - rediriger vers login
+        // Si erreur 401, vérifier si c'est parce que l'initialisation n'est pas terminée
         if (err?.status === 401) {
+          // Si l'initialisation n'est pas terminée, c'est normal - ne pas rediriger
+          if (globalData && globalData.initializationComplete === false) {
+            return; // Ne pas charger les données pendant l'initialisation
+          }
+          // Sinon, la session a peut-être expiré - rediriger vers login
           setSessionEmail(null);
           return;
         }
@@ -1249,24 +1333,41 @@ function App() {
             await new Promise(resolve => setTimeout(resolve, 800));
             
             let global = null;
-            for (let i = 0; i < 8; i++) {
+            // Ne faire que 3 tentatives au lieu de 8 pour éviter les appels inutiles
+            for (let i = 0; i < 3; i++) {
               try {
                 global = await Api.getGlobalData();
                 break;
               } catch (err: any) {
-                if (err?.status === 401 && i < 7) {
-                  // Wait progressively longer between retries
-                  const delay = Math.min(300 * (i + 1), 1000);
-                  console.debug(`Tentative ${i + 1}/8 pour charger global data, attente ${delay}ms...`);
-                  await new Promise(resolve => setTimeout(resolve, delay));
+                // Si c'est une erreur 401, c'est normal si l'utilisateur n'a pas encore initialisé
+                // Ne pas logger ces erreurs
+                if (err?.status === 401) {
+                  // Si c'est la dernière tentative, créer des données globales vides
+                  if (i === 2) {
+                    global = {
+                      bankAccounts: [],
+                      investments: [],
+                      savingsGoals: [],
+                      savingsProjects: [],
+                      temporaryIncomes: [],
+                      sharedExpensePersons: [],
+                      personTransactions: [],
+                      salaryHistory: [],
+                      initializationComplete: false,
+                      monthlySalary: 0,
+                      lockedYears: [],
+                      excludedPredictedYears: [],
+                      maxPredictedYears: 3,
+                      userProfile: null,
+                    };
+                  } else {
+                    // Attendre un peu avant de réessayer
+                    await new Promise(resolve => setTimeout(resolve, 200 * (i + 1)));
+                  }
                   continue;
                 }
-                // If still 401 after retries, don't throw - just skip loading global data
-                if (err?.status === 401) {
-                  console.warn('Impossible de charger les données globales après connexion après plusieurs tentatives');
-                  break;
-                }
-                throw err;
+                // Pour les autres erreurs, arrêter les tentatives
+                break;
               }
             }
             
@@ -1450,6 +1551,16 @@ function App() {
       await Api.putGlobalData(globalDataToSave);
       setGlobalData(globalDataToSave);
       
+      // Nettoyer les données sauvegardées dans localStorage une fois l'initialisation terminée
+      try {
+        localStorage.removeItem('budget-initialization-draft');
+      } catch (e) {
+        console.warn('Erreur lors du nettoyage des données sauvegardées:', e);
+      }
+      
+      // Réinitialiser le flag de chargement initial pour charger les données maintenant que l'initialisation est terminée
+      hasInitialLoadRef.current = false;
+      
       // Apply monthly salary to current year if year exists
       if (data.monthlySalary > 0) {
         const currentYearNum = today.getFullYear();
@@ -1614,49 +1725,94 @@ function App() {
   }
 
   async function handleResetAll() {
-    // Supprimer toutes les années
-    for (const y of years) {
+    try {
+      // Supprimer toutes les données de la base de données
+      await Api.resetAllData();
+      
+      // Réinitialiser les données globales complètement
+      const resetGlobalData: UserGlobalData = {
+        bankAccounts: [],
+        investments: [],
+        savingsGoals: [],
+        savingsProjects: [],
+        temporaryIncomes: [],
+        sharedExpensePersons: [],
+        personTransactions: [],
+        salaryHistory: [],
+        initializationComplete: false,
+        monthlySalary: 0,
+        monthlySalaryStartDate: undefined,
+        lockedYears: [],
+        excludedPredictedYears: [],
+        maxPredictedYears: 3,
+        userProfile: undefined, // Supprimer le profil utilisateur
+      };
+      
+      // Créer les données globales vides dans la base
+      await Api.putGlobalData(resetGlobalData);
+      setGlobalData(resetGlobalData);
+      setUserProfile(null);
+      setGeneratedBudget(null);
+      setYears([]);
+      setYear('dashboard');
+      setPredictedYears([]);
+      setHistoricalData(new Map());
+      
+      // Clear all local state
+      setCategories([]);
+      setExpenses([]);
+      setSubs([]);
+      setAnnualFixedExpenses([]);
+      setMonthlySalary(0);
+      setVariableMonthlyIncomes(undefined);
+      setAdditionalMonthlyIncomes([]);
+      setMonthlyIncomeSources([]);
+      setCurrentSavings(0);
+      setSavingsTransactions([]);
+      
+      // Ouvrir le formulaire d'inscription avancée après reset
+      setIsAdvancedSignupOpen(true);
+      setIsInitializationModalOpen(false);
+      
+      // Nettoyer les données sauvegardées dans localStorage
       try {
-        await Api.deleteYear(y);
-      } catch (err) {
-        console.error(`Error deleting year ${y}:`, err);
+        localStorage.removeItem('budget-initialization-draft');
+      } catch (e) {
+        console.warn('Erreur lors du nettoyage des données sauvegardées:', e);
+      }
+    } catch (err) {
+      console.error('Erreur lors du reset:', err);
+      // En cas d'erreur, essayer quand même de réinitialiser les données globales
+      try {
+        const resetGlobalData: UserGlobalData = {
+          bankAccounts: [],
+          investments: [],
+          savingsGoals: [],
+          savingsProjects: [],
+          temporaryIncomes: [],
+          sharedExpensePersons: [],
+          personTransactions: [],
+          salaryHistory: [],
+          initializationComplete: false,
+          monthlySalary: 0,
+          monthlySalaryStartDate: undefined,
+          lockedYears: [],
+          excludedPredictedYears: [],
+          maxPredictedYears: 3,
+          userProfile: undefined,
+        };
+        await Api.putGlobalData(resetGlobalData);
+        setGlobalData(resetGlobalData);
+        setIsAdvancedSignupOpen(true);
+        setIsInitializationModalOpen(false);
+      } catch (e) {
+        console.error('Erreur lors de la réinitialisation des données globales:', e);
       }
     }
     
-    // Réinitialiser les données globales
-    const resetGlobalData: UserGlobalData = {
-      bankAccounts: [],
-      investments: [],
-      savingsGoals: [],
-      savingsProjects: [],
-      temporaryIncomes: [],
-      sharedExpensePersons: [],
-      personTransactions: [],
-      initializationComplete: false,
-      monthlySalary: 0,
-      monthlySalaryStartDate: undefined,
-      lockedYears: [],
-      excludedPredictedYears: [],
-      maxPredictedYears: 3,
-    };
-    
-    await Api.putGlobalData(resetGlobalData);
-    setGlobalData(resetGlobalData);
-    setYears([]);
-    setYear('dashboard');
-    setPredictedYears([]);
-    
-    // Clear all local state
-    setCategories([]);
-    setExpenses([]);
-    setSubs([]);
-    setAnnualFixedExpenses([]);
-    setMonthlySalary(0);
-    setVariableMonthlyIncomes(undefined);
-    setAdditionalMonthlyIncomes([]);
-    setMonthlyIncomeSources([]);
-    setCurrentSavings(0);
-    setSavingsTransactions([]);
+    // Réouvrir le modal d'initialisation
+    setIsInitializationModalOpen(false);
+    setIsAdvancedSignupOpen(true);
   }
 
   // Materialize a predicted year (convert prediction to real year)
@@ -1857,13 +2013,13 @@ function App() {
         />
       )}
       
-      {/* Hamburger Menu Button - Caché si on est sur la page de login */}
-      {isAuthenticated && !isLoginPage && (
-        <HamburgerMenu isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+      {/* Hamburger Menu Button - Caché si on est sur la page de login ou pendant l'initialisation */}
+      {isAuthenticated && !isLoginPage && !isInitializationModalOpen && !isAdvancedSignupOpen && (
+        <HamburgerMenu isOpen={isSidebarOpen} onToggle={handleSidebarToggle} />
       )}
       
-      {/* Sidebar - Caché si on est sur la page de login */}
-      {isAuthenticated && !isLoginPage && (
+      {/* Sidebar - Caché si on est sur la page de login ou pendant l'initialisation */}
+      {isAuthenticated && !isLoginPage && !isInitializationModalOpen && !isAdvancedSignupOpen && (
         <Sidebar
         years={[...new Set([...years, ...predictedYears.map(p => p.year)])]}
         currentYear={year}
@@ -1910,7 +2066,7 @@ function App() {
           setIsAdvancedFiscalManagerOpen(true);
         }}
           isOpen={isSidebarOpen}
-          onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+          onToggle={handleSidebarToggle}
           onClose={() => setIsSidebarOpen(false)}
         />
       )}

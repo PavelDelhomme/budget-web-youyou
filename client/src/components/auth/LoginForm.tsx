@@ -42,12 +42,13 @@ export function LoginForm({ onLogin }: LoginFormProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-gray-900">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-xl w-full max-w-md space-y-4 border border-gray-200 dark:border-gray-700"
-      >
-        <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+    <div className="h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-slate-50 dark:bg-gray-900">
+      <div className="w-full max-w-md">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white dark:bg-gray-800 p-6 sm:p-8 lg:p-10 rounded-2xl shadow-xl w-full space-y-4 sm:space-y-5 lg:space-y-6 border border-gray-200 dark:border-gray-700"
+        >
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold text-gray-900 dark:text-white text-center">
           {isSignup ? 'Inscription' : 'Connexion'}
         </h1>
 
@@ -62,7 +63,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
             required
             type="email"
             placeholder="Email"
-            className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+            className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent text-sm sm:text-base"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -73,7 +74,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
             required
             type={showPassword ? 'text' : 'password'}
             placeholder="Mot de passe"
-            className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-3 py-2 pr-10 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+            className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 pr-10 sm:pr-12 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent text-sm sm:text-base"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
@@ -87,13 +88,13 @@ export function LoginForm({ onLogin }: LoginFormProps) {
           </button>
         </div>
 
-        {isSignup && (
+            {isSignup && (
           <div className="relative">
             <input
               required
               type={showConfirmPassword ? 'text' : 'password'}
               placeholder="Confirmer le mot de passe"
-              className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-3 py-2 pr-10 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 pr-10 sm:pr-12 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent text-sm sm:text-base"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
@@ -109,7 +110,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
         )}
 
         <button
-          className="w-full bg-black dark:bg-gray-700 hover:bg-gray-800 dark:hover:bg-gray-600 text-white rounded-xl py-2 transition-colors"
+          className="w-full bg-black dark:bg-gray-700 hover:bg-gray-800 dark:hover:bg-gray-600 text-white rounded-xl py-2.5 sm:py-3 md:py-3.5 transition-colors font-medium text-sm sm:text-base"
           type="submit"
         >
           {isSignup ? 'S\'inscrire' : 'Se connecter'}
@@ -134,7 +135,8 @@ export function LoginForm({ onLogin }: LoginFormProps) {
             Astuce : pas d'inscription séparée. Le fichier de données est créé à la première connexion.
           </p>
         )}
-      </form>
+        </form>
+      </div>
     </div>
   );
 }

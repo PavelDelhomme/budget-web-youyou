@@ -491,10 +491,12 @@ export function Dashboard({
         </div>
       </LazySection>
 
-      {/* Score Bancaire */}
-      <LazySection rootMargin="50px">
-        <BankScoring year={currentYear} />
-      </LazySection>
+      {/* Score Bancaire - Seulement si l'initialisation est terminée */}
+      {globalData.initializationComplete && (
+        <LazySection rootMargin="50px">
+          <BankScoring year={currentYear} initializationComplete={globalData.initializationComplete} />
+        </LazySection>
+      )}
 
       {/* AI Predictions */}
       {predictedYears.length > 0 && (

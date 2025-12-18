@@ -1799,20 +1799,94 @@ export function GlobalDataManager({ isOpen, onClose, globalData, onUpdate, years
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   >
                     <option value="">Sélectionnez une CSP</option>
-                    <option value="agriculteur">Agriculteur exploitant</option>
-                    <option value="artisan">Artisan</option>
-                    <option value="commercant">Commerçant</option>
-                    <option value="chef_entreprise">Chef d'entreprise</option>
-                    <option value="profession_liberale">Profession libérale</option>
-                    <option value="cadre_sup">Cadre supérieur</option>
-                    <option value="cadre">Cadre</option>
-                    <option value="prof_intermediaire">Profession intermédiaire</option>
-                    <option value="employe">Employé</option>
-                    <option value="ouvrier">Ouvrier</option>
-                    <option value="retraite">Retraité</option>
-                    <option value="chomeur">Chômeur</option>
-                    <option value="etudiant">Étudiant</option>
-                    <option value="autre">Autre</option>
+                    <optgroup label="Agriculteurs exploitants">
+                      <option value="agriculteur_exploitant">Agriculteur exploitant</option>
+                      <option value="agriculteur_salarie">Salarié agricole</option>
+                    </optgroup>
+                    <optgroup label="Artisans, commerçants et chefs d'entreprise">
+                      <option value="artisan">Artisan</option>
+                      <option value="commercant">Commerçant</option>
+                      <option value="chef_entreprise_10">Chef d'entreprise de 10 salariés ou plus</option>
+                      <option value="chef_entreprise_moins_10">Chef d'entreprise de moins de 10 salariés</option>
+                    </optgroup>
+                    <optgroup label="Cadres et professions intellectuelles supérieures">
+                      <option value="profession_liberale">Profession libérale</option>
+                      <option value="cadre_entreprise">Cadre d'entreprise</option>
+                      <option value="cadre_fonction_publique">Cadre de la fonction publique</option>
+                      <option value="professeur_enseignant">Professeur, enseignant</option>
+                      <option value="ingenieur">Ingénieur</option>
+                      <option value="medecin">Médecin</option>
+                      <option value="pharmacien">Pharmacien</option>
+                      <option value="avocat">Avocat</option>
+                      <option value="architecte">Architecte</option>
+                      <option value="veterinaire">Vétérinaire</option>
+                      <option value="cadre_commercial">Cadre commercial</option>
+                      <option value="cadre_technique">Cadre technique</option>
+                      <option value="cadre_administratif">Cadre administratif</option>
+                      <option value="directeur_general">Directeur général, PDG</option>
+                      <option value="directeur_service">Directeur de service</option>
+                      <option value="chercheur">Chercheur, scientifique</option>
+                      <option value="journaliste">Journaliste</option>
+                      <option value="artiste">Artiste, auteur</option>
+                    </optgroup>
+                    <optgroup label="Professions intermédiaires">
+                      <option value="prof_intermediaire_admin">Profession intermédiaire administrative</option>
+                      <option value="prof_intermediaire_commerciale">Profession intermédiaire commerciale</option>
+                      <option value="technicien">Technicien</option>
+                      <option value="contremaitre">Contremaître, agent de maîtrise</option>
+                      <option value="infirmier">Infirmier, sage-femme</option>
+                      <option value="prof_paramedical">Profession paramédicale</option>
+                      <option value="instituteur">Instituteur, professeur des écoles</option>
+                      <option value="prof_intermediaire_sante">Profession intermédiaire de la santé</option>
+                      <option value="prof_intermediaire_social">Profession intermédiaire du travail social</option>
+                      <option value="policier_gendarme">Policier, gendarme</option>
+                      <option value="pompier">Pompier</option>
+                      <option value="agent_maitrise">Agent de maîtrise</option>
+                    </optgroup>
+                    <optgroup label="Employés">
+                      <option value="employe_admin_entreprise">Employé administratif d'entreprise</option>
+                      <option value="employe_admin_fonction_publique">Employé administratif de la fonction publique</option>
+                      <option value="employe_commercial">Employé de commerce</option>
+                      <option value="caissier">Caissier, employé de libre-service</option>
+                      <option value="vendeur">Vendeur</option>
+                      <option value="employe_service_direct">Employé des services directs aux particuliers</option>
+                      <option value="aide_menagere">Aide à domicile, aide ménagère</option>
+                      <option value="assistant_maternel">Assistant maternel</option>
+                      <option value="employe_hotel_restaurant">Employé d'hôtel, restaurant</option>
+                      <option value="coiffeur_esthetiste">Coiffeur, esthéticien</option>
+                      <option value="employe_securite">Agent de sécurité, surveillant</option>
+                      <option value="ouvrier_qualifie">Ouvrier qualifié</option>
+                    </optgroup>
+                    <optgroup label="Ouvriers">
+                      <option value="ouvrier_qualifie_industrie">Ouvrier qualifié de l'industrie</option>
+                      <option value="ouvrier_qualifie_batiment">Ouvrier qualifié du bâtiment</option>
+                      <option value="ouvrier_qualifie_artisanat">Ouvrier qualifié de l'artisanat</option>
+                      <option value="chauffeur">Chauffeur</option>
+                      <option value="ouvrier_non_qualifie_industrie">Ouvrier non qualifié de l'industrie</option>
+                      <option value="ouvrier_non_qualifie_batiment">Ouvrier non qualifié du bâtiment</option>
+                      <option value="ouvrier_non_qualifie_artisanat">Ouvrier non qualifié de l'artisanat</option>
+                      <option value="ouvrier_agricole">Ouvrier agricole</option>
+                      <option value="manoeuvre">Manœuvre</option>
+                    </optgroup>
+                    <optgroup label="Retraités">
+                      <option value="retraite_agriculteur">Retraité agriculteur exploitant</option>
+                      <option value="retraite_artisan_commercant">Retraité artisan, commerçant, chef d'entreprise</option>
+                      <option value="retraite_cadre">Retraité cadre</option>
+                      <option value="retraite_prof_intermediaire">Retraité profession intermédiaire</option>
+                      <option value="retraite_employe">Retraité employé</option>
+                      <option value="retraite_ouvrier">Retraité ouvrier</option>
+                    </optgroup>
+                    <optgroup label="Autres personnes sans activité professionnelle">
+                      <option value="chomeur">Chômeur (n'ayant jamais travaillé)</option>
+                      <option value="chomeur_ancien_travailleur">Chômeur (ancien travailleur)</option>
+                      <option value="etudiant">Étudiant</option>
+                      <option value="lyceen">Lycéen, collégien</option>
+                      <option value="apprenti">Apprenti</option>
+                      <option value="militaire_du_contingent">Militaire du contingent</option>
+                      <option value="femme_au_foyer">Femme au foyer, homme au foyer</option>
+                      <option value="autre_inactif">Autre personne inactive</option>
+                      <option value="autre">Autre</option>
+                    </optgroup>
                   </select>
                 </div>
 

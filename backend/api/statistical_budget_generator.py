@@ -13,7 +13,107 @@ class StatisticalBudgetGenerator:
     Uses INSEE and government data for realistic budget suggestions
     """
     
+    # Mapping des nouvelles CSP vers les catégories de base pour les statistiques
+    CSP_MAPPING = {
+        # Agriculteurs
+        'agriculteur_exploitant': 'agriculteur',
+        'agriculteur_salarie': 'agriculteur',
+        'agriculteur': 'agriculteur',  # Ancienne valeur pour compatibilité
+        
+        # Artisans, commerçants, chefs d'entreprise
+        'artisan': 'artisan',
+        'commercant': 'commercant',
+        'chef_entreprise_10': 'chef_entreprise',
+        'chef_entreprise_moins_10': 'chef_entreprise',
+        'chef_entreprise': 'chef_entreprise',  # Ancienne valeur pour compatibilité
+        
+        # Cadres et professions intellectuelles supérieures
+        'profession_liberale': 'profession_liberale',
+        'cadre_entreprise': 'cadre',
+        'cadre_fonction_publique': 'cadre',
+        'professeur_enseignant': 'cadre',
+        'ingenieur': 'cadre',
+        'medecin': 'profession_liberale',
+        'pharmacien': 'profession_liberale',
+        'avocat': 'profession_liberale',
+        'architecte': 'profession_liberale',
+        'veterinaire': 'profession_liberale',
+        'cadre_commercial': 'cadre',
+        'cadre_technique': 'cadre',
+        'cadre_administratif': 'cadre',
+        'directeur_general': 'cadre_sup',
+        'directeur_service': 'cadre_sup',
+        'chercheur': 'cadre',
+        'journaliste': 'cadre',
+        'artiste': 'cadre',
+        'cadre_sup': 'cadre_sup',  # Ancienne valeur pour compatibilité
+        'cadre': 'cadre',  # Ancienne valeur pour compatibilité
+        
+        # Professions intermédiaires
+        'prof_intermediaire_admin': 'prof_intermediaire',
+        'prof_intermediaire_commerciale': 'prof_intermediaire',
+        'technicien': 'prof_intermediaire',
+        'contremaitre': 'prof_intermediaire',
+        'infirmier': 'prof_intermediaire',
+        'prof_paramedical': 'prof_intermediaire',
+        'instituteur': 'prof_intermediaire',
+        'prof_intermediaire_sante': 'prof_intermediaire',
+        'prof_intermediaire_social': 'prof_intermediaire',
+        'policier_gendarme': 'prof_intermediaire',
+        'pompier': 'prof_intermediaire',
+        'agent_maitrise': 'prof_intermediaire',
+        'prof_intermediaire': 'prof_intermediaire',  # Ancienne valeur pour compatibilité
+        
+        # Employés
+        'employe_admin_entreprise': 'employe',
+        'employe_admin_fonction_publique': 'employe',
+        'employe_commercial': 'employe',
+        'caissier': 'employe',
+        'vendeur': 'employe',
+        'employe_service_direct': 'employe',
+        'aide_menagere': 'employe',
+        'assistant_maternel': 'employe',
+        'employe_hotel_restaurant': 'employe',
+        'coiffeur_esthetiste': 'employe',
+        'employe_securite': 'employe',
+        'ouvrier_qualifie': 'ouvrier',
+        'employe': 'employe',  # Ancienne valeur pour compatibilité
+        
+        # Ouvriers
+        'ouvrier_qualifie_industrie': 'ouvrier',
+        'ouvrier_qualifie_batiment': 'ouvrier',
+        'ouvrier_qualifie_artisanat': 'ouvrier',
+        'chauffeur': 'ouvrier',
+        'ouvrier_non_qualifie_industrie': 'ouvrier',
+        'ouvrier_non_qualifie_batiment': 'ouvrier',
+        'ouvrier_non_qualifie_artisanat': 'ouvrier',
+        'ouvrier_agricole': 'ouvrier',
+        'manoeuvre': 'ouvrier',
+        'ouvrier': 'ouvrier',  # Ancienne valeur pour compatibilité
+        
+        # Retraités
+        'retraite_agriculteur': 'retraite',
+        'retraite_artisan_commercant': 'retraite',
+        'retraite_cadre': 'retraite',
+        'retraite_prof_intermediaire': 'retraite',
+        'retraite_employe': 'retraite',
+        'retraite_ouvrier': 'retraite',
+        'retraite': 'retraite',  # Ancienne valeur pour compatibilité
+        
+        # Autres personnes sans activité professionnelle
+        'chomeur': 'chomeur',
+        'chomeur_ancien_travailleur': 'chomeur',
+        'etudiant': 'etudiant',
+        'lyceen': 'etudiant',
+        'apprenti': 'etudiant',
+        'militaire_du_contingent': 'autre',
+        'femme_au_foyer': 'autre',
+        'autre_inactif': 'autre',
+        'autre': 'autre',
+    }
+    
     # Average income by CSP (Catégorie Socio-Professionnelle) - Net monthly income
+    # Utilise les catégories de base pour les statistiques
     CSP_INCOMES = {
         'agriculteur': 2200,
         'artisan': 2500,
@@ -30,6 +130,10 @@ class StatisticalBudgetGenerator:
         'etudiant': 600,
         'autre': 2000,
     }
+    
+    def _normalize_csp(self, csp: str) -> str:
+        """Normalise une CSP vers une catégorie de base pour les statistiques"""
+        return self.CSP_MAPPING.get(csp, 'autre')
     
     # Average expense distribution by CSP (percentage of income)
     CSP_EXPENSE_DISTRIBUTION = {
@@ -75,10 +179,12 @@ class StatisticalBudgetGenerator:
             Complete budget structure with categories, expenses, etc.
         """
         csp = profile.get('csp', 'autre')
+        # Normaliser la CSP vers une catégorie de base pour les statistiques
+        normalized_csp = self._normalize_csp(csp)
         
         # Estimate monthly income if not provided
         if not profile.get('monthly_income'):
-            base_income = self.CSP_INCOMES.get(csp, 2000)
+            base_income = self.CSP_INCOMES.get(normalized_csp, 2000)
             # Adjust for family situation
             situation = profile.get('situation_familiale', 'celibataire')
             if situation == 'couple':
@@ -138,9 +244,10 @@ class StatisticalBudgetGenerator:
             
             # Adjust for specific CSP needs
             csp = profile.get('csp', 'autre')
-            if csp == 'etudiant' and cat_name == 'Logement':
+            normalized_csp = self._normalize_csp(csp)
+            if normalized_csp == 'etudiant' and cat_name == 'Logement':
                 target *= 1.2  # Students spend more on housing
-            elif csp == 'retraite' and cat_name == 'Santé':
+            elif normalized_csp == 'retraite' and cat_name == 'Santé':
                 target *= 1.5  # Retirees spend more on health
             
             categories.append({
@@ -191,7 +298,8 @@ class StatisticalBudgetGenerator:
         ]
         
         csp = profile.get('csp', 'autre')
-        if csp == 'cadre' or csp == 'cadre_sup':
+        normalized_csp = self._normalize_csp(csp)
+        if normalized_csp == 'cadre' or normalized_csp == 'cadre_sup':
             common_subs.append({'name': 'Transport (Navigo)', 'monthly': 75})
         
         for sub in common_subs[:3]:  # Take first 3 common ones
