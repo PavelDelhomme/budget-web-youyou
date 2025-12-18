@@ -306,3 +306,19 @@ def register_routes(app):
             return jsonify({'error': str(e)}), 500
         finally:
             db.close()
+    
+    @app.route('/api/csp/complete', methods=['GET'])
+    def get_complete_csp_list():
+        """Get complete list of all PCS categories from INSEE or local source"""
+        try:
+            from .csp_service import get_pcs_options_for_frontend
+            options = get_pcs_options_for_frontend()
+            return jsonify({'options': options, 'count': len(options)})
+        except Exception as e:
+            # Fallback: return current frontend list
+            # In production, this would load from the actual cspOptions.ts file or database
+            return jsonify({
+                'error': 'Service unavailable',
+                'message': str(e),
+                'note': 'Utilisez la liste locale dans cspOptions.ts'
+            }), 503

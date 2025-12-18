@@ -99,6 +99,13 @@ export const CSP_OPTIONS = [
   { value: 'cadre_rh', label: 'Cadre ressources humaines' },
   { value: 'cadre_communication', label: 'Cadre communication' },
   { value: 'cadre_informatique', label: 'Cadre informatique' },
+  { value: 'cadre_etudes_developpement', label: 'Cadre études et développement informatique' },
+  { value: 'cadre_exploitation_informatique', label: 'Cadre exploitation informatique' },
+  { value: 'directeur_informatique', label: 'Directeur informatique' },
+  { value: 'directeur_systeme_information', label: 'Directeur système d\'information' },
+  { value: 'responsable_informatique', label: 'Responsable informatique' },
+  { value: 'consultant_informatique', label: 'Consultant informatique' },
+  { value: 'expert_informatique', label: 'Expert informatique' },
   { value: 'cadre_recherche', label: 'Cadre recherche et développement' },
   
   // Cadres de la fonction publique
@@ -147,6 +154,25 @@ export const CSP_OPTIONS = [
   { value: 'ingenieur', label: 'Ingénieur' },
   { value: 'ingenieur_industrie', label: 'Ingénieur industriel' },
   { value: 'ingenieur_informatique', label: 'Ingénieur informatique' },
+  { value: 'ingenieur_developpement', label: 'Ingénieur développement' },
+  { value: 'ingenieur_reseau', label: 'Ingénieur réseau' },
+  { value: 'ingenieur_systeme', label: 'Ingénieur système' },
+  { value: 'ingenieur_securite_informatique', label: 'Ingénieur sécurité informatique' },
+  { value: 'developpeur', label: 'Développeur' },
+  { value: 'developpeur_logiciel', label: 'Développeur logiciel' },
+  { value: 'developpeur_application', label: 'Développeur d\'application' },
+  { value: 'developpeur_web', label: 'Développeur web' },
+  { value: 'developpeur_mobile', label: 'Développeur mobile' },
+  { value: 'analyste_programmeur', label: 'Analyste-programmeur' },
+  { value: 'programmeur', label: 'Programmeur' },
+  { value: 'architecte_logiciel', label: 'Architecte logiciel' },
+  { value: 'architecte_systeme', label: 'Architecte système' },
+  { value: 'chef_projet_informatique', label: 'Chef de projet informatique' },
+  { value: 'chef_projet_technique', label: 'Chef de projet technique' },
+  { value: 'administrateur_systeme', label: 'Administrateur système' },
+  { value: 'administrateur_reseau', label: 'Administrateur réseau' },
+  { value: 'administrateur_base_donnees', label: 'Administrateur base de données' },
+  { value: 'informaticien', label: 'Informaticien' },
   { value: 'ingenieur_telecom', label: 'Ingénieur télécommunications' },
   { value: 'ingenieur_electronique', label: 'Ingénieur électronique' },
   { value: 'ingenieur_mecanique', label: 'Ingénieur mécanique' },
@@ -354,6 +380,11 @@ export const CSP_OPTIONS = [
   { value: 'technicien_maintenance_electricite', label: 'Technicien maintenance électricité' },
   { value: 'technicien_maintenance_electronique', label: 'Technicien maintenance électronique' },
   { value: 'technicien_maintenance_informatique', label: 'Technicien maintenance informatique' },
+  { value: 'technicien_support_informatique', label: 'Technicien support informatique' },
+  { value: 'technicien_reseau', label: 'Technicien réseau' },
+  { value: 'technicien_telecom', label: 'Technicien télécommunications' },
+  { value: 'technicien_helpdesk', label: 'Technicien helpdesk' },
+  { value: 'operateur_informatique', label: 'Opérateur informatique' },
   { value: 'technicien_maintenance_telecom', label: 'Technicien maintenance télécoms' },
   { value: 'technicien_maintenance_automobile', label: 'Technicien maintenance automobile' },
   { value: 'technicien_maintenance_moto', label: 'Technicien maintenance moto' },
@@ -903,5 +934,86 @@ export const CSP_OPTIONS = [
   { value: 'personne_maladie_longue', label: 'Personne en arrêt maladie longue durée' },
   { value: 'autre_inactif', label: 'Autre personne inactive' },
   { value: 'autre', label: 'Autre' },
+  
+  // ============================================
+  // NOMENCLATURE CSP POUR ÉLUS ET CANDIDATURES (64 rubriques)
+  // ============================================
+  // Professions agricoles
+  { value: 'agriculteur_proprietaire_exploitant', label: 'Agriculteur-propriétaire exploitant' },
+  { value: 'salarie_agricole', label: 'Salarié agricole' },
+  
+  // Marins
+  { value: 'marin_patron', label: 'Marin (patron)' },
+  { value: 'marin_salarie', label: 'Marin (salarié)' },
+  
+  // Professions industrielles et commerciales
+  { value: 'industriel_chef_entreprise', label: 'Industriel-chef d\'entreprise' },
+  { value: 'administrateur_societe_industrielle', label: 'Administrateur de société industrielle' },
+  { value: 'agent_affaire', label: 'Agent d\'affaires' },
+  { value: 'entrepreneur_batiment', label: 'Entrepreneur en bâtiment' },
+  { value: 'proprietaire', label: 'Propriétaire' },
+  
+  // Ingénieurs et techniciens
+  { value: 'ingenieur_salarie', label: 'Ingénieur salarié' },
+  { value: 'agent_technique_technicien_prive', label: 'Agent technique et technicien du privé' },
+  { value: 'representant_commerce', label: 'Représentant de commerce' },
+  { value: 'agent_assurance', label: 'Agent d\'assurance' },
+  
+  // Cadres et employés privés
+  { value: 'cadre_superieur_prive', label: 'Cadre supérieur (privé)' },
+  { value: 'autre_cadre_prive', label: 'Autre cadre (privé)' },
+  { value: 'employe_secteur_prive', label: 'Employé (secteur privé)' },
+  { value: 'ouvrier_prive', label: 'Ouvrier (privé)' },
+  
+  // Professions sociales et médicales
+  { value: 'assistante_sociale', label: 'Assistante sociale' },
+  { value: 'salarie_secteur_medical', label: 'Salarié du secteur médical' },
+  
+  // Professions libérales médicales
+  { value: 'chirurgien', label: 'Chirurgien' },
+  { value: 'dentiste', label: 'Dentiste' },
+  
+  // Professions libérales juridiques
+  { value: 'conseiller_juridique', label: 'Conseiller juridique' },
+  { value: 'agent_general_assurance', label: 'Agent général d\'assurance' },
+  
+  // Autres professions libérales
+  { value: 'ingenieur_conseil', label: 'Ingénieur conseil' },
+  { value: 'journaliste_autre_media', label: 'Journaliste et autre média' },
+  { value: 'homme_lettre_artiste', label: 'Homme de lettres et artiste' },
+  { value: 'autre_profession_liberale', label: 'Autre profession libérale' },
+  
+  // Professions de l'enseignement
+  { value: 'professeur_faculte', label: 'Professeur de faculté' },
+  { value: 'professeur_secondaire_technique', label: 'Professeur du secondaire et technique' },
+  { value: 'enseignant_1er_degre_directeur_ecole', label: 'Enseignant 1er degré-directeur d\'école' },
+  { value: 'profession_rattachee_enseignement', label: 'Profession rattachée à l\'enseignement' },
+  
+  // Fonction publique
+  { value: 'grand_corps_etat', label: 'Grand corps de l\'État (moins les enseignants)' },
+  { value: 'fonctionnaire_categorie_a', label: 'Fonctionnaire catégorie A' },
+  { value: 'fonctionnaire_categorie_b', label: 'Fonctionnaire catégorie B' },
+  { value: 'fonctionnaire_categorie_c', label: 'Fonctionnaire catégorie C' },
+  
+  // Entreprises publiques
+  { value: 'cadre_superieur_entreprise_publique', label: 'Cadre supérieur (entreprises publiques)' },
+  { value: 'cadre_entreprise_publique', label: 'Cadre (entreprises publiques)' },
+  { value: 'employe_entreprise_publique', label: 'Employé (autres entreprises publiques)' },
+  { value: 'agent_subalterne_entreprise_publique', label: 'Agent subalterne (entreprises publiques)' },
+  
+  // Autres professions
+  { value: 'permanent_politique', label: 'Permanent politique' },
+  { value: 'ministre_culte', label: 'Ministre du culte' },
+  { value: 'autre_profession', label: 'Autre profession' },
+  { value: 'sans_profession_declaree', label: 'Sans profession déclarée' },
+  
+  // Retraités
+  { value: 'retraite_agricole', label: 'Retraité agricole' },
+  { value: 'retraite_artisan_commercant_chef_entreprise', label: 'Retraité artisan, commerçant et chef d\'entreprise' },
+  { value: 'retraite_profession_liberale', label: 'Retraité des professions libérales' },
+  { value: 'retraite_salarie_prive', label: 'Retraité salarié privé' },
+  { value: 'retraite_enseignement', label: 'Retraité de l\'enseignement' },
+  { value: 'retraite_fonction_publique', label: 'Retraité de la fonction publique (moins l\'enseignement)' },
+  { value: 'retraite_entreprise_publique', label: 'Retraité des entreprises publiques' },
 ];
 

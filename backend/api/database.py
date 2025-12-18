@@ -15,7 +15,20 @@ Base = declarative_base()
 
 # Database connection
 DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://budget_user:budget_password_change_in_production@localhost:5432/budget_db')
-engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_size=10, max_overflow=20)
+# Optimized connection pool for memory efficiency
+# pool_size=5: 5 connections per worker (2 workers = 10 total, reasonable for this app)
+# max_overflow=5: Allow 5 additional connections during peak (total max: 15)
+# pool_recycle=3600: Recycle connections after 1 hour (prevents stale connections)
+# pool_pre_ping=True: Verify connections before using (prevents connection errors)
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+    pool_size=5,  # Reduced from 10 to save memory
+    max_overflow=5,  # Reduced from 20 to save memory
+    pool_recycle=3600,  # Recycle connections after 1 hour
+    pool_timeout=30,  # Timeout for getting connection from pool
+    echo=False  # Disable SQL logging in production
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 

@@ -16,6 +16,27 @@ console.log(`🔗 Proxy target: ${proxyTarget}`)
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    // Optimisations de build pour réduire la taille et améliorer les performances
+    target: 'es2015',
+    minify: 'esbuild',
+    cssMinify: true,
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-vendor': ['@headlessui/react', '@heroicons/react'],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1000,
+  },
+  optimizeDeps: {
+    // Optimiser les dépendances pour réduire le temps de démarrage
+    include: ['react', 'react-dom', 'react-router-dom'],
+    exclude: [],
+  },
   server: {
     port: 3030, // Port INTERNE dans le conteneur Docker (mappé vers 6061 externe dans docker-compose.yml)
     strictPort: false, // Permettre d'utiliser un autre port si 3030 est occupé

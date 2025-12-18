@@ -6,16 +6,52 @@ services:
       - POSTGRES_DB=${POSTGRES_DB:-budget_db}
       - POSTGRES_USER=${POSTGRES_USER:-budget_user}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-budget_password_change_in_production}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF8 --locale=C
+      - PGDATA=/var/lib/postgresql/data/pgdata
     ports:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    command:
+      - postgres
+      - -c
+      - shared_buffers=64MB
+      - -c
+      - max_connections=50
+      - -c
+      - effective_cache_size=128MB
+      - -c
+      - maintenance_work_mem=32MB
+      - -c
+      - checkpoint_completion_target=0.9
+      - -c
+      - wal_buffers=4MB
+      - -c
+      - default_statistics_target=100
+      - -c
+      - random_page_cost=1.1
+      - -c
+      - effective_io_concurrency=200
+      - -c
+      - work_mem=4MB
+      - -c
+      - min_wal_size=128MB
+      - -c
+      - max_wal_size=512MB
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-budget_user} -d ${POSTGRES_DB:-budget_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
 
   backend:
     build:
@@ -31,6 +67,9 @@ services:
       - ADMIN_EMAIL=${ADMIN_EMAIL:-dev@delhomme.ovh}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-5n!B@#c*ymgEBYXrWdKE}
       - DATABASE_URL=postgresql://${POSTGRES_USER:-budget_user}:${POSTGRES_PASSWORD:-budget_password_change_in_production}@postgres:5432/${POSTGRES_DB:-budget_db}
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONOPTIMIZE=1
     depends_on:
       postgres:
         condition: service_healthy
@@ -47,6 +86,14 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
 
   frontend:
     build:
@@ -59,6 +106,7 @@ services:
       - VITE_API_URL=http://localhost:6060
       - VITE_PROXY_TARGET=http://backend:6060
       - VITE_HMR_DISABLED=true
+      - NODE_OPTIONS=--max-old-space-size=256
     volumes:
       - ./client:/app
       - budget-web-frontend_node_modules:/app/node_modules
@@ -67,6 +115,14 @@ services:
       backend:
         condition: service_healthy
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
 
 volumes:
   budget-web-frontend_node_modules:
